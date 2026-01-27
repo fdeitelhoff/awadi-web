@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -18,7 +18,7 @@ import {
 } from "@/lib/types/maintenance";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { MaintenanceTaskCard } from "./maintenance-task-card";
+import { CompactTaskCard } from "./compact-task-card";
 
 interface MaintenanceCalendarProps {
   tasks: MaintenanceTask[];
@@ -37,16 +37,7 @@ function getWeekNumber(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-// Format date for display
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("de-DE", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-  });
-}
-
-// Format short date for column header
+// Format short date
 function formatShortDate(date: Date): string {
   return date.toLocaleDateString("de-DE", {
     day: "2-digit",
@@ -96,10 +87,7 @@ function isToday(date: Date, today: Date): boolean {
   return isSameDay(date, today);
 }
 
-// Get weekday name
-function getWeekdayName(date: Date): string {
-  return date.toLocaleDateString("de-DE", { weekday: "short" });
-}
+const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 const viewRangeOptions: { value: CalendarViewRange; label: string }[] = [
   { value: "1week", label: "1 Woche" },
@@ -182,7 +170,7 @@ export function MaintenanceCalendar({
   }
 
   return (
-    <Card className="flex-1 flex flex-col min-h-0">
+    <Card className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <CardHeader className="pb-3 shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <CardTitle className="text-lg">Wartungsplanung</CardTitle>
@@ -236,96 +224,108 @@ export function MaintenanceCalendar({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 min-h-0 pt-0">
-        <ScrollArea className="h-full w-full">
-          {/* Weeks as columns */}
-          <div className="flex gap-4 pb-4">
+      <CardContent className="flex-1 min-h-0 pt-0 pb-2 px-3">
+        <div className="h-full flex flex-col">
+          {/* Header row with week numbers */}
+          <div
+            className="grid gap-1 mb-1 shrink-0"
+            style={{
+              gridTemplateColumns: `48px repeat(${weeks}, 1fr)`,
+            }}
+          >
+            <div className="text-xs font-medium text-muted-foreground p-1">
+              Tag
+            </div>
             {weekDates.map((week, weekIndex) => (
               <div
                 key={weekIndex}
-                className="flex-shrink-0 w-72 border rounded-lg bg-muted/30"
+                className="text-center bg-muted/50 rounded px-2 py-1"
               >
-                {/* Week header */}
-                <div className="sticky top-0 bg-muted/80 backdrop-blur-sm border-b px-3 py-2 rounded-t-lg z-10">
-                  <h3 className="text-sm font-semibold text-center">
-                    KW {getWeekNumber(week[0])}
-                  </h3>
-                  <p className="text-xs text-muted-foreground text-center">
-                    {formatShortDate(week[0])} - {formatShortDate(week[6])}
-                  </p>
+                <div className="text-xs font-semibold">
+                  KW {getWeekNumber(week[0])}
                 </div>
-
-                {/* Days within the week */}
-                <ScrollArea className="h-[calc(100vh-220px)]">
-                  <div className="p-2 space-y-3">
-                    {week.map((date, dayIndex) => {
-                      const dayTasks =
-                        tasksByDate.get(date.toDateString()) || [];
-                      const isTodayDate = isToday(date, today);
-                      const isWeekend =
-                        date.getDay() === 0 || date.getDay() === 6;
-
-                      // Skip weekends if no tasks
-                      if (isWeekend && dayTasks.length === 0) {
-                        return null;
-                      }
-
-                      return (
-                        <div key={dayIndex} className="space-y-2">
-                          {/* Day header */}
-                          <div
-                            className={`flex items-center justify-between px-2 py-1 rounded ${
-                              isTodayDate
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-background"
-                            }`}
-                          >
-                            <span
-                              className={`text-xs font-medium ${
-                                isTodayDate ? "" : "text-muted-foreground"
-                              }`}
-                            >
-                              {getWeekdayName(date)}, {formatShortDate(date)}
-                            </span>
-                            <span
-                              className={`text-xs ${
-                                isTodayDate
-                                  ? "text-primary-foreground/80"
-                                  : "text-muted-foreground"
-                              }`}
-                            >
-                              {dayTasks.length}
-                            </span>
-                          </div>
-
-                          {/* Tasks for this day */}
-                          {dayTasks.length > 0 ? (
-                            <div className="space-y-2">
-                              {dayTasks.map((task) => (
-                                <MaintenanceTaskCard
-                                  key={task.id}
-                                  task={task}
-                                  technician={getTechnician(task.technicianId)}
-                                  onConfirm={onConfirmTask}
-                                  onCancel={onCancelTask}
-                                />
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-xs text-muted-foreground text-center py-2">
-                              Keine Termine
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
+                <div className="text-[10px] text-muted-foreground">
+                  {formatShortDate(week[0])} - {formatShortDate(week[6])}
+                </div>
               </div>
             ))}
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+
+          {/* Scrollable day rows */}
+          <ScrollArea className="flex-1">
+            <div className="space-y-1 pr-3">
+              {/* For each day of the week (0-6, Mon-Sun) */}
+              {[0, 1, 2, 3, 4].map((dayIndex) => (
+                <div
+                  key={dayIndex}
+                  className="grid gap-1"
+                  style={{
+                    gridTemplateColumns: `48px repeat(${weeks}, 1fr)`,
+                  }}
+                >
+                  {/* Day label */}
+                  <div className="text-xs font-medium text-muted-foreground p-1 flex items-start pt-2">
+                    {WEEKDAY_NAMES[dayIndex]}
+                  </div>
+
+                  {/* Cells for each week */}
+                  {weekDates.map((week, weekIndex) => {
+                    const date = week[dayIndex];
+                    const dayTasks =
+                      tasksByDate.get(date.toDateString()) || [];
+                    const isTodayDate = isToday(date, today);
+
+                    return (
+                      <div
+                        key={weekIndex}
+                        className={`min-h-[60px] rounded border p-1.5 ${
+                          isTodayDate
+                            ? "bg-primary/10 border-primary"
+                            : "bg-muted/20 border-transparent"
+                        }`}
+                      >
+                        {/* Date header */}
+                        <div
+                          className={`text-[10px] mb-1 ${
+                            isTodayDate
+                              ? "text-primary font-semibold"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {formatShortDate(date)}
+                          {isTodayDate && (
+                            <span className="ml-1 bg-primary text-primary-foreground px-1 rounded text-[9px]">
+                              Heute
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Tasks */}
+                        {dayTasks.length > 0 ? (
+                          <div className="space-y-1">
+                            {dayTasks.map((task) => (
+                              <CompactTaskCard
+                                key={task.id}
+                                task={task}
+                                technician={getTechnician(task.technicianId)}
+                                onConfirm={onConfirmTask}
+                                onCancel={onCancelTask}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-[10px] text-muted-foreground/50 text-center py-1">
+                            —
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </CardContent>
     </Card>
   );
