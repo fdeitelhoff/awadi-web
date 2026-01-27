@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -46,6 +46,14 @@ function formatDate(date: Date): string {
   });
 }
 
+// Format short date for column header
+function formatShortDate(date: Date): string {
+  return date.toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+}
+
 // Get start of week (Monday)
 function getStartOfWeek(date: Date): Date {
   const d = new Date(date);
@@ -83,9 +91,14 @@ function isSameDay(date1: Date, date2: Date): boolean {
   );
 }
 
-// Check if date is today (takes today as parameter to avoid new Date() during render)
+// Check if date is today
 function isToday(date: Date, today: Date): boolean {
   return isSameDay(date, today);
+}
+
+// Get weekday name
+function getWeekdayName(date: Date): string {
+  return date.toLocaleDateString("de-DE", { weekday: "short" });
 }
 
 const viewRangeOptions: { value: CalendarViewRange; label: string }[] = [
@@ -224,76 +237,94 @@ export function MaintenanceCalendar({
       </CardHeader>
 
       <CardContent className="flex-1 min-h-0 pt-0">
-        <ScrollArea className="h-full">
-          <div className="space-y-6 pr-4">
+        <ScrollArea className="h-full w-full">
+          {/* Weeks as columns */}
+          <div className="flex gap-4 pb-4">
             {weekDates.map((week, weekIndex) => (
-              <div key={weekIndex} className="space-y-2">
+              <div
+                key={weekIndex}
+                className="flex-shrink-0 w-72 border rounded-lg bg-muted/30"
+              >
                 {/* Week header */}
-                <div className="sticky top-0 bg-card z-10 py-1">
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                <div className="sticky top-0 bg-muted/80 backdrop-blur-sm border-b px-3 py-2 rounded-t-lg z-10">
+                  <h3 className="text-sm font-semibold text-center">
                     KW {getWeekNumber(week[0])}
                   </h3>
+                  <p className="text-xs text-muted-foreground text-center">
+                    {formatShortDate(week[0])} - {formatShortDate(week[6])}
+                  </p>
                 </div>
 
-                {/* Days */}
-                <div className="space-y-3">
-                  {week.map((date, dayIndex) => {
-                    const dayTasks = tasksByDate.get(date.toDateString()) || [];
-                    const hasTasksOrIsToday =
-                      dayTasks.length > 0 || isToday(date, today);
+                {/* Days within the week */}
+                <ScrollArea className="h-[calc(100vh-220px)]">
+                  <div className="p-2 space-y-3">
+                    {week.map((date, dayIndex) => {
+                      const dayTasks =
+                        tasksByDate.get(date.toDateString()) || [];
+                      const isTodayDate = isToday(date, today);
+                      const isWeekend =
+                        date.getDay() === 0 || date.getDay() === 6;
 
-                    // Skip weekends if no tasks
-                    if (
-                      !hasTasksOrIsToday &&
-                      (date.getDay() === 0 || date.getDay() === 6)
-                    ) {
-                      return null;
-                    }
+                      // Skip weekends if no tasks
+                      if (isWeekend && dayTasks.length === 0) {
+                        return null;
+                      }
 
-                    return (
-                      <div key={dayIndex} className="space-y-2">
-                        <div
-                          className={`text-sm font-medium flex items-center gap-2 ${
-                            isToday(date, today)
-                              ? "text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          {formatDate(date)}
-                          {isToday(date, today) && (
-                            <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
-                              Heute
+                      return (
+                        <div key={dayIndex} className="space-y-2">
+                          {/* Day header */}
+                          <div
+                            className={`flex items-center justify-between px-2 py-1 rounded ${
+                              isTodayDate
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-background"
+                            }`}
+                          >
+                            <span
+                              className={`text-xs font-medium ${
+                                isTodayDate ? "" : "text-muted-foreground"
+                              }`}
+                            >
+                              {getWeekdayName(date)}, {formatShortDate(date)}
                             </span>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            ({dayTasks.length} Termine)
-                          </span>
-                        </div>
-
-                        {dayTasks.length > 0 ? (
-                          <div className="space-y-2 pl-2 border-l-2 border-border">
-                            {dayTasks.map((task) => (
-                              <MaintenanceTaskCard
-                                key={task.id}
-                                task={task}
-                                technician={getTechnician(task.technicianId)}
-                                onConfirm={onConfirmTask}
-                                onCancel={onCancelTask}
-                              />
-                            ))}
+                            <span
+                              className={`text-xs ${
+                                isTodayDate
+                                  ? "text-primary-foreground/80"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              {dayTasks.length}
+                            </span>
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground pl-2 border-l-2 border-border py-2">
-                            Keine Termine
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+
+                          {/* Tasks for this day */}
+                          {dayTasks.length > 0 ? (
+                            <div className="space-y-2">
+                              {dayTasks.map((task) => (
+                                <MaintenanceTaskCard
+                                  key={task.id}
+                                  task={task}
+                                  technician={getTechnician(task.technicianId)}
+                                  onConfirm={onConfirmTask}
+                                  onCancel={onCancelTask}
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground text-center py-2">
+                              Keine Termine
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               </div>
             ))}
           </div>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </CardContent>
     </Card>
