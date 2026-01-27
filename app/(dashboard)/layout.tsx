@@ -1,6 +1,6 @@
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 
-export default function ProtectedLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -8,9 +8,7 @@ export default function ProtectedLayout({
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <DashboardNav />
-      <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full p-6">
-        {children}
-      </main>
+      <main className="flex-1 flex flex-col">{children}</main>
     </div>
   );
 }
