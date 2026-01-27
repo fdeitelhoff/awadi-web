@@ -36,11 +36,24 @@ pnpm lint         # Run ESLint
 3. Unauthenticated users are redirected to `/auth/login`
 4. Protected routes are any path not starting with `/` (root) or `/auth`
 
-### Styling
+### Styling & Design System
 
 - Tailwind CSS with CSS variables for theming (HSL colors)
 - Dark mode via `next-themes` with class strategy
 - shadcn/ui configured with "new-york" style
+
+**AWADI Brand Colors** (available as `awadi-*` classes):
+- `awadi-navy` - Dark slate blue from logo text (primary brand color)
+- `awadi-blue` - Medium blue from logo circles
+- `awadi-indigo` - Lighter indigo accent
+- `awadi-slate` - Grayish-blue for backgrounds
+
+**Status Colors** (available as utility classes):
+- `success` / `success-foreground`
+- `warning` / `warning-foreground`
+- `info` / `info-foreground`
+
+Usage: `bg-awadi-navy`, `text-success`, `border-awadi-blue`, etc.
 
 ### Path Aliases
 

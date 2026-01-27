@@ -51,6 +51,26 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        /* AWADI Brand Colors */
+        awadi: {
+          navy: "hsl(var(--awadi-navy))",
+          blue: "hsl(var(--awadi-blue))",
+          indigo: "hsl(var(--awadi-indigo))",
+          slate: "hsl(var(--awadi-slate))",
+        },
+        /* Status Colors */
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
