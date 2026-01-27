@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MaintenanceTask, Technician } from "@/lib/types/maintenance";
-import { Mail, MapPin, Phone, User } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import {
   ConfirmationStatusIndicator,
   SchedulingStatusBadge,
@@ -21,91 +21,97 @@ interface CompactTaskCardProps {
   onCancel?: (taskId: string) => void;
 }
 
+// Extract city and zip from location string like "Straße 1, 12345 Stadt"
+function parseLocation(location: string): { street: string; zipCity: string } {
+  const parts = location.split(",");
+  if (parts.length >= 2) {
+    return {
+      street: parts[0].trim(),
+      zipCity: parts.slice(1).join(",").trim(),
+    };
+  }
+  return { street: location, zipCity: "" };
+}
+
 export function CompactTaskCard({
   task,
   technician,
 }: CompactTaskCardProps) {
+  const { street, zipCity } = parseLocation(task.location);
+
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="bg-card border rounded p-1.5 hover:shadow-sm transition-shadow cursor-pointer">
-            <div className="flex items-start gap-1.5">
-              {/* Traffic light */}
+          <div className="bg-card border rounded-md p-2 hover:shadow-md transition-shadow cursor-pointer">
+            {/* Header row: Traffic light + Name + Technician */}
+            <div className="flex items-center gap-2 mb-1.5">
               <ConfirmationStatusIndicator
                 status={task.confirmationStatus}
-                size="sm"
+                size="md"
               />
+              <span className="text-xs font-semibold flex-1 truncate">
+                {task.contactPerson}
+              </span>
+              {technician && (
+                <Avatar className="h-5 w-5 shrink-0">
+                  <AvatarFallback
+                    style={{ backgroundColor: technician.color }}
+                    className="text-white text-[9px] font-medium"
+                  >
+                    {technician.initials}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] font-medium truncate">
-                    {task.contactPerson}
-                  </span>
-                  {technician && (
-                    <Avatar className="h-4 w-4 shrink-0">
-                      <AvatarFallback
-                        style={{ backgroundColor: technician.color }}
-                        className="text-white text-[8px]"
-                      >
-                        {technician.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-                <div className="text-[10px] text-muted-foreground truncate">
-                  {task.location.split(",")[0]}
-                </div>
+            {/* Location */}
+            <div className="flex items-start gap-1.5 mb-1">
+              <MapPin className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+              <div className="text-[11px] text-muted-foreground leading-tight">
+                <div className="truncate">{street}</div>
+                <div className="font-medium text-foreground">{zipCity}</div>
               </div>
+            </div>
+
+            {/* Phone */}
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
+              <a
+                href={`tel:${task.phoneNumber}`}
+                className="text-[11px] hover:text-primary transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {task.phoneNumber}
+              </a>
+            </div>
+
+            {/* Status badge */}
+            <div className="flex justify-end">
+              <SchedulingStatusBadge status={task.schedulingStatus} />
             </div>
           </div>
         </TooltipTrigger>
         <TooltipContent side="right" className="max-w-xs">
           <div className="space-y-2">
-            {/* Header with status */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <ConfirmationStatusIndicator
-                  status={task.confirmationStatus}
-                  size="md"
-                />
-                <span className="font-medium">{task.contactPerson}</span>
-              </div>
-              <SchedulingStatusBadge status={task.schedulingStatus} />
-            </div>
-
-            {/* Contact details */}
-            <div className="space-y-1 text-xs">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <MapPin className="h-3 w-3 shrink-0" />
+            <div className="font-medium">{task.contactPerson}</div>
+            <div className="text-xs space-y-1">
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 text-muted-foreground" />
                 <span>{task.location}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Phone className="h-3 w-3 shrink-0 text-muted-foreground" />
-                <a
-                  href={`tel:${task.phoneNumber}`}
-                  className="hover:text-primary"
-                >
-                  {task.phoneNumber}
-                </a>
+                <Phone className="h-3 w-3 text-muted-foreground" />
+                <span>{task.phoneNumber}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Mail className="h-3 w-3 shrink-0 text-muted-foreground" />
-                <a
-                  href={`mailto:${task.email}`}
-                  className="hover:text-primary truncate"
-                >
-                  {task.email}
-                </a>
+                <Mail className="h-3 w-3 text-muted-foreground" />
+                <span>{task.email}</span>
               </div>
             </div>
-
-            {/* Technician */}
             {technician && (
-              <div className="flex items-center gap-1.5 text-xs pt-1 border-t">
-                <User className="h-3 w-3 text-muted-foreground" />
-                <span>Techniker: {technician.name}</span>
+              <div className="text-xs pt-1 border-t">
+                Techniker: {technician.name}
               </div>
             )}
           </div>

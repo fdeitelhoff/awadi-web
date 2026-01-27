@@ -228,13 +228,13 @@ export function MaintenanceCalendar({
         <div className="h-full flex flex-col">
           {/* Header row with week numbers */}
           <div
-            className="grid gap-1 mb-1 shrink-0"
+            className="grid gap-2 mb-2 shrink-0"
             style={{
-              gridTemplateColumns: `48px repeat(${weeks}, 1fr)`,
+              gridTemplateColumns: `40px repeat(${weeks}, 1fr)`,
             }}
           >
-            <div className="text-xs font-medium text-muted-foreground p-1">
-              Tag
+            <div className="text-xs font-medium text-muted-foreground flex items-center justify-center">
+
             </div>
             {weekDates.map((week, weekIndex) => (
               <div
@@ -253,18 +253,18 @@ export function MaintenanceCalendar({
 
           {/* Scrollable day rows */}
           <ScrollArea className="flex-1">
-            <div className="space-y-1 pr-3">
-              {/* For each day of the week (0-6, Mon-Sun) */}
+            <div className="space-y-2 pr-3">
+              {/* For each day of the week (0-4, Mon-Fri) */}
               {[0, 1, 2, 3, 4].map((dayIndex) => (
                 <div
                   key={dayIndex}
-                  className="grid gap-1"
+                  className="grid gap-2"
                   style={{
-                    gridTemplateColumns: `48px repeat(${weeks}, 1fr)`,
+                    gridTemplateColumns: `40px repeat(${weeks}, 1fr)`,
                   }}
                 >
                   {/* Day label */}
-                  <div className="text-xs font-medium text-muted-foreground p-1 flex items-start pt-2">
+                  <div className="text-xs font-semibold text-muted-foreground flex items-start justify-center pt-3">
                     {WEEKDAY_NAMES[dayIndex]}
                   </div>
 
@@ -278,23 +278,23 @@ export function MaintenanceCalendar({
                     return (
                       <div
                         key={weekIndex}
-                        className={`min-h-[60px] rounded border p-1.5 ${
+                        className={`min-h-[160px] rounded-lg border p-2 ${
                           isTodayDate
                             ? "bg-primary/10 border-primary"
-                            : "bg-muted/20 border-transparent"
+                            : "bg-muted/20 border-border/50"
                         }`}
                       >
                         {/* Date header */}
                         <div
-                          className={`text-[10px] mb-1 ${
+                          className={`text-xs mb-2 font-medium ${
                             isTodayDate
-                              ? "text-primary font-semibold"
+                              ? "text-primary"
                               : "text-muted-foreground"
                           }`}
                         >
                           {formatShortDate(date)}
                           {isTodayDate && (
-                            <span className="ml-1 bg-primary text-primary-foreground px-1 rounded text-[9px]">
+                            <span className="ml-1.5 bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-[10px]">
                               Heute
                             </span>
                           )}
@@ -302,7 +302,7 @@ export function MaintenanceCalendar({
 
                         {/* Tasks */}
                         {dayTasks.length > 0 ? (
-                          <div className="space-y-1">
+                          <div className="space-y-2">
                             {dayTasks.map((task) => (
                               <CompactTaskCard
                                 key={task.id}
@@ -314,8 +314,8 @@ export function MaintenanceCalendar({
                             ))}
                           </div>
                         ) : (
-                          <div className="text-[10px] text-muted-foreground/50 text-center py-1">
-                            —
+                          <div className="text-xs text-muted-foreground/50 text-center py-6">
+                            Keine Termine
                           </div>
                         )}
                       </div>
