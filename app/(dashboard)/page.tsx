@@ -43,7 +43,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex-1 flex gap-4 p-4 min-h-0">
+    <div className="flex-1 flex gap-4 p-4 min-h-0 overflow-hidden">
       {/* Main calendar area */}
       <MaintenanceCalendar
         tasks={tasks}

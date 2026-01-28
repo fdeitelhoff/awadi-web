@@ -216,7 +216,7 @@ export function MaintenanceCalendar({
   // Show loading state during SSR/initial render (after all hooks)
   if (!isClient || startDate === null || today === null) {
     return (
-      <Card className="flex-1 flex flex-col min-h-0 items-center justify-center">
+      <Card className="flex-1 flex flex-col min-h-0 overflow-hidden items-center justify-center">
         <div className="text-muted-foreground">Laden...</div>
       </Card>
     );
@@ -356,7 +356,7 @@ export function MaintenanceCalendar({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 min-h-0 pt-0 pb-2 px-3">
+      <CardContent className="flex-1 min-h-0 pt-0 pb-2 px-3 overflow-hidden">
         {viewMode === "columns" ? (
           <ColumnsView
             weeks={weeks}
@@ -413,7 +413,7 @@ function ColumnsView({
   onCancelTask,
 }: CalendarViewProps) {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* Header row with week numbers */}
       <div
         className="grid gap-2 mb-2 shrink-0"
@@ -438,7 +438,7 @@ function ColumnsView({
       </div>
 
       {/* Scrollable day rows */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-2 pr-3">
           {/* For each day of the week (0-4, Mon-Fri) */}
           {[0, 1, 2, 3, 4].map((dayIndex) => (
@@ -552,7 +552,7 @@ function RowsView({
   onCancelTask,
 }: CalendarViewProps) {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* Header row with day names */}
       <div
         className="grid gap-2 mb-2 shrink-0"
@@ -572,7 +572,7 @@ function RowsView({
       </div>
 
       {/* Scrollable week rows */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-3 pr-3">
           {/* For each week */}
           {weekDates.map((week, weekIndex) => (

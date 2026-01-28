@@ -128,14 +128,14 @@ export function TicketsSidebar({
   // Show loading state during SSR
   if (now === null) {
     return (
-      <Card className="w-80 shrink-0 flex flex-col items-center justify-center">
+      <Card className="w-80 shrink-0 flex flex-col min-h-0 overflow-hidden items-center justify-center">
         <div className="text-muted-foreground py-8">Laden...</div>
       </Card>
     );
   }
 
   return (
-    <Card className="w-80 shrink-0 flex flex-col">
+    <Card className="w-80 shrink-0 flex flex-col min-h-0 overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
