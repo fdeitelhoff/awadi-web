@@ -1,7 +1,8 @@
 "use client";
 
 import { MaintenanceCalendar } from "@/components/dashboard/maintenance-calendar";
-import { TicketsSidebar } from "@/components/dashboard/tickets-sidebar";
+import { RouteMapPanel } from "@/components/dashboard/route-map-panel";
+import { TicketsPanel } from "@/components/dashboard/tickets-panel";
 import { maintenanceTasks, serviceTickets } from "@/lib/data/mock-data";
 import { MaintenanceTask } from "@/lib/types/maintenance";
 import { useState } from "react";
@@ -44,18 +45,24 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 flex gap-4 p-4 min-h-0 overflow-hidden">
-      {/* Main calendar area */}
-      <MaintenanceCalendar
-        tasks={tasks}
-        onConfirmTask={handleConfirmTask}
-        onCancelTask={handleCancelTask}
-      />
+      {/* Left side: Calendar (top) + Tickets (bottom) - 70% width */}
+      <div className="w-[70%] flex flex-col gap-4 min-h-0">
+        {/* Calendar area - scrollable */}
+        <MaintenanceCalendar
+          tasks={tasks}
+          onConfirmTask={handleConfirmTask}
+          onCancelTask={handleCancelTask}
+        />
 
-      {/* Tickets sidebar */}
-      <TicketsSidebar
-        tickets={serviceTickets}
-        onScheduleTicket={handleScheduleTicket}
-      />
+        {/* Tickets panel - sticky at bottom */}
+        <TicketsPanel
+          tickets={serviceTickets}
+          onScheduleTicket={handleScheduleTicket}
+        />
+      </div>
+
+      {/* Right side: Route map - 30% width */}
+      <RouteMapPanel />
     </div>
   );
 }
