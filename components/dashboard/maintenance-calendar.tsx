@@ -545,22 +545,55 @@ function RowsView({
   onConfirmTask,
   onCancelTask,
 }: CalendarViewProps) {
+  // Helper to count visible tasks for a specific date
+  const countVisibleTasks = (date: Date): number => {
+    const dayTasks = tasksByDate.get(date.toDateString()) || [];
+    const tasksByTech = groupTasksByTechnician(dayTasks);
+    const assignedTechIds = Array.from(tasksByTech.keys()).filter(
+      (id) => id !== null && selectedTechnicianIds.has(id)
+    ) as string[];
+    const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
+    return assignedTechIds.reduce(
+      (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
+      unassignedTasks.length
+    );
+  };
+
+  // Calculate totals per day of week (across all visible weeks)
+  const dayTotals = [0, 1, 2, 3, 4].map((dayIndex) =>
+    weekDates.reduce((sum, week) => sum + countVisibleTasks(week[dayIndex]), 0)
+  );
+
+  // Calculate totals per week
+  const weekTotals = weekDates.map((week) =>
+    [0, 1, 2, 3, 4].reduce((sum, dayIndex) => sum + countVisibleTasks(week[dayIndex]), 0)
+  );
+
+  // Calculate overall total
+  const overallTotal = weekTotals.reduce((sum, weekTotal) => sum + weekTotal, 0);
+
   return (
     <div className="h-full flex flex-col min-h-0">
-      {/* Header row with day names */}
+      {/* Header row with day names and counts */}
       <div
         className="grid gap-2 mb-2 shrink-0"
         style={{
           gridTemplateColumns: `80px repeat(5, 1fr)`,
         }}
       >
-        <div className="text-xs font-medium text-muted-foreground flex items-center justify-center"></div>
+        {/* Overall total in upper left */}
+        <div className="bg-primary/10 rounded px-2 py-1.5 flex flex-col items-center justify-center">
+          <div className="text-lg font-bold text-primary">{overallTotal}</div>
+          <div className="text-[10px] text-muted-foreground">Termine</div>
+        </div>
+        {/* Day columns with totals */}
         {[0, 1, 2, 3, 4].map((dayIndex) => (
           <div
             key={dayIndex}
             className="text-center bg-muted/50 rounded px-2 py-1.5"
           >
             <div className="text-xs font-semibold">{WEEKDAY_NAMES[dayIndex]}</div>
+            <div className="text-[10px] text-muted-foreground">{dayTotals[dayIndex]} Termine</div>
           </div>
         ))}
       </div>
@@ -578,13 +611,16 @@ function RowsView({
                   gridTemplateColumns: `80px repeat(5, 1fr)`,
                 }}
               >
-                {/* Week label */}
+                {/* Week label with total */}
                 <div className="bg-muted/50 rounded px-2 py-1.5 flex flex-col items-center justify-center">
                   <div className="text-xs font-semibold">
                     KW {getWeekNumber(week[0])}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
                     {formatShortDate(week[0])} - {formatShortDate(week[4])}
+                  </div>
+                  <div className="text-xs font-medium text-primary mt-0.5">
+                    {weekTotals[weekIndex]} Termine
                   </div>
                 </div>
 
