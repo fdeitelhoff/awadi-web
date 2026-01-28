@@ -133,9 +133,12 @@ export function MaintenanceCalendar({
   const [today, setToday] = useState<Date | null>(null);
   const [isClient, setIsClient] = useState(false);
   // Selected technicians filter - null means show all, Set means show only selected
-  const [selectedTechnicianIds, setSelectedTechnicianIds] = useState<Set<string> | null>(null);
+  // Default to first technician selected (more common use case: viewing one technician at a time)
+  const [selectedTechnicianIds, setSelectedTechnicianIds] = useState<Set<string>>(
+    () => new Set([technicians[0]?.id].filter(Boolean))
+  );
   // Also track if unassigned tasks should be shown
-  const [showUnassigned, setShowUnassigned] = useState(true);
+  const [showUnassigned, setShowUnassigned] = useState(false);
 
   // Initialize dates on client side to avoid SSR/prerender issues
   useEffect(() => {
@@ -184,24 +187,15 @@ export function MaintenanceCalendar({
     setStartDate(getStartOfWeek(now));
   };
 
-  // Toggle technician filter
+  // Toggle technician filter - clicking selects only that technician (radio-like behavior)
   const toggleTechnician = (techId: string) => {
     setSelectedTechnicianIds((prev) => {
-      if (prev === null) {
-        // First click: select only this technician
-        return new Set([techId]);
+      if (prev.has(techId) && prev.size === 1) {
+        // Clicking the only selected technician does nothing (must have at least one)
+        return prev;
       }
-      const newSet = new Set(prev);
-      if (newSet.has(techId)) {
-        newSet.delete(techId);
-        // If no technicians selected, show all
-        if (newSet.size === 0) {
-          return null;
-        }
-      } else {
-        newSet.add(techId);
-      }
-      return newSet;
+      // Select only this technician (radio behavior - more common use case)
+      return new Set([techId]);
     });
   };
 
@@ -211,7 +205,7 @@ export function MaintenanceCalendar({
   };
 
   // Check if all technicians are shown (no filter active)
-  const isShowingAll = selectedTechnicianIds === null && showUnassigned;
+  const isShowingAll = selectedTechnicianIds.size === technicians.length && showUnassigned;
 
   // Show loading state during SSR/initial render (after all hooks)
   if (!isClient || startDate === null || today === null) {
@@ -231,7 +225,7 @@ export function MaintenanceCalendar({
             {/* Technician legend - clickable filter */}
             <div className="hidden lg:flex items-center gap-1">
               {technicians.map((tech) => {
-                const isSelected = selectedTechnicianIds === null || selectedTechnicianIds.has(tech.id);
+                const isSelected = selectedTechnicianIds.has(tech.id);
                 return (
                   <button
                     key={tech.id}
@@ -239,7 +233,7 @@ export function MaintenanceCalendar({
                     className={`flex items-center gap-1 px-1.5 py-1 rounded transition-all hover:bg-muted ${
                       isSelected ? "opacity-100" : "opacity-40"
                     }`}
-                    title={isSelected ? `${tech.name} ausblenden` : `${tech.name} einblenden`}
+                    title={`${tech.name} anzeigen`}
                   >
                     <div
                       className="w-3 h-3 rounded-full transition-transform"
@@ -269,15 +263,15 @@ export function MaintenanceCalendar({
                 />
                 <span className="text-xs text-muted-foreground">?</span>
               </button>
-              {/* Reset filter button */}
+              {/* Show all button */}
               {!isShowingAll && (
                 <button
                   onClick={() => {
-                    setSelectedTechnicianIds(null);
+                    setSelectedTechnicianIds(new Set(technicians.map((t) => t.id)));
                     setShowUnassigned(true);
                   }}
                   className="text-xs text-muted-foreground hover:text-foreground ml-1 px-1.5 py-1 rounded hover:bg-muted transition-colors"
-                  title="Filter zurücksetzen"
+                  title="Alle Techniker anzeigen"
                 >
                   Alle
                 </button>
@@ -394,7 +388,7 @@ interface CalendarViewProps {
   tasksByDate: Map<string, MaintenanceTask[]>;
   today: Date;
   getTechnician: (technicianId: string) => Technician | undefined;
-  selectedTechnicianIds: Set<string> | null;
+  selectedTechnicianIds: Set<string>;
   showUnassigned: boolean;
   onConfirmTask?: (taskId: string) => void;
   onCancelTask?: (taskId: string) => void;
@@ -464,7 +458,7 @@ function ColumnsView({
                 const tasksByTech = groupTasksByTechnician(dayTasks);
                 // Filter technicians based on selection
                 const assignedTechIds = Array.from(tasksByTech.keys()).filter(
-                  (id) => id !== null && (selectedTechnicianIds === null || selectedTechnicianIds.has(id))
+                  (id) => id !== null && selectedTechnicianIds.has(id)
                 ) as string[];
                 const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
 
@@ -604,7 +598,7 @@ function RowsView({
                   const tasksByTech = groupTasksByTechnician(dayTasks);
                   // Filter technicians based on selection
                   const assignedTechIds = Array.from(tasksByTech.keys()).filter(
-                    (id) => id !== null && (selectedTechnicianIds === null || selectedTechnicianIds.has(id))
+                    (id) => id !== null && selectedTechnicianIds.has(id)
                   ) as string[];
                   const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
 
@@ -642,16 +636,16 @@ function RowsView({
                         </span>
                       </div>
 
-                      {/* Technician tours - more compact for row view */}
+                      {/* Technician tours - with full appointment details */}
                       {visibleTaskCount > 0 ? (
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           {assignedTechIds.map((techId) => {
                             const tech = getTechnician(techId);
                             const techTasks = tasksByTech.get(techId) || [];
                             if (!tech) return null;
 
                             return (
-                              <CompactTechnicianTour
+                              <TechnicianTour
                                 key={techId}
                                 technician={tech}
                                 tasks={techTasks}
@@ -662,9 +656,7 @@ function RowsView({
                           })}
 
                           {/* Unassigned tasks */}
-                          {showUnassigned && unassignedTasks.length > 0 && (
-                            <CompactUnassignedTasks tasks={unassignedTasks} />
-                          )}
+                          {showUnassigned && <UnassignedTasks tasks={unassignedTasks} />}
                         </div>
                       ) : (
                         <div className="text-xs text-muted-foreground/50 text-center py-4">
@@ -679,73 +671,6 @@ function RowsView({
           ))}
         </div>
       </ScrollArea>
-    </div>
-  );
-}
-
-// Compact technician tour for row view
-interface CompactTechnicianTourProps {
-  technician: Technician;
-  tasks: MaintenanceTask[];
-  onConfirm?: (taskId: string) => void;
-  onCancel?: (taskId: string) => void;
-}
-
-function CompactTechnicianTour({
-  technician,
-  tasks,
-}: CompactTechnicianTourProps) {
-  // Count confirmation statuses
-  const confirmed = tasks.filter((t) => t.confirmationStatus === "confirmed").length;
-  const pending = tasks.filter((t) => t.confirmationStatus === "pending").length;
-  const tentative = tasks.filter((t) => t.confirmationStatus === "tentative").length;
-
-  return (
-    <div
-      className="rounded border-l-2 bg-card/50 p-1.5 text-xs"
-      style={{ borderLeftColor: technician.color }}
-    >
-      <div className="flex items-center gap-1.5">
-        <div
-          className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0"
-          style={{ backgroundColor: technician.color }}
-        >
-          {technician.initials}
-        </div>
-        <span className="font-medium truncate flex-1">{tasks.length} Termine</span>
-        {/* Status indicators */}
-        <div className="flex items-center gap-0.5">
-          {confirmed > 0 && (
-            <span className="w-2 h-2 rounded-full bg-success" title={`${confirmed} bestätigt`} />
-          )}
-          {tentative > 0 && (
-            <span className="w-2 h-2 rounded-full bg-warning" title={`${tentative} vorläufig`} />
-          )}
-          {pending > 0 && (
-            <span className="w-2 h-2 rounded-full bg-muted-foreground/40" title={`${pending} offen`} />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Compact unassigned tasks for row view
-interface CompactUnassignedTasksProps {
-  tasks: MaintenanceTask[];
-}
-
-function CompactUnassignedTasks({ tasks }: CompactUnassignedTasksProps) {
-  return (
-    <div className="rounded border-l-2 border-l-muted-foreground/30 bg-muted/30 p-1.5 text-xs">
-      <div className="flex items-center gap-1.5">
-        <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold bg-muted-foreground/30 text-muted-foreground shrink-0">
-          ?
-        </div>
-        <span className="text-muted-foreground truncate">
-          {tasks.length} nicht zugewiesen
-        </span>
-      </div>
     </div>
   );
 }
