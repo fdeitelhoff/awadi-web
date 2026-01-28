@@ -12,13 +12,15 @@ import {
 } from "@/components/ui/select";
 import { technicians } from "@/lib/data/mock-data";
 import {
+  CalendarViewMode,
   CalendarViewRange,
   MaintenanceTask,
   Technician,
 } from "@/lib/types/maintenance";
-import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Columns3, RefreshCw, Rows3 } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 import { useEffect, useMemo, useState } from "react";
-import { CompactTaskCard } from "./compact-task-card";
+import { TechnicianTour, UnassignedTasks } from "./compact-task-card";
 
 interface MaintenanceCalendarProps {
   tasks: MaintenanceTask[];
@@ -87,6 +89,23 @@ function isToday(date: Date, today: Date): boolean {
   return isSameDay(date, today);
 }
 
+// Group tasks by technician
+function groupTasksByTechnician(
+  tasks: MaintenanceTask[]
+): Map<string | null, MaintenanceTask[]> {
+  const grouped = new Map<string | null, MaintenanceTask[]>();
+
+  tasks.forEach((task) => {
+    const techId = task.technicianId || null;
+    if (!grouped.has(techId)) {
+      grouped.set(techId, []);
+    }
+    grouped.get(techId)!.push(task);
+  });
+
+  return grouped;
+}
+
 const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 const viewRangeOptions: { value: CalendarViewRange; label: string }[] = [
@@ -109,6 +128,7 @@ export function MaintenanceCalendar({
   onCancelTask,
 }: MaintenanceCalendarProps) {
   const [viewRange, setViewRange] = useState<CalendarViewRange>("4weeks");
+  const [viewMode, setViewMode] = useState<CalendarViewMode>("columns");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [today, setToday] = useState<Date | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -143,7 +163,7 @@ export function MaintenanceCalendar({
   }, [tasks]);
 
   // Get technician by ID
-  const getTechnician = (technicianId?: string): Technician | undefined => {
+  const getTechnician = (technicianId: string): Technician | undefined => {
     return technicians.find((t) => t.id === technicianId);
   };
 
@@ -173,7 +193,23 @@ export function MaintenanceCalendar({
     <Card className="flex-1 flex flex-col min-h-0 overflow-hidden">
       <CardHeader className="pb-3 shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <CardTitle className="text-lg">Wartungsplanung</CardTitle>
+          <div className="flex items-center gap-4">
+            <CardTitle className="text-lg">Wartungsplanung</CardTitle>
+            {/* Technician legend */}
+            <div className="hidden lg:flex items-center gap-2">
+              {technicians.map((tech) => (
+                <div key={tech.id} className="flex items-center gap-1">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: tech.color }}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {tech.initials}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <div className="flex items-center gap-2">
             <Button
@@ -220,113 +256,398 @@ export function MaintenanceCalendar({
                 ))}
               </SelectContent>
             </Select>
+
+            {/* View mode toggle */}
+            <div className="flex items-center border rounded-md">
+              <Toggle
+                size="sm"
+                pressed={viewMode === "columns"}
+                onPressedChange={() => setViewMode("columns")}
+                className="rounded-r-none data-[state=on]:bg-muted"
+                aria-label="Spaltenansicht"
+              >
+                <Columns3 className="h-4 w-4" />
+              </Toggle>
+              <Toggle
+                size="sm"
+                pressed={viewMode === "rows"}
+                onPressedChange={() => setViewMode("rows")}
+                className="rounded-l-none data-[state=on]:bg-muted"
+                aria-label="Zeilenansicht"
+              >
+                <Rows3 className="h-4 w-4" />
+              </Toggle>
+            </div>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="flex-1 min-h-0 pt-0 pb-2 px-3">
-        <div className="h-full flex flex-col">
-          {/* Header row with week numbers */}
+        {viewMode === "columns" ? (
+          <ColumnsView
+            weeks={weeks}
+            weekDates={weekDates}
+            tasksByDate={tasksByDate}
+            today={today}
+            getTechnician={getTechnician}
+            onConfirmTask={onConfirmTask}
+            onCancelTask={onCancelTask}
+          />
+        ) : (
+          <RowsView
+            weeks={weeks}
+            weekDates={weekDates}
+            tasksByDate={tasksByDate}
+            today={today}
+            getTechnician={getTechnician}
+            onConfirmTask={onConfirmTask}
+            onCancelTask={onCancelTask}
+          />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Shared props for view components
+interface CalendarViewProps {
+  weeks: number;
+  weekDates: Date[][];
+  tasksByDate: Map<string, MaintenanceTask[]>;
+  today: Date;
+  getTechnician: (technicianId: string) => Technician | undefined;
+  onConfirmTask?: (taskId: string) => void;
+  onCancelTask?: (taskId: string) => void;
+}
+
+// Columns View - Days as rows, weeks as columns (original layout)
+function ColumnsView({
+  weeks,
+  weekDates,
+  tasksByDate,
+  today,
+  getTechnician,
+  onConfirmTask,
+  onCancelTask,
+}: CalendarViewProps) {
+  return (
+    <div className="h-full flex flex-col">
+      {/* Header row with week numbers */}
+      <div
+        className="grid gap-2 mb-2 shrink-0"
+        style={{
+          gridTemplateColumns: `40px repeat(${weeks}, 1fr)`,
+        }}
+      >
+        <div className="text-xs font-medium text-muted-foreground flex items-center justify-center"></div>
+        {weekDates.map((week, weekIndex) => (
           <div
-            className="grid gap-2 mb-2 shrink-0"
-            style={{
-              gridTemplateColumns: `40px repeat(${weeks}, 1fr)`,
-            }}
+            key={weekIndex}
+            className="text-center bg-muted/50 rounded px-2 py-1.5"
           >
-            <div className="text-xs font-medium text-muted-foreground flex items-center justify-center">
-
+            <div className="text-xs font-semibold">
+              KW {getWeekNumber(week[0])}
             </div>
-            {weekDates.map((week, weekIndex) => (
-              <div
-                key={weekIndex}
-                className="text-center bg-muted/50 rounded px-2 py-1"
-              >
-                <div className="text-xs font-semibold">
-                  KW {getWeekNumber(week[0])}
-                </div>
-                <div className="text-[10px] text-muted-foreground">
-                  {formatShortDate(week[0])} - {formatShortDate(week[6])}
-                </div>
-              </div>
-            ))}
+            <div className="text-[10px] text-muted-foreground">
+              {formatShortDate(week[0])} - {formatShortDate(week[6])}
+            </div>
           </div>
+        ))}
+      </div>
 
-          {/* Scrollable day rows */}
-          <ScrollArea className="flex-1">
-            <div className="space-y-2 pr-3">
-              {/* For each day of the week (0-4, Mon-Fri) */}
-              {[0, 1, 2, 3, 4].map((dayIndex) => (
-                <div
-                  key={dayIndex}
-                  className="grid gap-2"
-                  style={{
-                    gridTemplateColumns: `40px repeat(${weeks}, 1fr)`,
-                  }}
-                >
-                  {/* Day label */}
-                  <div className="text-xs font-semibold text-muted-foreground flex items-start justify-center pt-3">
-                    {WEEKDAY_NAMES[dayIndex]}
+      {/* Scrollable day rows */}
+      <ScrollArea className="flex-1">
+        <div className="space-y-2 pr-3">
+          {/* For each day of the week (0-4, Mon-Fri) */}
+          {[0, 1, 2, 3, 4].map((dayIndex) => (
+            <div
+              key={dayIndex}
+              className="grid gap-2"
+              style={{
+                gridTemplateColumns: `40px repeat(${weeks}, 1fr)`,
+              }}
+            >
+              {/* Day label */}
+              <div className="text-xs font-semibold text-muted-foreground flex items-start justify-center pt-3">
+                {WEEKDAY_NAMES[dayIndex]}
+              </div>
+
+              {/* Cells for each week */}
+              {weekDates.map((week, weekIndex) => {
+                const date = week[dayIndex];
+                const dayTasks = tasksByDate.get(date.toDateString()) || [];
+                const isTodayDate = isToday(date, today);
+
+                // Group tasks by technician
+                const tasksByTech = groupTasksByTechnician(dayTasks);
+                const assignedTechIds = Array.from(tasksByTech.keys()).filter(
+                  (id) => id !== null
+                ) as string[];
+                const unassignedTasks = tasksByTech.get(null) || [];
+
+                return (
+                  <div
+                    key={weekIndex}
+                    className={`min-h-[200px] rounded-lg border p-2 ${
+                      isTodayDate
+                        ? "bg-primary/10 border-primary"
+                        : "bg-muted/20 border-border/50"
+                    }`}
+                  >
+                    {/* Date header */}
+                    <div
+                      className={`text-xs mb-2 font-medium flex items-center justify-between ${
+                        isTodayDate ? "text-primary" : "text-muted-foreground"
+                      }`}
+                    >
+                      <span>
+                        {formatShortDate(date)}
+                        {isTodayDate && (
+                          <span className="ml-1.5 bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-[10px]">
+                            Heute
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[10px]">
+                        {dayTasks.length} Termine
+                      </span>
+                    </div>
+
+                    {/* Technician tours */}
+                    {dayTasks.length > 0 ? (
+                      <div className="space-y-2">
+                        {assignedTechIds.map((techId) => {
+                          const tech = getTechnician(techId);
+                          const techTasks = tasksByTech.get(techId) || [];
+                          if (!tech) return null;
+
+                          return (
+                            <TechnicianTour
+                              key={techId}
+                              technician={tech}
+                              tasks={techTasks}
+                              onConfirm={onConfirmTask}
+                              onCancel={onCancelTask}
+                            />
+                          );
+                        })}
+
+                        {/* Unassigned tasks */}
+                        <UnassignedTasks tasks={unassignedTasks} />
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground/50 text-center py-8">
+                        Keine Termine
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
 
-                  {/* Cells for each week */}
-                  {weekDates.map((week, weekIndex) => {
-                    const date = week[dayIndex];
-                    const dayTasks =
-                      tasksByDate.get(date.toDateString()) || [];
-                    const isTodayDate = isToday(date, today);
+// Rows View - Weeks as rows, days as columns
+function RowsView({
+  weekDates,
+  tasksByDate,
+  today,
+  getTechnician,
+  onConfirmTask,
+  onCancelTask,
+}: CalendarViewProps) {
+  return (
+    <div className="h-full flex flex-col">
+      {/* Header row with day names */}
+      <div
+        className="grid gap-2 mb-2 shrink-0"
+        style={{
+          gridTemplateColumns: `80px repeat(5, 1fr)`,
+        }}
+      >
+        <div className="text-xs font-medium text-muted-foreground flex items-center justify-center"></div>
+        {[0, 1, 2, 3, 4].map((dayIndex) => (
+          <div
+            key={dayIndex}
+            className="text-center bg-muted/50 rounded px-2 py-1.5"
+          >
+            <div className="text-xs font-semibold">{WEEKDAY_NAMES[dayIndex]}</div>
+          </div>
+        ))}
+      </div>
 
-                    return (
+      {/* Scrollable week rows */}
+      <ScrollArea className="flex-1">
+        <div className="space-y-3 pr-3">
+          {/* For each week */}
+          {weekDates.map((week, weekIndex) => (
+            <div key={weekIndex} className="space-y-2">
+              {/* Week header */}
+              <div
+                className="grid gap-2"
+                style={{
+                  gridTemplateColumns: `80px repeat(5, 1fr)`,
+                }}
+              >
+                {/* Week label */}
+                <div className="bg-muted/50 rounded px-2 py-1.5 flex flex-col items-center justify-center">
+                  <div className="text-xs font-semibold">
+                    KW {getWeekNumber(week[0])}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {formatShortDate(week[0])} - {formatShortDate(week[4])}
+                  </div>
+                </div>
+
+                {/* Cells for each day (Mon-Fri) */}
+                {[0, 1, 2, 3, 4].map((dayIndex) => {
+                  const date = week[dayIndex];
+                  const dayTasks = tasksByDate.get(date.toDateString()) || [];
+                  const isTodayDate = isToday(date, today);
+
+                  // Group tasks by technician
+                  const tasksByTech = groupTasksByTechnician(dayTasks);
+                  const assignedTechIds = Array.from(tasksByTech.keys()).filter(
+                    (id) => id !== null
+                  ) as string[];
+                  const unassignedTasks = tasksByTech.get(null) || [];
+
+                  return (
+                    <div
+                      key={dayIndex}
+                      className={`min-h-[160px] rounded-lg border p-2 ${
+                        isTodayDate
+                          ? "bg-primary/10 border-primary"
+                          : "bg-muted/20 border-border/50"
+                      }`}
+                    >
+                      {/* Date header */}
                       <div
-                        key={weekIndex}
-                        className={`min-h-[160px] rounded-lg border p-2 ${
-                          isTodayDate
-                            ? "bg-primary/10 border-primary"
-                            : "bg-muted/20 border-border/50"
+                        className={`text-xs mb-2 font-medium flex items-center justify-between ${
+                          isTodayDate ? "text-primary" : "text-muted-foreground"
                         }`}
                       >
-                        {/* Date header */}
-                        <div
-                          className={`text-xs mb-2 font-medium ${
-                            isTodayDate
-                              ? "text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        >
+                        <span>
                           {formatShortDate(date)}
                           {isTodayDate && (
                             <span className="ml-1.5 bg-primary text-primary-foreground px-1.5 py-0.5 rounded text-[10px]">
                               Heute
                             </span>
                           )}
-                        </div>
+                        </span>
+                        <span className="text-[10px]">
+                          {dayTasks.length}
+                        </span>
+                      </div>
 
-                        {/* Tasks */}
-                        {dayTasks.length > 0 ? (
-                          <div className="space-y-2">
-                            {dayTasks.map((task) => (
-                              <CompactTaskCard
-                                key={task.id}
-                                task={task}
-                                technician={getTechnician(task.technicianId)}
+                      {/* Technician tours - more compact for row view */}
+                      {dayTasks.length > 0 ? (
+                        <div className="space-y-1.5">
+                          {assignedTechIds.map((techId) => {
+                            const tech = getTechnician(techId);
+                            const techTasks = tasksByTech.get(techId) || [];
+                            if (!tech) return null;
+
+                            return (
+                              <CompactTechnicianTour
+                                key={techId}
+                                technician={tech}
+                                tasks={techTasks}
                                 onConfirm={onConfirmTask}
                                 onCancel={onCancelTask}
                               />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-muted-foreground/50 text-center py-6">
-                            Keine Termine
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+                            );
+                          })}
+
+                          {/* Unassigned tasks */}
+                          {unassignedTasks.length > 0 && (
+                            <CompactUnassignedTasks tasks={unassignedTasks} />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground/50 text-center py-4">
+                          —
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </ScrollArea>
+          ))}
         </div>
-      </CardContent>
-    </Card>
+      </ScrollArea>
+    </div>
+  );
+}
+
+// Compact technician tour for row view
+interface CompactTechnicianTourProps {
+  technician: Technician;
+  tasks: MaintenanceTask[];
+  onConfirm?: (taskId: string) => void;
+  onCancel?: (taskId: string) => void;
+}
+
+function CompactTechnicianTour({
+  technician,
+  tasks,
+}: CompactTechnicianTourProps) {
+  // Count confirmation statuses
+  const confirmed = tasks.filter((t) => t.confirmationStatus === "confirmed").length;
+  const pending = tasks.filter((t) => t.confirmationStatus === "pending").length;
+  const tentative = tasks.filter((t) => t.confirmationStatus === "tentative").length;
+
+  return (
+    <div
+      className="rounded border-l-2 bg-card/50 p-1.5 text-xs"
+      style={{ borderLeftColor: technician.color }}
+    >
+      <div className="flex items-center gap-1.5">
+        <div
+          className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0"
+          style={{ backgroundColor: technician.color }}
+        >
+          {technician.initials}
+        </div>
+        <span className="font-medium truncate flex-1">{tasks.length} Termine</span>
+        {/* Status indicators */}
+        <div className="flex items-center gap-0.5">
+          {confirmed > 0 && (
+            <span className="w-2 h-2 rounded-full bg-success" title={`${confirmed} bestätigt`} />
+          )}
+          {tentative > 0 && (
+            <span className="w-2 h-2 rounded-full bg-warning" title={`${tentative} vorläufig`} />
+          )}
+          {pending > 0 && (
+            <span className="w-2 h-2 rounded-full bg-muted-foreground/40" title={`${pending} offen`} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Compact unassigned tasks for row view
+interface CompactUnassignedTasksProps {
+  tasks: MaintenanceTask[];
+}
+
+function CompactUnassignedTasks({ tasks }: CompactUnassignedTasksProps) {
+  return (
+    <div className="rounded border-l-2 border-l-muted-foreground/30 bg-muted/30 p-1.5 text-xs">
+      <div className="flex items-center gap-1.5">
+        <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold bg-muted-foreground/30 text-muted-foreground shrink-0">
+          ?
+        </div>
+        <span className="text-muted-foreground truncate">
+          {tasks.length} nicht zugewiesen
+        </span>
+      </div>
+    </div>
   );
 }
