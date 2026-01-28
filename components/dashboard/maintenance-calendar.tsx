@@ -132,6 +132,10 @@ export function MaintenanceCalendar({
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [today, setToday] = useState<Date | null>(null);
   const [isClient, setIsClient] = useState(false);
+  // Selected technicians filter - null means show all, Set means show only selected
+  const [selectedTechnicianIds, setSelectedTechnicianIds] = useState<Set<string> | null>(null);
+  // Also track if unassigned tasks should be shown
+  const [showUnassigned, setShowUnassigned] = useState(true);
 
   // Initialize dates on client side to avoid SSR/prerender issues
   useEffect(() => {
@@ -180,6 +184,35 @@ export function MaintenanceCalendar({
     setStartDate(getStartOfWeek(now));
   };
 
+  // Toggle technician filter
+  const toggleTechnician = (techId: string) => {
+    setSelectedTechnicianIds((prev) => {
+      if (prev === null) {
+        // First click: select only this technician
+        return new Set([techId]);
+      }
+      const newSet = new Set(prev);
+      if (newSet.has(techId)) {
+        newSet.delete(techId);
+        // If no technicians selected, show all
+        if (newSet.size === 0) {
+          return null;
+        }
+      } else {
+        newSet.add(techId);
+      }
+      return newSet;
+    });
+  };
+
+  // Toggle unassigned tasks visibility
+  const toggleUnassigned = () => {
+    setShowUnassigned((prev) => !prev);
+  };
+
+  // Check if all technicians are shown (no filter active)
+  const isShowingAll = selectedTechnicianIds === null && showUnassigned;
+
   // Show loading state during SSR/initial render (after all hooks)
   if (!isClient || startDate === null || today === null) {
     return (
@@ -195,19 +228,60 @@ export function MaintenanceCalendar({
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <CardTitle className="text-lg">Wartungsplanung</CardTitle>
-            {/* Technician legend */}
-            <div className="hidden lg:flex items-center gap-2">
-              {technicians.map((tech) => (
-                <div key={tech.id} className="flex items-center gap-1">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: tech.color }}
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {tech.initials}
-                  </span>
-                </div>
-              ))}
+            {/* Technician legend - clickable filter */}
+            <div className="hidden lg:flex items-center gap-1">
+              {technicians.map((tech) => {
+                const isSelected = selectedTechnicianIds === null || selectedTechnicianIds.has(tech.id);
+                return (
+                  <button
+                    key={tech.id}
+                    onClick={() => toggleTechnician(tech.id)}
+                    className={`flex items-center gap-1 px-1.5 py-1 rounded transition-all hover:bg-muted ${
+                      isSelected ? "opacity-100" : "opacity-40"
+                    }`}
+                    title={isSelected ? `${tech.name} ausblenden` : `${tech.name} einblenden`}
+                  >
+                    <div
+                      className="w-3 h-3 rounded-full transition-transform"
+                      style={{
+                        backgroundColor: tech.color,
+                        transform: isSelected ? "scale(1)" : "scale(0.8)"
+                      }}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {tech.initials}
+                    </span>
+                  </button>
+                );
+              })}
+              {/* Unassigned toggle */}
+              <button
+                onClick={toggleUnassigned}
+                className={`flex items-center gap-1 px-1.5 py-1 rounded transition-all hover:bg-muted ${
+                  showUnassigned ? "opacity-100" : "opacity-40"
+                }`}
+                title={showUnassigned ? "Nicht zugewiesene ausblenden" : "Nicht zugewiesene einblenden"}
+              >
+                <div
+                  className={`w-3 h-3 rounded-full bg-muted-foreground/40 transition-transform ${
+                    showUnassigned ? "scale-100" : "scale-[0.8]"
+                  }`}
+                />
+                <span className="text-xs text-muted-foreground">?</span>
+              </button>
+              {/* Reset filter button */}
+              {!isShowingAll && (
+                <button
+                  onClick={() => {
+                    setSelectedTechnicianIds(null);
+                    setShowUnassigned(true);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground ml-1 px-1.5 py-1 rounded hover:bg-muted transition-colors"
+                  title="Filter zurücksetzen"
+                >
+                  Alle
+                </button>
+              )}
             </div>
           </div>
 
@@ -290,6 +364,8 @@ export function MaintenanceCalendar({
             tasksByDate={tasksByDate}
             today={today}
             getTechnician={getTechnician}
+            selectedTechnicianIds={selectedTechnicianIds}
+            showUnassigned={showUnassigned}
             onConfirmTask={onConfirmTask}
             onCancelTask={onCancelTask}
           />
@@ -300,6 +376,8 @@ export function MaintenanceCalendar({
             tasksByDate={tasksByDate}
             today={today}
             getTechnician={getTechnician}
+            selectedTechnicianIds={selectedTechnicianIds}
+            showUnassigned={showUnassigned}
             onConfirmTask={onConfirmTask}
             onCancelTask={onCancelTask}
           />
@@ -316,6 +394,8 @@ interface CalendarViewProps {
   tasksByDate: Map<string, MaintenanceTask[]>;
   today: Date;
   getTechnician: (technicianId: string) => Technician | undefined;
+  selectedTechnicianIds: Set<string> | null;
+  showUnassigned: boolean;
   onConfirmTask?: (taskId: string) => void;
   onCancelTask?: (taskId: string) => void;
 }
@@ -327,6 +407,8 @@ function ColumnsView({
   tasksByDate,
   today,
   getTechnician,
+  selectedTechnicianIds,
+  showUnassigned,
   onConfirmTask,
   onCancelTask,
 }: CalendarViewProps) {
@@ -380,10 +462,17 @@ function ColumnsView({
 
                 // Group tasks by technician
                 const tasksByTech = groupTasksByTechnician(dayTasks);
+                // Filter technicians based on selection
                 const assignedTechIds = Array.from(tasksByTech.keys()).filter(
-                  (id) => id !== null
+                  (id) => id !== null && (selectedTechnicianIds === null || selectedTechnicianIds.has(id))
                 ) as string[];
-                const unassignedTasks = tasksByTech.get(null) || [];
+                const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
+
+                // Count visible tasks for display
+                const visibleTaskCount = assignedTechIds.reduce(
+                  (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
+                  unassignedTasks.length
+                );
 
                 return (
                   <div
@@ -409,12 +498,12 @@ function ColumnsView({
                         )}
                       </span>
                       <span className="text-[10px]">
-                        {dayTasks.length} Termine
+                        {visibleTaskCount} Termine
                       </span>
                     </div>
 
                     {/* Technician tours */}
-                    {dayTasks.length > 0 ? (
+                    {visibleTaskCount > 0 ? (
                       <div className="space-y-2">
                         {assignedTechIds.map((techId) => {
                           const tech = getTechnician(techId);
@@ -433,7 +522,7 @@ function ColumnsView({
                         })}
 
                         {/* Unassigned tasks */}
-                        <UnassignedTasks tasks={unassignedTasks} />
+                        {showUnassigned && <UnassignedTasks tasks={unassignedTasks} />}
                       </div>
                     ) : (
                       <div className="text-xs text-muted-foreground/50 text-center py-8">
@@ -457,6 +546,8 @@ function RowsView({
   tasksByDate,
   today,
   getTechnician,
+  selectedTechnicianIds,
+  showUnassigned,
   onConfirmTask,
   onCancelTask,
 }: CalendarViewProps) {
@@ -511,10 +602,17 @@ function RowsView({
 
                   // Group tasks by technician
                   const tasksByTech = groupTasksByTechnician(dayTasks);
+                  // Filter technicians based on selection
                   const assignedTechIds = Array.from(tasksByTech.keys()).filter(
-                    (id) => id !== null
+                    (id) => id !== null && (selectedTechnicianIds === null || selectedTechnicianIds.has(id))
                   ) as string[];
-                  const unassignedTasks = tasksByTech.get(null) || [];
+                  const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
+
+                  // Count visible tasks for display
+                  const visibleTaskCount = assignedTechIds.reduce(
+                    (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
+                    unassignedTasks.length
+                  );
 
                   return (
                     <div
@@ -540,12 +638,12 @@ function RowsView({
                           )}
                         </span>
                         <span className="text-[10px]">
-                          {dayTasks.length}
+                          {visibleTaskCount}
                         </span>
                       </div>
 
                       {/* Technician tours - more compact for row view */}
-                      {dayTasks.length > 0 ? (
+                      {visibleTaskCount > 0 ? (
                         <div className="space-y-1.5">
                           {assignedTechIds.map((techId) => {
                             const tech = getTechnician(techId);
@@ -564,7 +662,7 @@ function RowsView({
                           })}
 
                           {/* Unassigned tasks */}
-                          {unassignedTasks.length > 0 && (
+                          {showUnassigned && unassignedTasks.length > 0 && (
                             <CompactUnassignedTasks tasks={unassignedTasks} />
                           )}
                         </div>
