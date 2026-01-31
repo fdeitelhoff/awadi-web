@@ -8,7 +8,8 @@ export type SchedulingStatus =
   | "cancelled";
 
 // Traffic light confirmation status
-export type ConfirmationStatus = "pending" | "tentative" | "confirmed" | "cancelled";
+// "future" = automatically scheduled based on maintenance intervals, not yet in active planning
+export type ConfirmationStatus = "pending" | "tentative" | "confirmed" | "cancelled" | "future";
 
 // Maintenance task
 export interface MaintenanceTask {

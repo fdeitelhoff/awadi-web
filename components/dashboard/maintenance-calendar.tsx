@@ -20,7 +20,7 @@ import {
 import { ChevronLeft, ChevronRight, Columns3, RefreshCw, Rows3 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { useEffect, useMemo, useState } from "react";
-import { TechnicianTour, UnassignedTasks } from "./compact-task-card";
+import { TechnicianTour, UnassignedTasks, FutureTasks } from "./compact-task-card";
 
 interface MaintenanceCalendarProps {
   tasks: MaintenanceTask[];
@@ -454,18 +454,22 @@ function ColumnsView({
                 const dayTasks = tasksByDate.get(date.toDateString()) || [];
                 const isTodayDate = isToday(date, today);
 
-                // Group tasks by technician
-                const tasksByTech = groupTasksByTechnician(dayTasks);
+                // Separate future tasks (always visible) from regular tasks
+                const futureTasks = dayTasks.filter(t => t.confirmationStatus === "future");
+                const regularTasks = dayTasks.filter(t => t.confirmationStatus !== "future");
+
+                // Group regular tasks by technician
+                const tasksByTech = groupTasksByTechnician(regularTasks);
                 // Filter technicians based on selection
                 const assignedTechIds = Array.from(tasksByTech.keys()).filter(
                   (id) => id !== null && selectedTechnicianIds.has(id)
                 ) as string[];
                 const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
 
-                // Count visible tasks for display
+                // Count visible tasks for display (including future tasks which are always visible)
                 const visibleTaskCount = assignedTechIds.reduce(
                   (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-                  unassignedTasks.length
+                  unassignedTasks.length + futureTasks.length
                 );
 
                 return (
@@ -517,6 +521,9 @@ function ColumnsView({
 
                         {/* Unassigned tasks */}
                         {showUnassigned && <UnassignedTasks tasks={unassignedTasks} />}
+
+                        {/* Future planned tasks (always visible) */}
+                        <FutureTasks tasks={futureTasks} />
                       </div>
                     ) : (
                       <div className="text-xs text-muted-foreground/50 text-center py-8">
@@ -548,14 +555,17 @@ function RowsView({
   // Helper to count visible tasks for a specific date
   const countVisibleTasks = (date: Date): number => {
     const dayTasks = tasksByDate.get(date.toDateString()) || [];
-    const tasksByTech = groupTasksByTechnician(dayTasks);
+    // Future tasks are always counted
+    const futureTasks = dayTasks.filter(t => t.confirmationStatus === "future");
+    const regularTasks = dayTasks.filter(t => t.confirmationStatus !== "future");
+    const tasksByTech = groupTasksByTechnician(regularTasks);
     const assignedTechIds = Array.from(tasksByTech.keys()).filter(
       (id) => id !== null && selectedTechnicianIds.has(id)
     ) as string[];
     const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
     return assignedTechIds.reduce(
       (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-      unassignedTasks.length
+      unassignedTasks.length + futureTasks.length
     );
   };
 
@@ -630,18 +640,22 @@ function RowsView({
                   const dayTasks = tasksByDate.get(date.toDateString()) || [];
                   const isTodayDate = isToday(date, today);
 
-                  // Group tasks by technician
-                  const tasksByTech = groupTasksByTechnician(dayTasks);
+                  // Separate future tasks (always visible) from regular tasks
+                  const futureTasks = dayTasks.filter(t => t.confirmationStatus === "future");
+                  const regularTasks = dayTasks.filter(t => t.confirmationStatus !== "future");
+
+                  // Group regular tasks by technician
+                  const tasksByTech = groupTasksByTechnician(regularTasks);
                   // Filter technicians based on selection
                   const assignedTechIds = Array.from(tasksByTech.keys()).filter(
                     (id) => id !== null && selectedTechnicianIds.has(id)
                   ) as string[];
                   const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
 
-                  // Count visible tasks for display
+                  // Count visible tasks for display (including future tasks)
                   const visibleTaskCount = assignedTechIds.reduce(
                     (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-                    unassignedTasks.length
+                    unassignedTasks.length + futureTasks.length
                   );
 
                   return (
@@ -693,6 +707,9 @@ function RowsView({
 
                           {/* Unassigned tasks */}
                           {showUnassigned && <UnassignedTasks tasks={unassignedTasks} />}
+
+                          {/* Future planned tasks (always visible) */}
+                          <FutureTasks tasks={futureTasks} />
                         </div>
                       ) : (
                         <div className="text-xs text-muted-foreground/50 text-center py-4">

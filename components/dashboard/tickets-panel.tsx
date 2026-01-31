@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ServiceTicket } from "@/lib/types/maintenance";
+import { Input } from "@/components/ui/input";
 import {
   Calendar,
   MapPin,
   Phone,
   Plus,
+  Search,
   Ticket,
   User,
 } from "lucide-react";
@@ -92,14 +94,29 @@ export function TicketsPanel({
   onScheduleTicket,
 }: TicketsPanelProps) {
   const [now, setNow] = useState<Date | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Initialize date on client side to avoid SSR/prerender issues
   useEffect(() => {
     setNow(new Date());
   }, []);
 
+  // Filter tickets by search query
+  const filteredTickets = tickets.filter((ticket) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      ticket.title.toLowerCase().includes(query) ||
+      ticket.contactPerson.toLowerCase().includes(query) ||
+      ticket.location.toLowerCase().includes(query) ||
+      ticket.phoneNumber.includes(query) ||
+      ticket.email.toLowerCase().includes(query) ||
+      ticket.description?.toLowerCase().includes(query)
+    );
+  });
+
   // Sort tickets by priority and date
-  const sortedTickets = [...tickets].sort((a, b) => {
+  const sortedTickets = [...filteredTickets].sort((a, b) => {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
     const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
     if (priorityDiff !== 0) return priorityDiff;
@@ -129,7 +146,7 @@ export function TicketsPanel({
               <Ticket className="h-4 w-4 text-muted-foreground" />
               <CardTitle className="text-base">Offene Tickets</CardTitle>
               <span className="text-sm text-muted-foreground">
-                ({tickets.length})
+                ({searchQuery ? `${filteredTickets.length}/${tickets.length}` : tickets.length})
               </span>
             </div>
 
@@ -148,6 +165,18 @@ export function TicketsPanel({
                 )}
               </div>
             )}
+          </div>
+
+          {/* Search bar */}
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Tickets durchsuchen..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-7 text-sm"
+            />
           </div>
 
           <Button variant="outline" size="sm" className="gap-1.5 h-7">

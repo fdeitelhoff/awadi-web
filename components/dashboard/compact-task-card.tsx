@@ -235,3 +235,33 @@ export function UnassignedTasks({ tasks }: UnassignedTasksProps) {
     </div>
   );
 }
+
+// Future planned tasks section (interval-based, always visible)
+interface FutureTasksProps {
+  tasks: MaintenanceTask[];
+}
+
+export function FutureTasks({ tasks }: FutureTasksProps) {
+  if (tasks.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border-l-4 border-l-gray-400 bg-gray-100/50 dark:bg-gray-800/30 p-1.5">
+      <div className="flex items-center gap-1.5 mb-1.5 px-1">
+        <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold bg-gray-400 text-white shrink-0">
+          ⏱
+        </div>
+        <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400">
+          Geplant (Intervall)
+        </span>
+        <span className="text-[10px] text-gray-500 ml-auto">
+          {tasks.length}
+        </span>
+      </div>
+      <div className="space-y-1">
+        {tasks.map((task) => (
+          <TourTaskItem key={task.id} task={task} />
+        ))}
+      </div>
+    </div>
+  );
+}

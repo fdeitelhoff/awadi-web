@@ -106,6 +106,10 @@ const confirmationStatusConfig: Record<
     label: "Storniert",
     className: "bg-destructive",
   },
+  future: {
+    label: "Geplant (Intervall)",
+    className: "bg-gray-400",
+  },
 };
 
 const sizeClasses = {
