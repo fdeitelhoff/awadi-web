@@ -1,15 +1,9 @@
-// Maintenance scheduling status types
-export type SchedulingStatus =
-  | "not_contacted"
-  | "email_sent"
-  | "email_confirmed"
-  | "phone_called"
-  | "confirmed"
-  | "cancelled";
-
-// Traffic light confirmation status
-// "future" = automatically scheduled based on maintenance intervals, not yet in active planning
-export type ConfirmationStatus = "pending" | "tentative" | "confirmed" | "cancelled" | "future";
+// Maintenance planning status
+// "unplanned" = date set but not yet actively planned/contacted (cannot be assigned to technician)
+// "not_answered" = contacted by mail but no response yet (can be assigned to technician)
+// "contacted" = customer has been contacted and responded
+// "planned" = appointment is confirmed and planned
+export type MaintenanceStatus = "unplanned" | "not_answered" | "contacted" | "planned";
 
 // Maintenance task
 export interface MaintenanceTask {
@@ -19,8 +13,7 @@ export interface MaintenanceTask {
   phoneNumber: string;
   email: string;
   scheduledDate: Date;
-  schedulingStatus: SchedulingStatus;
-  confirmationStatus: ConfirmationStatus;
+  maintenanceStatus: MaintenanceStatus;
   technicianId?: string;
   technicianName?: string;
   notes?: string;

@@ -7,59 +7,56 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ConfirmationStatus, SchedulingStatus } from "@/lib/types/maintenance";
+import { MaintenanceStatus } from "@/lib/types/maintenance";
 import {
-  Check,
-  CheckCheck,
+  CalendarCheck,
   Clock,
   Mail,
-  MailCheck,
   Phone,
-  X,
 } from "lucide-react";
 
-interface SchedulingStatusBadgeProps {
-  status: SchedulingStatus;
+// Maintenance status badge with explanation
+interface MaintenanceStatusBadgeProps {
+  status: MaintenanceStatus;
+  size?: "sm" | "md";
 }
 
-const schedulingStatusConfig: Record<
-  SchedulingStatus,
-  { label: string; icon: React.ReactNode; className: string }
+const maintenanceStatusConfig: Record<
+  MaintenanceStatus,
+  { label: string; description: string; icon: React.ReactNode; className: string; dotColor: string }
 > = {
-  not_contacted: {
-    label: "Nicht kontaktiert",
+  unplanned: {
+    label: "Ungeplant",
+    description: "Termin noch nicht aktiv geplant",
     icon: <Clock className="h-3 w-3" />,
     className: "bg-muted text-muted-foreground hover:bg-muted",
+    dotColor: "bg-muted-foreground",
   },
-  email_sent: {
-    label: "E-Mail gesendet",
+  not_answered: {
+    label: "Keine Antwort",
+    description: "Per Mail kontaktiert, keine Rückmeldung",
     icon: <Mail className="h-3 w-3" />,
     className: "bg-info/15 text-info hover:bg-info/20",
+    dotColor: "bg-info",
   },
-  email_confirmed: {
-    label: "E-Mail bestätigt",
-    icon: <MailCheck className="h-3 w-3" />,
-    className: "bg-info/25 text-info hover:bg-info/30",
-  },
-  phone_called: {
-    label: "Telefonisch kontaktiert",
+  contacted: {
+    label: "Kontaktiert",
+    description: "Kunde wurde kontaktiert",
     icon: <Phone className="h-3 w-3" />,
     className: "bg-warning/15 text-warning hover:bg-warning/20",
+    dotColor: "bg-warning",
   },
-  confirmed: {
-    label: "Vom Kunden bestätigt",
-    icon: <CheckCheck className="h-3 w-3" />,
+  planned: {
+    label: "Geplant",
+    description: "Termin ist bestätigt und geplant",
+    icon: <CalendarCheck className="h-3 w-3" />,
     className: "bg-success/15 text-success hover:bg-success/20",
-  },
-  cancelled: {
-    label: "Storniert",
-    icon: <X className="h-3 w-3" />,
-    className: "bg-destructive/15 text-destructive hover:bg-destructive/20",
+    dotColor: "bg-success",
   },
 };
 
-export function SchedulingStatusBadge({ status }: SchedulingStatusBadgeProps) {
-  const config = schedulingStatusConfig[status];
+export function MaintenanceStatusBadge({ status, size = "md" }: MaintenanceStatusBadgeProps) {
+  const config = maintenanceStatusConfig[status];
 
   return (
     <TooltipProvider>
@@ -67,50 +64,25 @@ export function SchedulingStatusBadge({ status }: SchedulingStatusBadgeProps) {
         <TooltipTrigger asChild>
           <Badge
             variant="secondary"
-            className={`gap-1 font-normal ${config.className}`}
+            className={`gap-1 font-normal ${config.className} ${size === "sm" ? "text-[10px] px-1.5 py-0" : ""}`}
           >
             {config.icon}
-            <span className="hidden sm:inline">{config.label}</span>
+            <span>{config.label}</span>
           </Badge>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{config.label}</p>
+          <p>{config.description}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 }
 
-interface ConfirmationStatusIndicatorProps {
-  status: ConfirmationStatus;
+// Status indicator dot (for compact display)
+interface MaintenanceStatusIndicatorProps {
+  status: MaintenanceStatus;
   size?: "sm" | "md" | "lg";
 }
-
-const confirmationStatusConfig: Record<
-  ConfirmationStatus,
-  { label: string; className: string }
-> = {
-  pending: {
-    label: "Ausstehend",
-    className: "bg-muted-foreground",
-  },
-  tentative: {
-    label: "Vorläufig",
-    className: "bg-warning",
-  },
-  confirmed: {
-    label: "Bestätigt",
-    className: "bg-success",
-  },
-  cancelled: {
-    label: "Storniert",
-    className: "bg-destructive",
-  },
-  future: {
-    label: "Geplant (Intervall)",
-    className: "bg-gray-400",
-  },
-};
 
 const sizeClasses = {
   sm: "h-2 w-2",
@@ -118,28 +90,32 @@ const sizeClasses = {
   lg: "h-4 w-4",
 };
 
-export function ConfirmationStatusIndicator({
+export function MaintenanceStatusIndicator({
   status,
   size = "md",
-}: ConfirmationStatusIndicatorProps) {
-  const config = confirmationStatusConfig[status];
+}: MaintenanceStatusIndicatorProps) {
+  const config = maintenanceStatusConfig[status];
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <div
-            className={`${sizeClasses[size]} ${config.className} rounded-full shrink-0`}
+            className={`${sizeClasses[size]} ${config.dotColor} rounded-full shrink-0`}
             aria-label={config.label}
           />
         </TooltipTrigger>
         <TooltipContent>
-          <p>{config.label}</p>
+          <p className="font-medium">{config.label}</p>
+          <p className="text-xs text-muted-foreground">{config.description}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 }
+
+// Export config for use in filters
+export { maintenanceStatusConfig };
 
 interface PriorityBadgeProps {
   priority: "low" | "medium" | "high" | "urgent";

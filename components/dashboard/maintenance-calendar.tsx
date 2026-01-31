@@ -2,6 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -14,13 +22,15 @@ import { technicians } from "@/lib/data/mock-data";
 import {
   CalendarViewMode,
   CalendarViewRange,
+  MaintenanceStatus,
   MaintenanceTask,
   Technician,
 } from "@/lib/types/maintenance";
-import { ChevronLeft, ChevronRight, Columns3, MapPin, RefreshCw, Rows3 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Columns3, MapPin, RefreshCw, Rows3 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { useEffect, useMemo, useState } from "react";
-import { TechnicianTour, UnassignedTasks, FutureTasks } from "./compact-task-card";
+import { TechnicianTour, UnassignedTasks } from "./compact-task-card";
+import { maintenanceStatusConfig } from "./status-badge";
 
 interface MaintenanceCalendarProps {
   tasks: MaintenanceTask[];
@@ -139,6 +149,10 @@ export function MaintenanceCalendar({
   );
   // Also track if unassigned tasks should be shown
   const [showUnassigned, setShowUnassigned] = useState(false);
+  // Status filter - show all by default
+  const [selectedStatuses, setSelectedStatuses] = useState<Set<MaintenanceStatus>>(
+    () => new Set(["unplanned", "not_answered", "contacted", "planned"] as MaintenanceStatus[])
+  );
 
   // Initialize dates on client side to avoid SSR/prerender issues
   useEffect(() => {
@@ -187,22 +201,8 @@ export function MaintenanceCalendar({
     setStartDate(getStartOfWeek(now));
   };
 
-  // Toggle technician filter - clicking selects only that technician (radio-like behavior)
-  const toggleTechnician = (techId: string) => {
-    setSelectedTechnicianIds((prev) => {
-      if (prev.has(techId) && prev.size === 1) {
-        // Clicking the only selected technician does nothing (must have at least one)
-        return prev;
-      }
-      // Select only this technician (radio behavior - more common use case)
-      return new Set([techId]);
-    });
-  };
-
-  // Toggle unassigned tasks visibility
-  const toggleUnassigned = () => {
-    setShowUnassigned((prev) => !prev);
-  };
+  // Check if all statuses are shown
+  const isShowingAllStatuses = selectedStatuses.size === 4;
 
   // Check if all technicians are shown (no filter active)
   const isShowingAll = selectedTechnicianIds.size === technicians.length && showUnassigned;
@@ -220,63 +220,151 @@ export function MaintenanceCalendar({
     <Card className="flex-1 flex flex-col min-h-0 overflow-hidden">
         <CardHeader className="pb-3 shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <CardTitle className="text-lg">Wartungsplanung</CardTitle>
-            {/* Technician legend - clickable filter */}
-            <div className="hidden lg:flex items-center gap-1">
-              {technicians.map((tech) => {
-                const isSelected = selectedTechnicianIds.has(tech.id);
-                return (
-                  <button
+
+            {/* Technician filter dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                  <div className="flex -space-x-1">
+                    {technicians.slice(0, 3).map((tech) => (
+                      <div
+                        key={tech.id}
+                        className={`w-3 h-3 rounded-full border border-background ${
+                          selectedTechnicianIds.has(tech.id) ? "" : "opacity-30"
+                        }`}
+                        style={{ backgroundColor: tech.color }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs">
+                    Techniker ({selectedTechnicianIds.size + (showUnassigned ? 1 : 0)})
+                  </span>
+                  <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuLabel>Techniker</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {technicians.map((tech) => (
+                  <DropdownMenuCheckboxItem
                     key={tech.id}
-                    onClick={() => toggleTechnician(tech.id)}
-                    className={`flex items-center gap-1 px-1.5 py-1 rounded transition-all hover:bg-muted ${
-                      isSelected ? "opacity-100" : "opacity-40"
-                    }`}
-                    title={`${tech.name} anzeigen`}
+                    checked={selectedTechnicianIds.has(tech.id)}
+                    onCheckedChange={() => {
+                      setSelectedTechnicianIds((prev) => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(tech.id)) {
+                          newSet.delete(tech.id);
+                        } else {
+                          newSet.add(tech.id);
+                        }
+                        return newSet;
+                      });
+                    }}
                   >
-                    <div
-                      className="w-3 h-3 rounded-full transition-transform"
-                      style={{
-                        backgroundColor: tech.color,
-                        transform: isSelected ? "scale(1)" : "scale(0.8)"
-                      }}
-                    />
-                    <span className="text-xs text-muted-foreground">
-                      {tech.initials}
-                    </span>
-                  </button>
-                );
-              })}
-              {/* Unassigned toggle */}
-              <button
-                onClick={toggleUnassigned}
-                className={`flex items-center gap-1 px-1.5 py-1 rounded transition-all hover:bg-muted ${
-                  showUnassigned ? "opacity-100" : "opacity-40"
-                }`}
-                title={showUnassigned ? "Nicht zugewiesene ausblenden" : "Nicht zugewiesene einblenden"}
-              >
-                <div
-                  className={`w-3 h-3 rounded-full bg-muted-foreground/40 transition-transform ${
-                    showUnassigned ? "scale-100" : "scale-[0.8]"
-                  }`}
-                />
-                <span className="text-xs text-muted-foreground">?</span>
-              </button>
-              {/* Show all button */}
-              {!isShowingAll && (
-                <button
-                  onClick={() => {
-                    setSelectedTechnicianIds(new Set(technicians.map((t) => t.id)));
-                    setShowUnassigned(true);
-                  }}
-                  className="text-xs text-muted-foreground hover:text-foreground ml-1 px-1.5 py-1 rounded hover:bg-muted transition-colors"
-                  title="Alle Techniker anzeigen"
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: tech.color }}
+                      />
+                      <span>{tech.name}</span>
+                    </div>
+                  </DropdownMenuCheckboxItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={showUnassigned}
+                  onCheckedChange={() => setShowUnassigned(!showUnassigned)}
                 >
-                  Alle
-                </button>
-              )}
-            </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-muted-foreground/40" />
+                    <span>Nicht zugewiesen</span>
+                  </div>
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={isShowingAll}
+                  onCheckedChange={() => {
+                    if (isShowingAll) {
+                      setSelectedTechnicianIds(new Set([technicians[0]?.id].filter(Boolean)));
+                      setShowUnassigned(false);
+                    } else {
+                      setSelectedTechnicianIds(new Set(technicians.map((t) => t.id)));
+                      setShowUnassigned(true);
+                    }
+                  }}
+                >
+                  Alle anzeigen
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Status filter dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                  <div className="flex -space-x-1">
+                    {(Object.keys(maintenanceStatusConfig) as MaintenanceStatus[]).slice(0, 3).map((status) => (
+                      <div
+                        key={status}
+                        className={`w-3 h-3 rounded-full border border-background ${maintenanceStatusConfig[status].dotColor} ${
+                          selectedStatuses.has(status) ? "" : "opacity-30"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs">
+                    Status ({selectedStatuses.size})
+                  </span>
+                  <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                <DropdownMenuLabel>Status</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(Object.keys(maintenanceStatusConfig) as MaintenanceStatus[]).map((status) => {
+                  const config = maintenanceStatusConfig[status];
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={status}
+                      checked={selectedStatuses.has(status)}
+                      onCheckedChange={() => {
+                        setSelectedStatuses((prev) => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(status)) {
+                            if (newSet.size > 1) {
+                              newSet.delete(status);
+                            }
+                          } else {
+                            newSet.add(status);
+                          }
+                          return newSet;
+                        });
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${config.dotColor}`} />
+                        <span>{config.label}</span>
+                      </div>
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={isShowingAllStatuses}
+                  onCheckedChange={() => {
+                    if (isShowingAllStatuses) {
+                      setSelectedStatuses(new Set(["planned"]));
+                    } else {
+                      setSelectedStatuses(new Set(["unplanned", "not_answered", "contacted", "planned"]));
+                    }
+                  }}
+                >
+                  Alle anzeigen
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="flex items-center gap-2">
@@ -364,6 +452,7 @@ export function MaintenanceCalendar({
             getTechnician={getTechnician}
             selectedTechnicianIds={selectedTechnicianIds}
             showUnassigned={showUnassigned}
+            selectedStatuses={selectedStatuses}
             onConfirmTask={onConfirmTask}
             onCancelTask={onCancelTask}
           />
@@ -376,6 +465,7 @@ export function MaintenanceCalendar({
             getTechnician={getTechnician}
             selectedTechnicianIds={selectedTechnicianIds}
             showUnassigned={showUnassigned}
+            selectedStatuses={selectedStatuses}
             onConfirmTask={onConfirmTask}
             onCancelTask={onCancelTask}
           />
@@ -394,6 +484,7 @@ interface CalendarViewProps {
   getTechnician: (technicianId: string) => Technician | undefined;
   selectedTechnicianIds: Set<string>;
   showUnassigned: boolean;
+  selectedStatuses: Set<MaintenanceStatus>;
   onConfirmTask?: (taskId: string) => void;
   onCancelTask?: (taskId: string) => void;
 }
@@ -407,6 +498,7 @@ function ColumnsView({
   getTechnician,
   selectedTechnicianIds,
   showUnassigned,
+  selectedStatuses,
   onConfirmTask,
   onCancelTask,
 }: CalendarViewProps) {
@@ -458,22 +550,21 @@ function ColumnsView({
                 const dayTasks = tasksByDate.get(date.toDateString()) || [];
                 const isTodayDate = isToday(date, today);
 
-                // Separate future tasks (always visible) from regular tasks
-                const futureTasks = dayTasks.filter(t => t.confirmationStatus === "future");
-                const regularTasks = dayTasks.filter(t => t.confirmationStatus !== "future");
+                // Filter tasks by selected statuses
+                const statusFilteredTasks = dayTasks.filter(t => selectedStatuses.has(t.maintenanceStatus));
 
-                // Group regular tasks by technician
-                const tasksByTech = groupTasksByTechnician(regularTasks);
+                // Group tasks by technician
+                const tasksByTech = groupTasksByTechnician(statusFilteredTasks);
                 // Filter technicians based on selection
                 const assignedTechIds = Array.from(tasksByTech.keys()).filter(
                   (id) => id !== null && selectedTechnicianIds.has(id)
                 ) as string[];
                 const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
 
-                // Count visible tasks for display (including future tasks which are always visible)
+                // Count visible tasks for display
                 const visibleTaskCount = assignedTechIds.reduce(
                   (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-                  unassignedTasks.length + futureTasks.length
+                  unassignedTasks.length
                 );
 
                 return (
@@ -525,9 +616,6 @@ function ColumnsView({
 
                         {/* Unassigned tasks */}
                         {showUnassigned && <UnassignedTasks tasks={unassignedTasks} />}
-
-                        {/* Future planned tasks (always visible) */}
-                        <FutureTasks tasks={futureTasks} />
                       </div>
                     ) : (
                       <div className="text-xs text-muted-foreground/50 text-center py-8">
@@ -553,23 +641,23 @@ function RowsView({
   getTechnician,
   selectedTechnicianIds,
   showUnassigned,
+  selectedStatuses,
   onConfirmTask,
   onCancelTask,
 }: CalendarViewProps) {
   // Helper to count visible tasks for a specific date
   const countVisibleTasks = (date: Date): number => {
     const dayTasks = tasksByDate.get(date.toDateString()) || [];
-    // Future tasks are always counted
-    const futureTasks = dayTasks.filter(t => t.confirmationStatus === "future");
-    const regularTasks = dayTasks.filter(t => t.confirmationStatus !== "future");
-    const tasksByTech = groupTasksByTechnician(regularTasks);
+    // Filter by selected statuses
+    const statusFilteredTasks = dayTasks.filter(t => selectedStatuses.has(t.maintenanceStatus));
+    const tasksByTech = groupTasksByTechnician(statusFilteredTasks);
     const assignedTechIds = Array.from(tasksByTech.keys()).filter(
       (id) => id !== null && selectedTechnicianIds.has(id)
     ) as string[];
     const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
     return assignedTechIds.reduce(
       (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-      unassignedTasks.length + futureTasks.length
+      unassignedTasks.length
     );
   };
 
@@ -644,22 +732,21 @@ function RowsView({
                   const dayTasks = tasksByDate.get(date.toDateString()) || [];
                   const isTodayDate = isToday(date, today);
 
-                  // Separate future tasks (always visible) from regular tasks
-                  const futureTasks = dayTasks.filter(t => t.confirmationStatus === "future");
-                  const regularTasks = dayTasks.filter(t => t.confirmationStatus !== "future");
+                  // Filter tasks by selected statuses
+                  const statusFilteredTasks = dayTasks.filter(t => selectedStatuses.has(t.maintenanceStatus));
 
-                  // Group regular tasks by technician
-                  const tasksByTech = groupTasksByTechnician(regularTasks);
+                  // Group tasks by technician
+                  const tasksByTech = groupTasksByTechnician(statusFilteredTasks);
                   // Filter technicians based on selection
                   const assignedTechIds = Array.from(tasksByTech.keys()).filter(
                     (id) => id !== null && selectedTechnicianIds.has(id)
                   ) as string[];
                   const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
 
-                  // Count visible tasks for display (including future tasks)
+                  // Count visible tasks for display
                   const visibleTaskCount = assignedTechIds.reduce(
                     (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-                    unassignedTasks.length + futureTasks.length
+                    unassignedTasks.length
                   );
 
                   return (
@@ -711,9 +798,6 @@ function RowsView({
 
                           {/* Unassigned tasks */}
                           {showUnassigned && <UnassignedTasks tasks={unassignedTasks} />}
-
-                          {/* Future planned tasks (always visible) */}
-                          <FutureTasks tasks={futureTasks} />
                         </div>
                       ) : (
                         <div className="text-xs text-muted-foreground/50 text-center py-4">
