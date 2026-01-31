@@ -17,7 +17,7 @@ import {
   MaintenanceTask,
   Technician,
 } from "@/lib/types/maintenance";
-import { ChevronLeft, ChevronRight, Columns3, RefreshCw, Rows3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Columns3, MapPin, RefreshCw, Rows3 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { useEffect, useMemo, useState } from "react";
 import { TechnicianTour, UnassignedTasks, FutureTasks } from "./compact-task-card";
@@ -218,7 +218,7 @@ export function MaintenanceCalendar({
 
   return (
     <Card className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <CardHeader className="pb-3 shrink-0">
+        <CardHeader className="pb-3 shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <CardTitle className="text-lg">Wartungsplanung</CardTitle>
@@ -280,6 +280,10 @@ export function MaintenanceCalendar({
           </div>
 
           <div className="flex items-center gap-2">
+            <Button variant="default" size="sm" className="gap-1.5">
+              <MapPin className="h-3.5 w-3.5" />
+              Neue Tourplanung
+            </Button>
             <Button
               variant="outline"
               size="sm"
