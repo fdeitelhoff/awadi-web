@@ -31,6 +31,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { useEffect, useMemo, useState } from "react";
 import { TechnicianTour, UnassignedTasks } from "./compact-task-card";
 import { maintenanceStatusConfig } from "./status-badge";
+import { TourPlanningDialog } from "./tour-planning-dialog";
 
 interface MaintenanceCalendarProps {
   tasks: MaintenanceTask[];
@@ -153,6 +154,8 @@ export function MaintenanceCalendar({
   const [selectedStatuses, setSelectedStatuses] = useState<Set<MaintenanceStatus>>(
     () => new Set(["unplanned", "not_answered", "contacted", "planned"] as MaintenanceStatus[])
   );
+  // Tour planning dialog
+  const [showTourPlanningDialog, setShowTourPlanningDialog] = useState(false);
 
   // Initialize dates on client side to avoid SSR/prerender issues
   useEffect(() => {
@@ -368,7 +371,12 @@ export function MaintenanceCalendar({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="default" size="sm" className="gap-1.5">
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setShowTourPlanningDialog(true)}
+            >
               <MapPin className="h-3.5 w-3.5" />
               Neue Tourplanung
             </Button>
@@ -471,6 +479,17 @@ export function MaintenanceCalendar({
           />
         )}
       </CardContent>
+
+      {/* Tour Planning Dialog */}
+      <TourPlanningDialog
+        open={showTourPlanningDialog}
+        onOpenChange={setShowTourPlanningDialog}
+        tasks={tasks}
+        onStartPlanning={(startWeek, endWeek) => {
+          console.log(`Starting tour planning for KW ${startWeek} - KW ${endWeek}`);
+          // TODO: Implement tour planning algorithm
+        }}
+      />
     </Card>
   );
 }
