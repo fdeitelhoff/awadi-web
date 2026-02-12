@@ -43,5 +43,3 @@ export interface Technician {
 // Calendar view options
 export type CalendarViewRange = "1week" | "2weeks" | "3weeks" | "4weeks";
 
-// Calendar layout mode
-export type CalendarViewMode = "columns" | "rows";
