@@ -26,7 +26,6 @@ pnpm lint         # Run ESLint
     - `page.tsx` - Main maintenance planning dashboard at `/`
     - `master-data/` - Master data management at `/master-data`
   - `app/auth/` - Authentication pages (login, sign-up, forgot-password, etc.)
-  - `app/protected/` - Additional protected routes
 - `components/` - React components
   - `components/dashboard/` - Dashboard-specific components
     - `dashboard-nav.tsx` - Main navigation bar (server component)
