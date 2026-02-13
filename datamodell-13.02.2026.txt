@@ -1,0 +1,206 @@
+-- =========================================================
+-- DIWA Datenmodell (Supabase/Postgres)
+-- Hinweis: Wegen Groß-/Kleinschreibung sind Spaltennamen in "Quotes".
+-- =========================================================
+
+-- -------------------------
+-- 1) tblanl (Standort/Anlage)
+-- -------------------------
+create table if not exists public.tblanl (
+  "AnlID"                    integer primary key,
+  "KundenID"                 integer,
+  "IstAktiv"                 boolean,
+  "AnlagenNr"                text,
+  "VerfahrenBRAnzBehaelter"  integer,
+
+  "Strasse"                  text,
+  "HausNr"                   text,
+  "Laenderkennung"           text,
+  "PLZ"                      text,
+  "Ort"                      text,
+  "Ortsteil"                 text,
+
+  "Ansprechpartner"          text,
+  "TelefonNr"                text,
+
+  "Gemarkung"                text,
+  "Flur"                     text,
+  "Flurstueck"               text,
+
+  "TourenNr"                 text,
+
+  "Rechtswert"               integer,
+  "Hochwert"                 integer,
+
+  "DatumWartungsvertrag"     date,
+  "Wartungsvertrag"          smallint,
+
+  "AnlageAusgelegtEW"        integer,
+  "GesamtgroesseVK"          numeric(12,2),
+  "DatumNaechsteWartung"     date,
+
+  "Breitengrad"              text,
+  "Laengengrad"              text,
+
+  "Comment"                  text,
+
+  "LastUpdate"               timestamptz,
+  "LastExport"               timestamptz,
+  "LastImport"               timestamptz,
+
+  "TraceMark"                text,
+  "AnmerkungenGesamt"        text,
+  "ExportErlaubtWartung"     boolean,
+
+  "DatumAbgabefreiSeit"      date,
+
+  "TatsaechlicheEW"          integer,
+  "Bezeichnung"              text,
+
+  "TourenNr2"                text,
+  "TourenNr3"                text
+);
+
+create index if not exists idx_tblanl_kundenid on public.tblanl ("KundenID");
+create index if not exists idx_tblanl_anlagennr on public.tblanl ("AnlagenNr");
+
+
+-- -------------------------
+-- 2) tblanl_bio (Biologie/Technikdaten)
+-- -------------------------
+create table if not exists public.tblanl_bio (
+  "AnlBioID"                 integer primary key,
+  "AnlID"                    integer not null,
+  "KundenID"                 integer,
+
+  "BioNummer"                integer,
+  "Vorhanden"                boolean,
+
+  "Hersteller"               text,
+  "Typ"                      text,
+  "DefAnlTypenID"            integer,
+
+  "K2AnzahlStraenge"         integer,
+  "K2Gesamtlaenge"           numeric(14,3),
+  "K2Stossbeschickung"       boolean,
+
+  "K3AnzahlStraenge"         integer,
+  "K3Gesamtlaenge"           numeric(14,3),
+  "K3Stossbeschickung"       boolean,
+
+  "K5Oberflaeche"            numeric(14,3),
+  "K5Beettiefe"              numeric(14,3),
+  "K5Stossbeschickung"       boolean,
+
+  "K6Reaktorvolumen"         numeric(14,3),
+  "K6Membranflaeche"         numeric(14,3),
+
+  "K7Belueftet"              boolean,
+  "K7Gesamtvolumen"          numeric(14,3),
+  "K7Oberflaeche"            numeric(14,3),
+  "K7Tiefe"                  numeric(14,3),
+
+  "K8Oberflaeche"            numeric(14,3),
+  "K8Beettiefe"              numeric(14,3),
+  "K8Stossbeschickung"       boolean,
+
+  "K9Oberflaeche"            numeric(14,3),
+  "K9Beettiefe"              numeric(14,3),
+
+  "K10Beschickung"           boolean,
+  "K10Volumen"               numeric(14,3),
+  "K10Ruecklaufverhaeltnis"  numeric(14,3),
+
+  "K12Reaktorvolumen"        numeric(14,3),
+  "K12SpezOberflaeche"       numeric(14,3),
+  "K12Oberflaeche"           numeric(14,3),
+
+  "K13Reaktorvolumen"        numeric(14,3),
+  "K13SpezOberflaeche"       numeric(14,3),
+  "K13Oberflaeche"           numeric(14,3),
+
+  "K14Verfahren"             text,
+  "K14Kenngroesse1Art"       text,
+  "K14Kenngroesse1Wert"      numeric(14,3),
+  "K14Kenngroesse2Art"       text,
+  "K14Kenngroesse2Wert"      numeric(14,3),
+
+  "K15Reaktorvolumen"        numeric(14,3),
+  "K15TSGehalt"              numeric(14,3),
+
+  "K16Reaktorvolumen"        numeric(14,3),
+  "K16TSGehalt"              numeric(14,3),
+  "K16Austauschvolumen"      numeric(14,3),
+
+  "K17Reaktorvolumen"        numeric(14,3),
+  "K17SpezOberflaeche"       numeric(14,3),
+  "K17Oberflaeche"           numeric(14,3),
+
+  "NetzunabhAlarm"           boolean,
+  "SchlammKompost"           boolean,
+
+  -- Achtung: In den Daten gemischt (0, Codes, Texte, teils Datumswerte) -> text
+  "BauaufsZul"               text,
+  "BauaufsZulLinktDatei"     text,
+  "BauaufszulLinktBezeichnung" text,
+
+  "BioGueltigBis"            date,
+  "BioReinigungsklassen"     integer,
+  "BioZusReinigungsklasse"   integer,
+
+  "Comment"                  text,
+  "LastUpdate"               timestamptz,
+  "AnmerkungenBiologie"      text,
+
+  constraint fk_tblanl_bio_anl
+    foreign key ("AnlID") references public.tblanl ("AnlID")
+    on update cascade on delete cascade
+);
+
+create index if not exists idx_tblanl_bio_anlid on public.tblanl_bio ("AnlID");
+create index if not exists idx_tblanl_bio_kundenid on public.tblanl_bio ("KundenID");
+create index if not exists idx_tblanl_bio_hersteller on public.tblanl_bio ("Hersteller");
+
+
+-- -------------------------
+-- 3) Tblanl_eigentuemer (Eigentümerdaten)
+-- -------------------------
+create table if not exists public."Tblanl_eigentuemer" (
+  "AnlID"                    integer primary key,
+
+  "Firma"                    text,
+  "Nachname"                 text,
+  "Vorname"                  text,
+  "Titel"                    text,
+  "Anrede"                   text,
+
+  "Strasse"                  text,
+  "HausNr"                   text,
+  "Laenderkennung"           text,
+  "PLZ"                      text,
+  "Ort"                      text,
+  "Ortsteil"                 text,
+
+  "Comment"                  text,
+  "LastUpdate"               timestamptz,
+
+  -- Kundennummer (laut Beschreibung) -> text, da z.B. "AS-201"
+  "EigentuemerNr"            text,
+
+  "TelefonNr"                text,
+  "TelefonNrGesch"           text,
+  "MobilNr"                  text,
+  "MobilNr2"                 text,
+  "FaxNr"                    text,
+
+  "Email"                    text,
+  "Homepage"                 text,
+  "Anmerkungen"              text,
+
+  constraint fk_tblanl_eigentuemer_anl
+    foreign key ("AnlID") references public.tblanl ("AnlID")
+    on update cascade on delete cascade
+);
+
+create index if not exists idx_eigentuemer_eigentuemernr on public."Tblanl_eigentuemer" ("EigentuemerNr");
+create index if not exists idx_eigentuemer_email on public."Tblanl_eigentuemer" ("Email");
