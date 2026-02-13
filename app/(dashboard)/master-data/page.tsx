@@ -1,33 +1,48 @@
+"use client";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, MapPin, Users, Wrench } from "lucide-react";
+import { CustomerTable } from "@/components/dashboard/customer-table";
+import { customers } from "@/lib/data/mock-customers";
+import { cn } from "@/lib/utils";
+
+type MasterDataSection = "kunden" | "anlagen" | "standorte" | "techniker";
+
+const masterDataSections = [
+  {
+    id: "kunden" as MasterDataSection,
+    title: "Kunden",
+    description: "Kundenstammdaten verwalten",
+    icon: Users,
+    count: customers.length,
+  },
+  {
+    id: "anlagen" as MasterDataSection,
+    title: "Anlagen",
+    description: "Kleinkläranlagen und Systeme",
+    icon: Building2,
+    count: 0,
+  },
+  {
+    id: "standorte" as MasterDataSection,
+    title: "Standorte",
+    description: "Standorte und Adressen",
+    icon: MapPin,
+    count: 0,
+  },
+  {
+    id: "techniker" as MasterDataSection,
+    title: "Techniker",
+    description: "Techniker und Personal",
+    icon: Wrench,
+    count: 3,
+  },
+];
 
 export default function MasterDataPage() {
-  const masterDataSections = [
-    {
-      title: "Kunden",
-      description: "Kundenstammdaten verwalten",
-      icon: Users,
-      count: 0,
-    },
-    {
-      title: "Anlagen",
-      description: "Kleinkläranlagen und Systeme",
-      icon: Building2,
-      count: 0,
-    },
-    {
-      title: "Standorte",
-      description: "Standorte und Adressen",
-      icon: MapPin,
-      count: 0,
-    },
-    {
-      title: "Techniker",
-      description: "Techniker und Personal",
-      icon: Wrench,
-      count: 3,
-    },
-  ];
+  const [activeSection, setActiveSection] =
+    useState<MasterDataSection>("kunden");
 
   return (
     <div className="p-6 space-y-6">
@@ -41,16 +56,26 @@ export default function MasterDataPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {masterDataSections.map((section) => {
           const Icon = section.icon;
+          const isActive = activeSection === section.id;
           return (
             <Card
-              key={section.title}
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              key={section.id}
+              className={cn(
+                "hover:shadow-md transition-shadow cursor-pointer",
+                isActive && "ring-2 ring-primary shadow-md"
+              )}
+              onClick={() => setActiveSection(section.id)}
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {section.title}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <Icon
+                  className={cn(
+                    "h-4 w-4",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{section.count}</div>
@@ -65,9 +90,16 @@ export default function MasterDataPage() {
 
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground py-8">
-            Stammdatenverwaltung wird in Kürze verfügbar sein.
-          </p>
+          {activeSection === "kunden" ? (
+            <CustomerTable />
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
+              {
+                masterDataSections.find((s) => s.id === activeSection)?.title
+              }{" "}
+              wird in Kürze verfügbar sein.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
