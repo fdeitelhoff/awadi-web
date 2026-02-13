@@ -32,7 +32,17 @@ import {
 
 const PAGE_SIZE = 10;
 
-export function CustomerTable() {
+interface CustomerTableProps {
+  initialData: Customer[];
+  initialCount: number;
+  initialFilterOrte: string[];
+}
+
+export function CustomerTable({
+  initialData,
+  initialCount,
+  initialFilterOrte,
+}: CustomerTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("nachname");
@@ -40,10 +50,13 @@ export function CustomerTable() {
   const [filterOrt, setFilterOrt] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [filterOrte, setFilterOrte] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [customers, setCustomers] = useState<Customer[]>(initialData);
+  const [totalCount, setTotalCount] = useState(initialCount);
+  const [filterOrte, setFilterOrte] = useState<string[]>(initialFilterOrte);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Track whether user has interacted (to skip initial fetch)
+  const isInitialRender = useRef(true);
 
   // Debounce search input
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -61,8 +74,13 @@ export function CustomerTable() {
     return () => clearTimeout(debounceRef.current);
   }, []);
 
-  // Fetch data when params change
+  // Fetch data when params change (skip initial render since we have server data)
   useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+
     let cancelled = false;
     setIsLoading(true);
 
