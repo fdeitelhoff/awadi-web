@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,8 +18,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Customer } from "@/lib/types/customer";
-import { customers } from "@/lib/data/mock-customers";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Customer, SortField, SortDirection } from "@/lib/types/customer";
+import { fetchCustomers } from "@/lib/actions/customers";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -29,79 +30,64 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-type SortField =
-  | "eigentuemerNr"
-  | "nachname"
-  | "vorname"
-  | "ort"
-  | "plz"
-  | "email"
-  | "telefonNr";
-type SortDirection = "asc" | "desc";
-
 const PAGE_SIZE = 10;
 
 export function CustomerTable() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("nachname");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [filterOrt, setFilterOrt] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Get unique cities for filter
-  const uniqueOrte = useMemo(() => {
-    const orte = new Set(customers.map((c) => c.ort).filter(Boolean));
-    return Array.from(orte).sort() as string[];
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [filterOrte, setFilterOrte] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Debounce search input
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value);
+      setCurrentPage(1);
+    }, 300);
   }, []);
 
-  // Filter, search, sort
-  const filteredCustomers = useMemo(() => {
-    let result = [...customers];
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => clearTimeout(debounceRef.current);
+  }, []);
 
-    // Filter by Ort
-    if (filterOrt !== "all") {
-      result = result.filter((c) => c.ort === filterOrt);
-    }
+  // Fetch data when params change
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
 
-    // Search across multiple fields
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.nachname.toLowerCase().includes(query) ||
-          c.vorname.toLowerCase().includes(query) ||
-          (c.firma && c.firma.toLowerCase().includes(query)) ||
-          (c.eigentuemerNr && c.eigentuemerNr.toLowerCase().includes(query)) ||
-          (c.ort && c.ort.toLowerCase().includes(query)) ||
-          (c.plz && c.plz.toLowerCase().includes(query)) ||
-          (c.email && c.email.toLowerCase().includes(query)) ||
-          (c.strasse && c.strasse.toLowerCase().includes(query))
-      );
-    }
-
-    // Sort
-    result.sort((a, b) => {
-      const aVal = (a[sortField] ?? "").toString().toLowerCase();
-      const bVal = (b[sortField] ?? "").toString().toLowerCase();
-      const cmp = aVal.localeCompare(bVal, "de");
-      return sortDirection === "asc" ? cmp : -cmp;
+    fetchCustomers({
+      search: debouncedSearch,
+      filterOrt,
+      sortField,
+      sortDirection,
+      page: currentPage,
+      pageSize: PAGE_SIZE,
+    }).then((result) => {
+      if (cancelled) return;
+      setCustomers(result.data);
+      setTotalCount(result.totalCount);
+      setFilterOrte(result.filterOptions.orte);
+      setIsLoading(false);
     });
 
-    return result;
-  }, [searchQuery, sortField, sortDirection, filterOrt]);
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, filterOrt, sortField, sortDirection, currentPage]);
 
-  // Pagination
-  const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / PAGE_SIZE));
-  const paginatedCustomers = filteredCustomers.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
-  );
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  // Reset page when filters change
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
   const handleFilterChange = (value: string) => {
     setFilterOrt(value);
     setCurrentPage(1);
@@ -158,7 +144,7 @@ export function CustomerTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle Orte</SelectItem>
-              {uniqueOrte.map((ort) => (
+              {filterOrte.map((ort) => (
                 <SelectItem key={ort} value={ort}>
                   {ort}
                 </SelectItem>
@@ -231,14 +217,24 @@ export function CustomerTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedCustomers.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 7 }).map((_, j) => (
+                    <TableCell key={j} className={j >= 5 ? "hidden sm:table-cell" : j >= 4 ? "hidden md:table-cell" : j === 3 ? "hidden lg:table-cell" : ""}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : customers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
                   Keine Kunden gefunden.
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedCustomers.map((customer) => (
+              customers.map((customer) => (
                 <TableRow key={customer.anlId}>
                   <TableCell className="font-medium text-muted-foreground">
                     {customer.eigentuemerNr}
@@ -267,8 +263,8 @@ export function CustomerTable() {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {filteredCustomers.length} Kunde{filteredCustomers.length !== 1 && "n"}
-          {filterOrt !== "all" || searchQuery ? " (gefiltert)" : ""}
+          {totalCount} Kunde{totalCount !== 1 && "n"}
+          {filterOrt !== "all" || debouncedSearch ? " (gefiltert)" : ""}
         </p>
         {totalPages > 1 && (
           <div className="flex items-center gap-2">

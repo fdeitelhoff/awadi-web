@@ -18,3 +18,29 @@ export interface Customer {
   email?: string;
   anmerkungen?: string;
 }
+
+export type SortField =
+  | "eigentuemerNr"
+  | "nachname"
+  | "vorname"
+  | "ort"
+  | "plz"
+  | "email"
+  | "telefonNr";
+
+export type SortDirection = "asc" | "desc";
+
+export interface CustomerQueryParams {
+  search?: string;
+  filterOrt?: string;
+  sortField?: SortField;
+  sortDirection?: SortDirection;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface CustomerQueryResult {
+  data: Customer[];
+  totalCount: number;
+  filterOptions: { orte: string[] };
+}

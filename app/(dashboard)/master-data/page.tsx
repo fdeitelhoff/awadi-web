@@ -1,38 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, MapPin, Users, Wrench } from "lucide-react";
 import { CustomerTable } from "@/components/dashboard/customer-table";
-import { customers } from "@/lib/data/mock-customers";
+import { fetchCustomerCount } from "@/lib/actions/customers";
 import { cn } from "@/lib/utils";
 
 type MasterDataSection = "kunden" | "anlagen" | "standorte" | "techniker";
 
-const masterDataSections = [
+interface SectionDef {
+  id: MasterDataSection;
+  title: string;
+  description: string;
+  icon: typeof Users;
+  count: number | null;
+}
+
+const defaultSections: SectionDef[] = [
   {
-    id: "kunden" as MasterDataSection,
+    id: "kunden",
     title: "Kunden",
     description: "Kundenstammdaten verwalten",
     icon: Users,
-    count: customers.length,
+    count: null,
   },
   {
-    id: "anlagen" as MasterDataSection,
+    id: "anlagen",
     title: "Anlagen",
     description: "Kleinkläranlagen und Systeme",
     icon: Building2,
     count: 0,
   },
   {
-    id: "standorte" as MasterDataSection,
+    id: "standorte",
     title: "Standorte",
     description: "Standorte und Adressen",
     icon: MapPin,
     count: 0,
   },
   {
-    id: "techniker" as MasterDataSection,
+    id: "techniker",
     title: "Techniker",
     description: "Techniker und Personal",
     icon: Wrench,
@@ -43,6 +51,15 @@ const masterDataSections = [
 export default function MasterDataPage() {
   const [activeSection, setActiveSection] =
     useState<MasterDataSection>("kunden");
+  const [sections, setSections] = useState<SectionDef[]>(defaultSections);
+
+  useEffect(() => {
+    fetchCustomerCount().then((count) => {
+      setSections((prev) =>
+        prev.map((s) => (s.id === "kunden" ? { ...s, count } : s))
+      );
+    });
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
@@ -54,7 +71,7 @@ export default function MasterDataPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {masterDataSections.map((section) => {
+        {sections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
           return (
@@ -78,7 +95,9 @@ export default function MasterDataPage() {
                 />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{section.count}</div>
+                <div className="text-2xl font-bold">
+                  {section.count === null ? "..." : section.count}
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {section.description}
                 </p>
@@ -95,7 +114,7 @@ export default function MasterDataPage() {
           ) : (
             <p className="text-center text-muted-foreground py-8">
               {
-                masterDataSections.find((s) => s.id === activeSection)?.title
+                sections.find((s) => s.id === activeSection)?.title
               }{" "}
               wird in Kürze verfügbar sein.
             </p>
