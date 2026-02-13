@@ -12,10 +12,6 @@ const daysFromNow = (days: number, hour: number = 9): Date => {
   return date;
 };
 
-// Helper to create fixed dates for future scheduled maintenance
-const fixedDate = (year: number, month: number, day: number, hour: number = 9): Date => {
-  return new Date(year, month - 1, day, hour, 0, 0, 0);
-};
 
 export const technicians: Technician[] = [
   { id: "tech-1", name: "Max Müller", color: "#3b82f6", initials: "MM" },
