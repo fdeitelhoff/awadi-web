@@ -143,9 +143,9 @@ export function CustomerTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col min-h-0 flex-1">
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0 pb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -173,7 +173,7 @@ export function CustomerTable({
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="rounded-md border flex-1 min-h-0 overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -279,7 +279,7 @@ export function CustomerTable({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between shrink-0 pt-4">
         <p className="text-sm text-muted-foreground">
           {totalCount} Kunde{totalCount !== 1 && "n"}
           {filterOrt !== "all" || debouncedSearch ? " (gefiltert)" : ""}
