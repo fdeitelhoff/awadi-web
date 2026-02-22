@@ -1,50 +1,127 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Database, Wrench } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Building2,
+  ChevronDown,
+  Contact,
+  Database,
+  Factory,
+  FileText,
+  MapPin,
+  Route,
+  Settings,
+  Users,
+  Wrench,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navItems = [
-  {
-    label: "Wartung",
-    href: "/",
-    icon: Wrench,
-  },
-  {
-    label: "Stammdaten",
-    href: "/master-data",
-    icon: Database,
-  },
+const masterDataItems = [
+  { label: "Kunden", href: "/master-data/customers", icon: Users },
+  { label: "Anlagen", href: "/master-data/facilities", icon: Factory },
+  { label: "Kontakte", href: "/master-data/contacts", icon: Contact },
+  { label: "Wartungsverträge", href: "/master-data/contracts", icon: FileText },
+  { label: "Touren", href: "/master-data/tours", icon: Route },
+];
+
+const settingsItems = [
+  { label: "Anlagen Typen", href: "/settings/facility-types", icon: Building2 },
+  { label: "Benutzer", href: "/settings/users", icon: Users },
+  { label: "Gemeinden", href: "/settings/communities", icon: MapPin },
 ];
 
 export function NavItems() {
   const pathname = usePathname();
 
+  const isMaintenance = pathname === "/";
+  const isMasterData = pathname.startsWith("/master-data");
+  const isSettings = pathname.startsWith("/settings");
+
   return (
     <nav className="flex items-center gap-1">
-      {navItems.map((item) => {
-        const isActive =
-          item.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(item.href);
-        const Icon = item.icon;
+      {/* Wartung - simple link */}
+      <Button
+        variant={isMaintenance ? "secondary" : "ghost"}
+        size="sm"
+        asChild
+        className="gap-2"
+      >
+        <Link href="/">
+          <Wrench className="h-4 w-4" />
+          <span className="hidden md:inline">Wartung</span>
+        </Link>
+      </Button>
 
-        return (
+      {/* Stammdaten - dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
           <Button
-            key={item.href}
-            variant={isActive ? "secondary" : "ghost"}
+            variant={isMasterData ? "secondary" : "ghost"}
             size="sm"
-            asChild
             className="gap-2"
           >
-            <Link href={item.href}>
-              <Icon className="h-4 w-4" />
-              <span className="hidden md:inline">{item.label}</span>
-            </Link>
+            <Database className="h-4 w-4" />
+            <span className="hidden md:inline">Stammdaten</span>
+            <ChevronDown className="h-3 w-3 opacity-50" />
           </Button>
-        );
-      })}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {masterDataItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <DropdownMenuItem key={item.href} asChild>
+                <Link
+                  href={item.href}
+                  className={isActive ? "bg-accent" : ""}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </Link>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Einstellungen - dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant={isSettings ? "secondary" : "ghost"}
+            size="sm"
+            className="gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden md:inline">Einstellungen</span>
+            <ChevronDown className="h-3 w-3 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {settingsItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <DropdownMenuItem key={item.href} asChild>
+                <Link
+                  href={item.href}
+                  className={isActive ? "bg-accent" : ""}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </Link>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </nav>
   );
 }
