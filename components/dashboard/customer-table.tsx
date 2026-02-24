@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Kunde, SortField, SortDirection } from "@/lib/types/customer";
 import { fetchCustomers } from "@/lib/actions/customers";
-import { CreateCustomerDialog } from "./create-customer-dialog";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -60,8 +59,6 @@ export function CustomerTable({
   const [totalCount, setTotalCount] = useState(initialCount);
   const [filterOrte, setFilterOrte] = useState<string[]>(initialFilterOrte);
   const [isLoading, setIsLoading] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const router = useRouter();
   const isInitialRender = useRef(true);
@@ -104,7 +101,7 @@ export function CustomerTable({
     return () => {
       cancelled = true;
     };
-  }, [activeSearch, filterOrt, sortField, sortDirection, currentPage, refreshKey]);
+  }, [activeSearch, filterOrt, sortField, sortDirection, currentPage]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
@@ -142,15 +139,6 @@ export function CustomerTable({
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
-      <CreateCustomerDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onCreated={() => {
-          setRefreshKey((k) => k + 1);
-          setCurrentPage(1);
-        }}
-      />
-
       {/* Toolbar */}
       <div className="flex items-center justify-between shrink-0 pb-4 gap-3">
         {/* Left: search + pagination */}
@@ -218,7 +206,7 @@ export function CustomerTable({
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button onClick={() => router.push("/master-data/customers/new")}>
             <Plus className="h-4 w-4 mr-2" />
             Neuer Kunde
           </Button>
