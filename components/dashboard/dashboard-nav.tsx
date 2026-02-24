@@ -26,7 +26,14 @@ export function DashboardNav() {
         <Separator orientation="vertical" className="h-6" />
 
         {/* Navigation - client component for active state */}
-        <NavItems />
+        <Suspense
+          fallback={
+            <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+          }
+        >
+          <NavItems />
+        </Suspense>
+        
 
         {/* Search - client component for input handling */}
         <div className="flex-1 flex justify-center max-w-md mx-auto">

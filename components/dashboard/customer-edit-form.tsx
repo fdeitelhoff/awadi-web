@@ -85,11 +85,12 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
     }
   };
 
-  const displayName =
-    'Kunde: ' +
+  const namePart =
     kunde.firma ||
     [kunde.vorname, kunde.nachname].filter(Boolean).join(" ") ||
     "Kunde";
+
+  const displayName = `Kunde: ${namePart}`;
 
   const metaInfo = [
     kunde.kundennr && `Kunden-Nr.: ${kunde.kundennr}`,

@@ -62,7 +62,7 @@ export async function getCustomers(
     sortField = "nachname",
     sortDirection = "asc",
     page = 1,
-    pageSize = 15,
+    pageSize = 14,
   } = params;
 
   const supabase = await createClient();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,12 +28,13 @@ import {
   ArrowUp,
   ArrowDown,
   Search,
+  X,
   ChevronLeft,
   ChevronRight,
   Plus,
 } from "lucide-react";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 14;
 // Fixed row height keeps the table stable while data loads
 const ROW_HEIGHT = "h-[46px]";
 
@@ -49,7 +50,7 @@ export function CustomerTable({
   initialFilterOrte,
 }: CustomerTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("nachname");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [filterOrt, setFilterOrt] = useState<string>("all");
@@ -64,22 +65,17 @@ export function CustomerTable({
 
   const router = useRouter();
   const isInitialRender = useRef(true);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  );
 
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchQuery(value);
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(value);
-      setCurrentPage(1);
-    }, 300);
-  }, []);
+  const handleSearch = () => {
+    setActiveSearch(searchQuery);
+    setCurrentPage(1);
+  };
 
-  useEffect(() => {
-    return () => clearTimeout(debounceRef.current);
-  }, []);
+  const handleClear = () => {
+    setSearchQuery("");
+    setActiveSearch("");
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     if (isInitialRender.current) {
@@ -91,7 +87,7 @@ export function CustomerTable({
     setIsLoading(true);
 
     fetchCustomers({
-      search: debouncedSearch,
+      search: activeSearch,
       filterOrt,
       sortField,
       sortDirection,
@@ -108,7 +104,7 @@ export function CustomerTable({
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, filterOrt, sortField, sortDirection, currentPage, refreshKey]);
+  }, [activeSearch, filterOrt, sortField, sortDirection, currentPage, refreshKey]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
@@ -156,16 +152,58 @@ export function CustomerTable({
       />
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0 pb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Kunden suchen…"
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-8"
-          />
+      <div className="flex items-center justify-between shrink-0 pb-4 gap-3">
+        {/* Left: search + pagination */}
+        <div className="flex items-center gap-2">
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Kunden suchen…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              className="pl-8 pr-8 w-full"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+                aria-label="Suche löschen"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Button onClick={handleSearch}>Suchen</Button>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1 ml-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1 || isLoading}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground tabular-nums px-1">
+                Seite <b>{currentPage}</b> von <b>{totalPages}</b>
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || isLoading}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* Right: filter + new */}
         <div className="flex items-center gap-2">
           <Select value={filterOrt} onValueChange={handleFilterChange}>
             <SelectTrigger className="w-[180px]">
@@ -318,39 +356,6 @@ export function CustomerTable({
         </Table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between shrink-0 pt-4">
-        <p className="text-sm text-muted-foreground">
-          {totalCount.toLocaleString("de-DE")} Kunde
-          {totalCount !== 1 && "n"}
-          {filterOrt !== "all" || debouncedSearch ? " (gefiltert)" : ""}
-        </p>
-        {totalPages > 1 && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1 || isLoading}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground tabular-nums">
-              Seite {currentPage} von {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setCurrentPage((p) => Math.min(totalPages, p + 1))
-              }
-              disabled={currentPage === totalPages || isLoading}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
