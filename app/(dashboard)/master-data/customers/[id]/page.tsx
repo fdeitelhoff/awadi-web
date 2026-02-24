@@ -25,7 +25,7 @@ export default async function CustomerDetailPage({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
-      <div className="p-6 max-w-4xl w-full mx-auto space-y-4">
+      <div className="p-6 w-full space-y-4">
         {/* Header */}
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
