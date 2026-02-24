@@ -10,7 +10,9 @@ export async function CustomerPageContent() {
   return (
     <>
       <div className="shrink-0">
-        <h1 className="text-2xl font-semibold">Kunden ({customerCount})</h1>
+        <h1 className="text-2xl font-semibold">
+          Kunden ({customerCount.toLocaleString("de-DE")})
+        </h1>
         <p className="text-muted-foreground">
           Verwalten Sie Ihre Kunden und deren Stammdaten
         </p>

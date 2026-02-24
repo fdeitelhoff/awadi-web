@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,8 +20,9 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Customer, SortField, SortDirection } from "@/lib/types/customer";
+import type { Kunde, SortField, SortDirection } from "@/lib/types/customer";
 import { fetchCustomers } from "@/lib/actions/customers";
+import { CreateCustomerDialog } from "./create-customer-dialog";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -28,12 +30,15 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Plus,
 } from "lucide-react";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
+// Fixed row height keeps the table stable while data loads
+const ROW_HEIGHT = "h-[46px]";
 
 interface CustomerTableProps {
-  initialData: Customer[];
+  initialData: Kunde[];
   initialCount: number;
   initialFilterOrte: string[];
 }
@@ -50,16 +55,19 @@ export function CustomerTable({
   const [filterOrt, setFilterOrt] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [customers, setCustomers] = useState<Customer[]>(initialData);
+  const [kunden, setKunden] = useState<Kunde[]>(initialData);
   const [totalCount, setTotalCount] = useState(initialCount);
   const [filterOrte, setFilterOrte] = useState<string[]>(initialFilterOrte);
   const [isLoading, setIsLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Track whether user has interacted (to skip initial fetch)
+  const router = useRouter();
   const isInitialRender = useRef(true);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
-  // Debounce search input
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     clearTimeout(debounceRef.current);
@@ -69,12 +77,10 @@ export function CustomerTable({
     }, 300);
   }, []);
 
-  // Cleanup debounce timer
   useEffect(() => {
     return () => clearTimeout(debounceRef.current);
   }, []);
 
-  // Fetch data when params change (skip initial render since we have server data)
   useEffect(() => {
     if (isInitialRender.current) {
       isInitialRender.current = false;
@@ -93,7 +99,7 @@ export function CustomerTable({
       pageSize: PAGE_SIZE,
     }).then((result) => {
       if (cancelled) return;
-      setCustomers(result.data);
+      setKunden(result.data);
       setTotalCount(result.totalCount);
       setFilterOrte(result.filterOptions.orte);
       setIsLoading(false);
@@ -102,7 +108,7 @@ export function CustomerTable({
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, filterOrt, sortField, sortDirection, currentPage]);
+  }, [debouncedSearch, filterOrt, sortField, sortDirection, currentPage, refreshKey]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
@@ -131,25 +137,30 @@ export function CustomerTable({
     );
   };
 
-  const formatAddress = (c: Customer) => {
-    const parts = [];
-    if (c.strasse) {
-      parts.push(c.strasse + (c.hausNr ? " " + c.hausNr : ""));
-    }
-    if (c.plz || c.ort) {
-      parts.push([c.plz, c.ort].filter(Boolean).join(" "));
-    }
-    return parts.join(", ");
-  };
+  // ── Stable-height row rendering ──────────────────────────────────────────
+  // Always emit exactly PAGE_SIZE rows. Loading → skeletons. Data → real rows
+  // plus transparent filler rows so the table height never changes.
+  const fillerCount = Math.max(0, PAGE_SIZE - kunden.length);
+
+  const COLSPAN = 7;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
+      <CreateCustomerDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={() => {
+          setRefreshKey((k) => k + 1);
+          setCurrentPage(1);
+        }}
+      />
+
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shrink-0 pb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Kunden suchen..."
+            placeholder="Kunden suchen…"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8"
@@ -169,30 +180,25 @@ export function CustomerTable({
               ))}
             </SelectContent>
           </Select>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Neuer Kunde
+          </Button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border flex-1 min-h-0 overflow-auto">
+      {/* Table — flex-1 min-h-0 fills the space between toolbar and pagination */}
+      <div className="rounded-md border overflow-auto flex-1 min-h-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
+              <TableHead className="w-[100px]">
                 <button
-                  onClick={() => handleSort("eigentuemerNr")}
+                  onClick={() => handleSort("kundennr")}
                   className="flex items-center font-medium hover:text-foreground"
                 >
-                  Kd-Nr.
-                  <SortIcon field="eigentuemerNr" />
-                </button>
-              </TableHead>
-              <TableHead>
-                <button
-                  onClick={() => handleSort("nachname")}
-                  className="flex items-center font-medium hover:text-foreground"
-                >
-                  Nachname
-                  <SortIcon field="nachname" />
+                  Kd.-Nr.
+                  <SortIcon field="kundennr" />
                 </button>
               </TableHead>
               <TableHead>
@@ -204,7 +210,25 @@ export function CustomerTable({
                   <SortIcon field="vorname" />
                 </button>
               </TableHead>
-              <TableHead className="hidden lg:table-cell">Adresse</TableHead>
+              <TableHead>
+                <button
+                  onClick={() => handleSort("nachname")}
+                  className="flex items-center font-medium hover:text-foreground"
+                >
+                  Nachname
+                  <SortIcon field="nachname" />
+                </button>
+              </TableHead>
+              <TableHead>Firma</TableHead>
+              <TableHead className="w-[90px]">
+                <button
+                  onClick={() => handleSort("plz")}
+                  className="flex items-center font-medium hover:text-foreground"
+                >
+                  PLZ
+                  <SortIcon field="plz" />
+                </button>
+              </TableHead>
               <TableHead>
                 <button
                   onClick={() => handleSort("ort")}
@@ -214,65 +238,81 @@ export function CustomerTable({
                   <SortIcon field="ort" />
                 </button>
               </TableHead>
-              <TableHead className="hidden md:table-cell">
+              <TableHead>
                 <button
-                  onClick={() => handleSort("telefonNr")}
+                  onClick={() => handleSort("telefonnr")}
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Telefon
-                  <SortIcon field="telefonNr" />
-                </button>
-              </TableHead>
-              <TableHead className="hidden sm:table-cell">
-                <button
-                  onClick={() => handleSort("email")}
-                  className="flex items-center font-medium hover:text-foreground"
-                >
-                  E-Mail
-                  <SortIcon field="email" />
+                  <SortIcon field="telefonnr" />
                 </button>
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  {Array.from({ length: 7 }).map((_, j) => (
-                    <TableCell key={j} className={j >= 5 ? "hidden sm:table-cell" : j >= 4 ? "hidden md:table-cell" : j === 3 ? "hidden lg:table-cell" : ""}>
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
+              // ── Loading: 15 skeleton rows ────────────────────────────────
+              Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                <TableRow key={`sk-${i}`} className={ROW_HEIGHT}>
+                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-14" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                 </TableRow>
               ))
-            ) : customers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  Keine Kunden gefunden.
-                </TableCell>
-              </TableRow>
+            ) : kunden.length === 0 ? (
+              // ── Empty state + filler rows ────────────────────────────────
+              <>
+                <TableRow className={ROW_HEIGHT}>
+                  <TableCell
+                    colSpan={COLSPAN}
+                    className="text-center text-muted-foreground"
+                  >
+                    Keine Kunden gefunden.
+                  </TableCell>
+                </TableRow>
+                {Array.from({ length: PAGE_SIZE - 1 }).map((_, i) => (
+                  <TableRow
+                    key={`filler-${i}`}
+                    className={`${ROW_HEIGHT} border-b-0 hover:bg-transparent`}
+                  >
+                    <TableCell colSpan={COLSPAN} className="p-0" />
+                  </TableRow>
+                ))}
+              </>
             ) : (
-              customers.map((customer) => (
-                <TableRow key={customer.anlId}>
-                  <TableCell className="font-medium text-muted-foreground">
-                    {customer.eigentuemerNr}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {customer.nachname}
-                  </TableCell>
-                  <TableCell>{customer.vorname}</TableCell>
-                  <TableCell className="hidden lg:table-cell text-muted-foreground">
-                    {formatAddress(customer)}
-                  </TableCell>
-                  <TableCell>{customer.ort}</TableCell>
-                  <TableCell className="hidden md:table-cell text-muted-foreground">
-                    {customer.telefonNr}
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell text-muted-foreground">
-                    {customer.email}
-                  </TableCell>
-                </TableRow>
-              ))
+              // ── Data rows + filler rows ──────────────────────────────────
+              <>
+                {kunden.map((kunde) => (
+                  <TableRow
+                    key={kunde.id}
+                    className={`${ROW_HEIGHT} cursor-pointer`}
+                    onClick={() => router.push(`/master-data/customers/${kunde.id}`)}
+                  >
+                    <TableCell className="text-muted-foreground">
+                      {kunde.kundennr}
+                    </TableCell>
+                    <TableCell>{kunde.vorname}</TableCell>
+                    <TableCell className="font-medium">{kunde.nachname}</TableCell>
+                    <TableCell className="text-muted-foreground">{kunde.firma}</TableCell>
+                    <TableCell className="text-muted-foreground">{kunde.plz}</TableCell>
+                    <TableCell>{kunde.ort}</TableCell>
+                    <TableCell className="text-muted-foreground">{kunde.telefonnr}</TableCell>
+                  </TableRow>
+                ))}
+                {Array.from({ length: fillerCount }).map((_, i) => (
+                  <TableRow
+                    key={`filler-${i}`}
+                    className={`${ROW_HEIGHT} border-b-0 hover:bg-transparent`}
+                  >
+                    <TableCell colSpan={COLSPAN} className="p-0" />
+                  </TableRow>
+                ))}
+              </>
             )}
           </TableBody>
         </Table>
@@ -281,7 +321,8 @@ export function CustomerTable({
       {/* Pagination */}
       <div className="flex items-center justify-between shrink-0 pt-4">
         <p className="text-sm text-muted-foreground">
-          {totalCount} Kunde{totalCount !== 1 && "n"}
+          {totalCount.toLocaleString("de-DE")} Kunde
+          {totalCount !== 1 && "n"}
           {filterOrt !== "all" || debouncedSearch ? " (gefiltert)" : ""}
         </p>
         {totalPages > 1 && (
@@ -290,18 +331,20 @@ export function CustomerTable({
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || isLoading}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground tabular-nums">
               Seite {currentPage} von {totalPages}
             </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() =>
+                setCurrentPage((p) => Math.min(totalPages, p + 1))
+              }
+              disabled={currentPage === totalPages || isLoading}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
