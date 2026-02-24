@@ -20,8 +20,18 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { Kunde, SortField, SortDirection } from "@/lib/types/customer";
-import { fetchCustomers } from "@/lib/actions/customers";
+import { fetchCustomers, deleteKunde } from "@/lib/actions/customers";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -59,6 +69,9 @@ export function CustomerTable({
   const [totalCount, setTotalCount] = useState(initialCount);
   const [filterOrte, setFilterOrte] = useState<string[]>(initialFilterOrte);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const router = useRouter();
   const isInitialRender = useRef(true);
@@ -72,6 +85,27 @@ export function CustomerTable({
     setSearchQuery("");
     setActiveSearch("");
     setCurrentPage(1);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    setDeleteError(null);
+    setPendingDeleteId(id);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (pendingDeleteId === null) return;
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    setDeletingId(id);
+    const result = await deleteKunde(id);
+    if (result.success) {
+      setKunden((prev) => prev.filter((k) => k.id !== id));
+      setTotalCount((c) => c - 1);
+    } else {
+      setDeleteError(result.error ?? "Löschen fehlgeschlagen.");
+    }
+    setDeletingId(null);
   };
 
   useEffect(() => {
@@ -135,10 +169,34 @@ export function CustomerTable({
   // plus transparent filler rows so the table height never changes.
   const fillerCount = Math.max(0, PAGE_SIZE - kunden.length);
 
-  const COLSPAN = 7;
+  const COLSPAN = 8;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
+      <AlertDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => { if (!open) setPendingDeleteId(null); }}
+      >
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kunde löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Dieser Vorgang kann nicht rückgängig gemacht werden. Der Kunde
+              wird dauerhaft aus der Datenbank entfernt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteConfirm}
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Toolbar */}
       <div className="flex items-center justify-between shrink-0 pb-4 gap-3">
         {/* Left: search + pagination */}
@@ -213,6 +271,10 @@ export function CustomerTable({
         </div>
       </div>
 
+      {deleteError && (
+        <p className="text-sm text-destructive pb-2">{deleteError}</p>
+      )}
+
       {/* Table — flex-1 min-h-0 fills the space between toolbar and pagination */}
       <div className="rounded-md border overflow-auto flex-1 min-h-0">
         <Table>
@@ -273,6 +335,7 @@ export function CustomerTable({
                   <SortIcon field="telefonnr" />
                 </button>
               </TableHead>
+              <TableHead className="w-[90px]" />
             </TableRow>
           </TableHeader>
 
@@ -288,6 +351,7 @@ export function CustomerTable({
                   <TableCell><Skeleton className="h-4 w-14" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                  <TableCell />
                 </TableRow>
               ))
             ) : kunden.length === 0 ? (
@@ -328,6 +392,16 @@ export function CustomerTable({
                     <TableCell className="text-muted-foreground">{kunde.plz}</TableCell>
                     <TableCell>{kunde.ort}</TableCell>
                     <TableCell className="text-muted-foreground">{kunde.telefonnr}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deletingId === kunde.id}
+                        onClick={(e) => handleDeleteClick(e, kunde.id)}
+                      >
+                        Löschen
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {Array.from({ length: fillerCount }).map((_, i) => (
