@@ -16,7 +16,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { updateKunde, type UpdateKundeInput } from "@/lib/actions/customers";
 import type { Kunde } from "@/lib/types/customer";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 interface CustomerEditFormProps {
   kunde: Kunde;
@@ -84,8 +85,44 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
     }
   };
 
+  const displayName =
+    'Kunde: ' +
+    kunde.firma ||
+    [kunde.vorname, kunde.nachname].filter(Boolean).join(" ") ||
+    "Kunde";
+
+  const metaInfo = [
+    kunde.kundennr && `Kunden-Nr.: ${kunde.kundennr}`,
+    kunde.created_at && `Erstellt: ${formatDateTime(kunde.created_at)}`,
+    kunde.last_update && `Geändert: ${formatDateTime(kunde.last_update)}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+
+      {/* ── Page header ──────────────────────────────────────────── */}
+      <div>
+        <Button variant="ghost" size="sm" className="-ml-2 mb-2" asChild>
+          <Link href="/master-data/customers">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Zurück
+          </Link>
+        </Button>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">{displayName}</h1>
+            {metaInfo && (
+              <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>
+            )}
+          </div>
+          <Button type="submit" disabled={isSaving} className="shrink-0">
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Speichern
+          </Button>
+        </div>
+      </div>
 
       {/* ── 2-column grid: row 1 = Stammdaten | Adresse
                           row 2 = Kontakt    | Anmerkungen ── */}
@@ -367,29 +404,6 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
           </CardContent>
         </Card>
 
-      </div>
-
-      {/* ── Systeminformationen — centered, single-column width ───── */}
-      <div className="flex justify-center">
-        <Card className="w-full max-w-lg">
-          <CardHeader>
-            <CardTitle className="text-base">Systeminformationen</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Erstellt am</Label>
-              <p className="text-sm text-muted-foreground py-1">
-                {formatDateTime(kunde.created_at)}
-              </p>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Letzte Änderung</Label>
-              <p className="text-sm text-muted-foreground py-1">
-                {formatDateTime(kunde.last_update)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
