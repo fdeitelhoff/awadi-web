@@ -87,10 +87,11 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
 
-      {/* ── Two-column main layout ────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      {/* ── 2-column grid: row 1 = Stammdaten | Adresse
+                          row 2 = Kontakt    | Anmerkungen ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* ── LEFT: Stammdaten (merged) ─────────────────────────── */}
+        {/* ── Stammdaten ───────────────────────────────────────────── */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Stammdaten</CardTitle>
@@ -192,206 +193,204 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
           </CardContent>
         </Card>
 
-        {/* ── RIGHT: Adresse + Kontakt stacked ─────────────────── */}
-        <div className="space-y-6">
-
-          {/* Adresse */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Adresse</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-[1fr_100px] gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="strasse">Straße</Label>
-                  <Input
-                    id="strasse"
-                    value={form.strasse}
-                    onChange={(e) => set("strasse", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="hausnr">Nr.</Label>
-                  <Input
-                    id="hausnr"
-                    value={form.hausnr}
-                    onChange={(e) => set("hausnr", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-[64px_90px_1fr] gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="laenderkennung">Land</Label>
-                  <Input
-                    id="laenderkennung"
-                    value={form.laenderkennung}
-                    onChange={(e) => set("laenderkennung", e.target.value)}
-                    placeholder="DE"
-                    maxLength={5}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="plz">PLZ</Label>
-                  <Input
-                    id="plz"
-                    value={form.plz}
-                    onChange={(e) => set("plz", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="ort">Ort</Label>
-                  <Input
-                    id="ort"
-                    value={form.ort}
-                    onChange={(e) => set("ort", e.target.value)}
-                  />
-                </div>
-              </div>
-
+        {/* ── Adresse ──────────────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Adresse</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-[1fr_100px] gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="ortsteil">Ortsteil</Label>
+                <Label htmlFor="strasse">Straße</Label>
                 <Input
-                  id="ortsteil"
-                  value={form.ortsteil}
-                  onChange={(e) => set("ortsteil", e.target.value)}
+                  id="strasse"
+                  value={form.strasse}
+                  onChange={(e) => set("strasse", e.target.value)}
                 />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Kontakt */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Kontakt</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="telefonnr">Telefon</Label>
-                  <Input
-                    id="telefonnr"
-                    type="tel"
-                    value={form.telefonnr}
-                    onChange={(e) => set("telefonnr", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="telefonnr_geschaeft">Telefon (Geschäft)</Label>
-                  <Input
-                    id="telefonnr_geschaeft"
-                    type="tel"
-                    value={form.telefonnr_geschaeft}
-                    onChange={(e) => set("telefonnr_geschaeft", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="mobilnr">Mobil</Label>
-                  <Input
-                    id="mobilnr"
-                    type="tel"
-                    value={form.mobilnr}
-                    onChange={(e) => set("mobilnr", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="mobilnr2">Mobil 2</Label>
-                  <Input
-                    id="mobilnr2"
-                    type="tel"
-                    value={form.mobilnr2}
-                    onChange={(e) => set("mobilnr2", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="faxnr">Fax</Label>
-                  <Input
-                    id="faxnr"
-                    type="tel"
-                    value={form.faxnr}
-                    onChange={(e) => set("faxnr", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">E-Mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => set("email", e.target.value)}
-                  />
-                </div>
-              </div>
-
               <div className="space-y-1.5">
-                <Label htmlFor="homepage">Homepage</Label>
+                <Label htmlFor="hausnr">Nr.</Label>
                 <Input
-                  id="homepage"
-                  type="url"
-                  value={form.homepage}
-                  onChange={(e) => set("homepage", e.target.value)}
-                  placeholder="https://"
+                  id="hausnr"
+                  value={form.hausnr}
+                  onChange={(e) => set("hausnr", e.target.value)}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-        </div>
+            <div className="grid grid-cols-[64px_90px_1fr] gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="laenderkennung">Land</Label>
+                <Input
+                  id="laenderkennung"
+                  value={form.laenderkennung}
+                  onChange={(e) => set("laenderkennung", e.target.value)}
+                  placeholder="DE"
+                  maxLength={5}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="plz">PLZ</Label>
+                <Input
+                  id="plz"
+                  value={form.plz}
+                  onChange={(e) => set("plz", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ort">Ort</Label>
+                <Input
+                  id="ort"
+                  value={form.ort}
+                  onChange={(e) => set("ort", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="ortsteil">Ortsteil</Label>
+              <Input
+                id="ortsteil"
+                value={form.ortsteil}
+                onChange={(e) => set("ortsteil", e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Kontakt ──────────────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Kontakt</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="telefonnr">Telefon</Label>
+                <Input
+                  id="telefonnr"
+                  type="tel"
+                  value={form.telefonnr}
+                  onChange={(e) => set("telefonnr", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="telefonnr_geschaeft">Telefon (Geschäft)</Label>
+                <Input
+                  id="telefonnr_geschaeft"
+                  type="tel"
+                  value={form.telefonnr_geschaeft}
+                  onChange={(e) => set("telefonnr_geschaeft", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="mobilnr">Mobil</Label>
+                <Input
+                  id="mobilnr"
+                  type="tel"
+                  value={form.mobilnr}
+                  onChange={(e) => set("mobilnr", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="mobilnr2">Mobil 2</Label>
+                <Input
+                  id="mobilnr2"
+                  type="tel"
+                  value={form.mobilnr2}
+                  onChange={(e) => set("mobilnr2", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="faxnr">Fax</Label>
+                <Input
+                  id="faxnr"
+                  type="tel"
+                  value={form.faxnr}
+                  onChange={(e) => set("faxnr", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="email">E-Mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => set("email", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="homepage">Homepage</Label>
+              <Input
+                id="homepage"
+                type="url"
+                value={form.homepage}
+                onChange={(e) => set("homepage", e.target.value)}
+                placeholder="https://"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Anmerkungen ──────────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Anmerkungen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="comment">Kommentar</Label>
+              <Textarea
+                id="comment"
+                rows={4}
+                value={form.comment}
+                onChange={(e) => set("comment", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="interne_anmerkungen">Interne Anmerkungen</Label>
+              <Textarea
+                id="interne_anmerkungen"
+                rows={4}
+                value={form.interne_anmerkungen}
+                onChange={(e) => set("interne_anmerkungen", e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
 
-      {/* ── Anmerkungen (full width) ──────────────────────────────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Anmerkungen</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="comment">Kommentar</Label>
-            <Textarea
-              id="comment"
-              rows={4}
-              value={form.comment}
-              onChange={(e) => set("comment", e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="interne_anmerkungen">Interne Anmerkungen</Label>
-            <Textarea
-              id="interne_anmerkungen"
-              rows={4}
-              value={form.interne_anmerkungen}
-              onChange={(e) => set("interne_anmerkungen", e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ── Systeminformationen (full width, read-only) ───────────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Systeminformationen</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label>Erstellt am</Label>
-            <p className="text-sm text-muted-foreground py-1">
-              {formatDateTime(kunde.created_at)}
-            </p>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Letzte Änderung</Label>
-            <p className="text-sm text-muted-foreground py-1">
-              {formatDateTime(kunde.last_update)}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* ── Systeminformationen — centered, single-column width ───── */}
+      <div className="flex justify-center">
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-base">Systeminformationen</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Erstellt am</Label>
+              <p className="text-sm text-muted-foreground py-1">
+                {formatDateTime(kunde.created_at)}
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Letzte Änderung</Label>
+              <p className="text-sm text-muted-foreground py-1">
+                {formatDateTime(kunde.last_update)}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
       <div className="flex items-center justify-between pb-8">
