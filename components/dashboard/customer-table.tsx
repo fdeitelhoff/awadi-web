@@ -271,9 +271,22 @@ export function CustomerTable({
         </div>
       </div>
 
-      {deleteError && (
-        <p className="text-sm text-destructive pb-2">{deleteError}</p>
-      )}
+      <AlertDialog
+        open={deleteError !== null}
+        onOpenChange={(open) => { if (!open) setDeleteError(null); }}
+      >
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Löschen fehlgeschlagen</AlertDialogTitle>
+            <AlertDialogDescription>{deleteError}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setDeleteError(null)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Table — flex-1 min-h-0 fills the space between toolbar and pagination */}
       <div className="rounded-md border overflow-auto flex-1 min-h-0">

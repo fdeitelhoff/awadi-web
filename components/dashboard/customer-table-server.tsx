@@ -14,7 +14,7 @@ export async function CustomerPageContent() {
           Kunden ({customerCount.toLocaleString("de-DE")})
         </h1>
         <p className="text-muted-foreground">
-          Verwalten Sie Ihre Kunden und deren Stammdaten
+          Verwalten Sie Ihre Kundenstammdaten.
         </p>
       </div>
 
