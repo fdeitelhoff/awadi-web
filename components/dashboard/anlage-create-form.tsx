@@ -1,0 +1,486 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { createAnlage, type CreateAnlageInput } from "@/lib/actions/anlagen";
+import { Loader2, ArrowLeft } from "lucide-react";
+
+const EMPTY_FORM: CreateAnlageInput = {
+  kunden_id: 0,
+  ist_aktiv: true,
+  anlagen_nr: "",
+  bezeichnung: "",
+  verfahren_br_anz_behaelter: undefined,
+  strasse: "",
+  hausnr: "",
+  laenderkennung: "",
+  plz: "",
+  ort: "",
+  ortsteil: "",
+  gemarkung: "",
+  flur: "",
+  flurstueck: "",
+  anlage_ausgelegt_ew: undefined,
+  tatsaechliche_ew: undefined,
+  datum_naechste_wartung: "",
+  datum_abgabefrei_seit: "",
+  touren_nr: "",
+  touren_nr2: "",
+  touren_nr3: "",
+  export_erlaubt_wartung: true,
+  wartungsvertrag_flag: undefined,
+  datum_wartungsvertrag: "",
+  ansprechpartner_legacy: "",
+  telefonnr_legacy: "",
+  comment: "",
+  anmerkungen_gesamt: "",
+};
+
+export function AnlageCreateForm() {
+  const router = useRouter();
+  const [form, setForm] = useState<CreateAnlageInput>(EMPTY_FORM);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const set = (
+    field: keyof CreateAnlageInput,
+    value: string | boolean | number | undefined
+  ) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.anlagen_nr?.trim()) {
+      setError("Bitte eine Anlagen-Nr. angeben.");
+      return;
+    }
+    if (!form.kunden_id || form.kunden_id <= 0) {
+      setError("Bitte eine gültige Kunden-ID angeben.");
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+
+    const result = await createAnlage(form);
+
+    if (!result.success) {
+      setIsSaving(false);
+      setError(result.error ?? "Unbekannter Fehler.");
+      return;
+    }
+
+    router.push(`/master-data/facilities/${result.id}`);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+
+      {/* ── Page header ──────────────────────────────────────────── */}
+      <div>
+        <Button variant="ghost" size="sm" className="-ml-2 mb-2" asChild>
+          <Link href="/master-data/facilities">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Zurück
+          </Link>
+        </Button>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold">Neue Anlage</h1>
+          <Button type="submit" disabled={isSaving} className="shrink-0">
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Speichern
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* ── Stammdaten ─────────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Stammdaten</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="anlagen_nr">
+                  Anlagen-Nr. <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="anlagen_nr"
+                  value={form.anlagen_nr}
+                  onChange={(e) => set("anlagen_nr", e.target.value)}
+                  placeholder="z. B. AS-290"
+                />
+              </div>
+              <div className="flex items-end pb-1">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="ist_aktiv"
+                    checked={form.ist_aktiv}
+                    onCheckedChange={(checked) => set("ist_aktiv", !!checked)}
+                  />
+                  <Label htmlFor="ist_aktiv">Aktiv</Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="kunden_id">
+                Kunden-ID (Eigentümer) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="kunden_id"
+                type="number"
+                min={1}
+                value={form.kunden_id || ""}
+                onChange={(e) =>
+                  set("kunden_id", parseInt(e.target.value, 10) || 0)
+                }
+                placeholder="Kunden-ID eingeben"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="bezeichnung">Bezeichnung</Label>
+              <Input
+                id="bezeichnung"
+                value={form.bezeichnung}
+                onChange={(e) => set("bezeichnung", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="verfahren_br_anz_behaelter">
+                Anzahl Vorklärbehälter
+              </Label>
+              <Input
+                id="verfahren_br_anz_behaelter"
+                type="number"
+                min={0}
+                value={form.verfahren_br_anz_behaelter ?? ""}
+                onChange={(e) =>
+                  set(
+                    "verfahren_br_anz_behaelter",
+                    e.target.value === "" ? undefined : parseInt(e.target.value, 10)
+                  )
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="anlage_ausgelegt_ew">Ausgelegt EW</Label>
+                <Input
+                  id="anlage_ausgelegt_ew"
+                  type="number"
+                  min={0}
+                  value={form.anlage_ausgelegt_ew ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "anlage_ausgelegt_ew",
+                      e.target.value === "" ? undefined : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tatsaechliche_ew">Tatsächliche EW</Label>
+                <Input
+                  id="tatsaechliche_ew"
+                  type="number"
+                  min={0}
+                  value={form.tatsaechliche_ew ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "tatsaechliche_ew",
+                      e.target.value === "" ? undefined : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+
+        {/* ── Anlagenstandort ─────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Anlagenstandort</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+
+            <div className="grid grid-cols-[1fr_100px] gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="strasse">Straße</Label>
+                <Input
+                  id="strasse"
+                  value={form.strasse}
+                  onChange={(e) => set("strasse", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="hausnr">Nr.</Label>
+                <Input
+                  id="hausnr"
+                  value={form.hausnr}
+                  onChange={(e) => set("hausnr", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[64px_90px_1fr] gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="laenderkennung">Land</Label>
+                <Input
+                  id="laenderkennung"
+                  value={form.laenderkennung}
+                  onChange={(e) => set("laenderkennung", e.target.value)}
+                  placeholder="DE"
+                  maxLength={5}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="plz">PLZ</Label>
+                <Input
+                  id="plz"
+                  value={form.plz}
+                  onChange={(e) => set("plz", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ort">Ort</Label>
+                <Input
+                  id="ort"
+                  value={form.ort}
+                  onChange={(e) => set("ort", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="ortsteil">Ortsteil</Label>
+              <Input
+                id="ortsteil"
+                value={form.ortsteil}
+                onChange={(e) => set("ortsteil", e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="gemarkung">Gemarkung</Label>
+                <Input
+                  id="gemarkung"
+                  value={form.gemarkung}
+                  onChange={(e) => set("gemarkung", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="flur">Flur</Label>
+                <Input
+                  id="flur"
+                  value={form.flur}
+                  onChange={(e) => set("flur", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="flurstueck">Flurstück</Label>
+                <Input
+                  id="flurstueck"
+                  value={form.flurstueck}
+                  onChange={(e) => set("flurstueck", e.target.value)}
+                />
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+
+        {/* ── Wartung & Planung ───────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Wartung &amp; Planung</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+
+            <div className="space-y-1.5">
+              <Label htmlFor="datum_naechste_wartung">Nächste Wartung</Label>
+              <Input
+                id="datum_naechste_wartung"
+                type="date"
+                value={form.datum_naechste_wartung}
+                onChange={(e) => set("datum_naechste_wartung", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="datum_abgabefrei_seit">Abgabefrei seit</Label>
+              <Input
+                id="datum_abgabefrei_seit"
+                type="date"
+                value={form.datum_abgabefrei_seit}
+                onChange={(e) => set("datum_abgabefrei_seit", e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="touren_nr">Tour 1</Label>
+                <Input
+                  id="touren_nr"
+                  value={form.touren_nr}
+                  onChange={(e) => set("touren_nr", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="touren_nr2">Tour 2</Label>
+                <Input
+                  id="touren_nr2"
+                  value={form.touren_nr2}
+                  onChange={(e) => set("touren_nr2", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="touren_nr3">Tour 3</Label>
+                <Input
+                  id="touren_nr3"
+                  value={form.touren_nr3}
+                  onChange={(e) => set("touren_nr3", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="wartungsvertrag_flag">Wartungsvertrag</Label>
+                <Select
+                  value={
+                    form.wartungsvertrag_flag != null
+                      ? String(form.wartungsvertrag_flag)
+                      : "none"
+                  }
+                  onValueChange={(v) =>
+                    set(
+                      "wartungsvertrag_flag",
+                      v === "none" ? undefined : parseInt(v, 10)
+                    )
+                  }
+                >
+                  <SelectTrigger id="wartungsvertrag_flag">
+                    <SelectValue placeholder="Auswählen…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Kein Vertrag</SelectItem>
+                    <SelectItem value="1">Aktiv (1)</SelectItem>
+                    <SelectItem value="2">Passiv/Sondervertrag (2)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="datum_wartungsvertrag">Vertragsdatum</Label>
+                <Input
+                  id="datum_wartungsvertrag"
+                  value={form.datum_wartungsvertrag}
+                  onChange={(e) => set("datum_wartungsvertrag", e.target.value)}
+                  placeholder="TT.MM.JJJJ"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="export_erlaubt_wartung"
+                checked={form.export_erlaubt_wartung}
+                onCheckedChange={(checked) =>
+                  set("export_erlaubt_wartung", !!checked)
+                }
+              />
+              <Label htmlFor="export_erlaubt_wartung">
+                Export für Wartungsplanung erlaubt
+              </Label>
+            </div>
+
+          </CardContent>
+        </Card>
+
+        {/* ── Anmerkungen ────────────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Anmerkungen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="ansprechpartner_legacy">Ansprechpartner</Label>
+                <Input
+                  id="ansprechpartner_legacy"
+                  value={form.ansprechpartner_legacy}
+                  onChange={(e) =>
+                    set("ansprechpartner_legacy", e.target.value)
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="telefonnr_legacy">Telefon (Anlage)</Label>
+                <Input
+                  id="telefonnr_legacy"
+                  type="tel"
+                  value={form.telefonnr_legacy}
+                  onChange={(e) => set("telefonnr_legacy", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="comment">Kommentar</Label>
+              <Textarea
+                id="comment"
+                rows={3}
+                value={form.comment}
+                onChange={(e) => set("comment", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="anmerkungen_gesamt">Anmerkungen gesamt</Label>
+              <Textarea
+                id="anmerkungen_gesamt"
+                rows={3}
+                value={form.anmerkungen_gesamt}
+                onChange={(e) => set("anmerkungen_gesamt", e.target.value)}
+              />
+            </div>
+
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* ── Footer ───────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between pb-8">
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        {!error && <span />}
+        <Button type="submit" disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Speichern
+        </Button>
+      </div>
+    </form>
+  );
+}
