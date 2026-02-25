@@ -7,6 +7,7 @@ import type { AnlageQueryParams, AnlageQueryResult } from "@/lib/types/anlage";
 export interface CreateAnlageInput {
   // id is auto-assigned server-side (max + 1)
   kunden_id: number;
+  anl_typ_id?: number;
   ist_aktiv?: boolean;
   anlagen_nr?: string;
   bezeichnung?: string;
@@ -110,10 +111,40 @@ export async function createAnlage(
     return { success: false, error: error.message };
   }
 
+  // Always create the first biology record so every facility has a type slot
+  const { data: maxBioRow } = await supabase
+    .from("anl_biologien")
+    .select("id")
+    .order("id", { ascending: false })
+    .limit(1)
+    .single();
+
+  const newBioId = (maxBioRow?.id ?? 0) + 1;
+
+  const bioRow: Record<string, unknown> = {
+    id: newBioId,
+    anlage_id: newId,
+    bio_nummer: 1,
+    vorhanden: true,
+  };
+  if (input.anl_typ_id != null) {
+    bioRow.anl_typ_id = input.anl_typ_id;
+  }
+
+  const { error: bioError } = await supabase
+    .from("anl_biologien")
+    .insert(bioRow);
+
+  if (bioError) {
+    console.error("Error creating anl_biologie:", bioError);
+    // Anlage was created successfully; biology failure is non-fatal but logged
+  }
+
   return { success: true, id: newId };
 }
 
 export interface UpdateAnlageInput {
+  anl_typ_id?: number | null;
   kunden_id?: number;
   ist_aktiv?: boolean;
   anlagen_nr?: string;
@@ -150,18 +181,21 @@ export async function updateAnlage(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
 
+  // Separate anl_typ_id (lives on anl_biologien) from the rest
+  const { anl_typ_id, ...anlageFields } = input;
+
   const row: Record<string, unknown> = {
     last_update: new Date().toISOString(),
   };
 
-  for (const [key, value] of Object.entries(input)) {
+  for (const [key, value] of Object.entries(anlageFields)) {
     if (typeof value === "boolean") {
       row[key] = value;
     } else if (typeof value === "number") {
       row[key] = value;
     } else if (value === null) {
       row[key] = null;
-    } else if (typeof value === "string" && value !== undefined) {
+    } else if (typeof value === "string") {
       row[key] = value.trim() === "" ? null : value.trim();
     }
   }
@@ -171,6 +205,31 @@ export async function updateAnlage(
   if (error) {
     console.error("Error updating anlage:", error);
     return { success: false, error: error.message };
+  }
+
+  // Update the type on the first active biology if anl_typ_id was provided
+  if (anl_typ_id !== undefined) {
+    // Find the first active biology for this facility
+    const { data: bioRow } = await supabase
+      .from("anl_biologien")
+      .select("id")
+      .eq("anlage_id", id)
+      .eq("vorhanden", true)
+      .order("bio_nummer")
+      .limit(1)
+      .single();
+
+    if (bioRow) {
+      const { error: bioError } = await supabase
+        .from("anl_biologien")
+        .update({ anl_typ_id: anl_typ_id })
+        .eq("id", bioRow.id);
+
+      if (bioError) {
+        console.error("Error updating anl_biologie type:", bioError);
+        return { success: false, error: bioError.message };
+      }
+    }
   }
 
   return { success: true };

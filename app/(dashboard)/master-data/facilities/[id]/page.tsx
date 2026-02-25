@@ -1,13 +1,14 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getAnlageById } from "@/lib/data/anlagen";
+import { getAnlageById, getAnlTypen } from "@/lib/data/anlagen";
 import { AnlageEditForm } from "@/components/dashboard/anlage-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { AnlTyp } from "@/lib/types/anlage";
 
-async function AnlageDetail({ id }: { id: number }) {
+async function AnlageDetail({ id, anlTypen }: { id: number; anlTypen: AnlTyp[] }) {
   const anlage = await getAnlageById(id);
   if (!anlage) notFound();
-  return <AnlageEditForm anlage={anlage} />;
+  return <AnlageEditForm anlage={anlage} anlTypen={anlTypen} />;
 }
 
 function AnlageDetailSkeleton() {
@@ -43,11 +44,13 @@ export default async function FacilityDetailPage({
 
   if (isNaN(anlageId)) notFound();
 
+  const anlTypen = await getAnlTypen();
+
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
       <div className="p-6 w-full">
         <Suspense fallback={<AnlageDetailSkeleton />}>
-          <AnlageDetail id={anlageId} />
+          <AnlageDetail id={anlageId} anlTypen={anlTypen} />
         </Suspense>
       </div>
     </div>

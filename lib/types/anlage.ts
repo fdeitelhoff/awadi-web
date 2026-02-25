@@ -60,7 +60,14 @@ export interface AnlageListItem extends Anlage {
   owner_name?: string;
   owner_telefonnr?: string;
   owner_email?: string;
+  anl_typ_id?: number;
   anl_typ_bezeichnung?: string;
+}
+
+// Facility type master data
+export interface AnlTyp {
+  id: number;
+  bezeichnung: string;
 }
 
 export type SortField =

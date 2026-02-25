@@ -15,12 +15,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { updateAnlage, type UpdateAnlageInput } from "@/lib/actions/anlagen";
-import type { AnlageListItem } from "@/lib/types/anlage";
+import type { AnlTyp, AnlageListItem } from "@/lib/types/anlage";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface AnlageEditFormProps {
   anlage: AnlageListItem;
+  anlTypen: AnlTyp[];
 }
 
 function formatDateTime(value?: string | null) {
@@ -34,8 +35,9 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlageEditForm({ anlage }: AnlageEditFormProps) {
+export function AnlageEditForm({ anlage, anlTypen }: AnlageEditFormProps) {
   const [form, setForm] = useState<UpdateAnlageInput>({
+    anl_typ_id: anlage.anl_typ_id ?? null,
     kunden_id: anlage.kunden_id,
     ist_aktiv: anlage.ist_aktiv,
     anlagen_nr: anlage.anlagen_nr ?? "",
@@ -157,6 +159,29 @@ export function AnlageEditForm({ anlage }: AnlageEditFormProps) {
                   <Label htmlFor="ist_aktiv">Aktiv</Label>
                 </div>
               </div>
+            </div>
+
+            {/* Anlagentyp */}
+            <div className="space-y-1.5">
+              <Label htmlFor="anl_typ_id">Anlagentyp</Label>
+              <Select
+                value={form.anl_typ_id != null ? String(form.anl_typ_id) : "none"}
+                onValueChange={(v) =>
+                  set("anl_typ_id", v === "none" ? null : parseInt(v, 10))
+                }
+              >
+                <SelectTrigger id="anl_typ_id">
+                  <SelectValue placeholder="Typ auswählen…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Kein Typ —</SelectItem>
+                  {anlTypen.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.bezeichnung}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Eigentümer (read-only display + editable ID) */}

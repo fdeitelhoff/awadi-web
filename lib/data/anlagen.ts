@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
+  AnlTyp,
   AnlageListItem,
   AnlageQueryResult,
   SortField,
@@ -57,6 +58,7 @@ export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
     owner_name: row.owner_name as string | undefined,
     owner_telefonnr: row.owner_telefonnr as string | undefined,
     owner_email: row.owner_email as string | undefined,
+    anl_typ_id: row.anl_typ_id as number | undefined,
     anl_typ_bezeichnung: row.anl_typ_bezeichnung as string | undefined,
   };
 }
@@ -163,6 +165,26 @@ export async function getAnlageById(
 
   if (error || !data) return null;
   return mapRowToAnlage(data as Record<string, unknown>);
+}
+
+export async function getAnlTypen(): Promise<AnlTyp[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("anl_typen")
+    .select("id, bezeichnung")
+    .order("sortiernr", { nullsFirst: false })
+    .order("bezeichnung");
+
+  if (error) {
+    console.error("Error fetching anl_typen:", error);
+    return [];
+  }
+
+  return (data ?? []).map((r) => ({
+    id: r.id as number,
+    bezeichnung: r.bezeichnung as string,
+  }));
 }
 
 export async function getAnlageCount(): Promise<number> {

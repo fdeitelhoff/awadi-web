@@ -17,10 +17,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createAnlage, type CreateAnlageInput } from "@/lib/actions/anlagen";
+import type { AnlTyp } from "@/lib/types/anlage";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: CreateAnlageInput = {
   kunden_id: 0,
+  anl_typ_id: undefined,
   ist_aktiv: true,
   anlagen_nr: "",
   bezeichnung: "",
@@ -50,7 +52,11 @@ const EMPTY_FORM: CreateAnlageInput = {
   anmerkungen_gesamt: "",
 };
 
-export function AnlageCreateForm() {
+interface AnlageCreateFormProps {
+  anlTypen: AnlTyp[];
+}
+
+export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
   const router = useRouter();
   const [form, setForm] = useState<CreateAnlageInput>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
@@ -136,6 +142,29 @@ export function AnlageCreateForm() {
                   <Label htmlFor="ist_aktiv">Aktiv</Label>
                 </div>
               </div>
+            </div>
+
+            {/* Anlagentyp */}
+            <div className="space-y-1.5">
+              <Label htmlFor="anl_typ_id">Anlagentyp</Label>
+              <Select
+                value={form.anl_typ_id != null ? String(form.anl_typ_id) : "none"}
+                onValueChange={(v) =>
+                  set("anl_typ_id", v === "none" ? undefined : parseInt(v, 10))
+                }
+              >
+                <SelectTrigger id="anl_typ_id">
+                  <SelectValue placeholder="Typ auswählen…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Kein Typ —</SelectItem>
+                  {anlTypen.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.bezeichnung}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1.5">
