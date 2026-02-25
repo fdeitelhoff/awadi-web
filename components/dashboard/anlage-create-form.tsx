@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { createAnlage, type CreateAnlageInput } from "@/lib/actions/anlagen";
 import type { AnlTyp } from "@/lib/types/anlage";
 import { KundePicker } from "@/components/dashboard/kunde-picker";
+import {
+  KontaktSection,
+  type KontaktSectionRef,
+} from "@/components/dashboard/kontakt-section";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: CreateAnlageInput = {
@@ -59,6 +63,7 @@ interface AnlageCreateFormProps {
 
 export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
   const router = useRouter();
+  const kontaktRef = useRef<KontaktSectionRef>(null);
   const [form, setForm] = useState<CreateAnlageInput>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +86,19 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
     setIsSaving(true);
     setError(null);
 
-    const result = await createAnlage(form);
+    // Save contact person first (may create a kontakte record)
+    const kontaktResult = await kontaktRef.current?.save();
+    if (kontaktResult?.error) {
+      setError(kontaktResult.error);
+      setIsSaving(false);
+      return;
+    }
+
+    const result = await createAnlage({
+      ...form,
+      kontakt_kunde_id: kontaktResult?.kontakt_kunde_id ?? undefined,
+      kontakt_id: kontaktResult?.kontakt_id ?? undefined,
+    });
 
     if (!result.success) {
       setIsSaving(false);
@@ -491,6 +508,9 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
 
           </CardContent>
         </Card>
+
+        {/* ── Ansprechpartner ────────────────────────────────────── */}
+        <KontaktSection ref={kontaktRef} />
 
       </div>
 

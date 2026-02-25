@@ -8,6 +8,8 @@ export interface CreateAnlageInput {
   // id is auto-assigned server-side (max + 1)
   kunden_id: number;
   anl_typ_id?: number;
+  kontakt_kunde_id?: number;
+  kontakt_id?: number;
   ist_aktiv?: boolean;
   anlagen_nr?: string;
   bezeichnung?: string;
@@ -58,6 +60,13 @@ export async function createAnlage(
     ist_aktiv: input.ist_aktiv ?? true,
     export_erlaubt_wartung: input.export_erlaubt_wartung ?? true,
   };
+
+  // XOR: at most one of kontakt_kunde_id / kontakt_id
+  if (input.kontakt_kunde_id != null) {
+    row.kontakt_kunde_id = input.kontakt_kunde_id;
+  } else if (input.kontakt_id != null) {
+    row.kontakt_id = input.kontakt_id;
+  }
 
   const textFields: (keyof CreateAnlageInput)[] = [
     "anlagen_nr",
@@ -146,6 +155,8 @@ export async function createAnlage(
 export interface UpdateAnlageInput {
   anl_typ_id?: number | null;
   kunden_id?: number;
+  kontakt_kunde_id?: number | null;
+  kontakt_id?: number | null;
   ist_aktiv?: boolean;
   anlagen_nr?: string;
   bezeichnung?: string;

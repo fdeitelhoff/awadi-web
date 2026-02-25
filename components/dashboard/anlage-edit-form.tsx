@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,13 +16,19 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { updateAnlage, type UpdateAnlageInput } from "@/lib/actions/anlagen";
 import type { AnlTyp, AnlageListItem } from "@/lib/types/anlage";
+import type { Kontakt } from "@/lib/types/kontakt";
 import { KundePicker } from "@/components/dashboard/kunde-picker";
+import {
+  KontaktSection,
+  type KontaktSectionRef,
+} from "@/components/dashboard/kontakt-section";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface AnlageEditFormProps {
   anlage: AnlageListItem;
   anlTypen: AnlTyp[];
+  initialKontakt?: Kontakt;
 }
 
 function formatDateTime(value?: string | null) {
@@ -36,7 +42,34 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlageEditForm({ anlage, anlTypen }: AnlageEditFormProps) {
+export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditFormProps) {
+  const kontaktRef = useRef<KontaktSectionRef>(null);
+
+  const initialContactMode: "none" | "kunde" | "kontakt" =
+    anlage.kontakt_kunde_id != null
+      ? "kunde"
+      : anlage.kontakt_id != null
+      ? "kontakt"
+      : "none";
+
+  const initialKundeInfo =
+    anlage.kontakt_kunde_id != null
+      ? {
+          id: anlage.kontakt_kunde_id,
+          name: anlage.kontakt_name ?? `Kunde #${anlage.kontakt_kunde_id}`,
+          address: [
+            [anlage.kontakt_strasse, anlage.kontakt_hausnr]
+              .filter(Boolean)
+              .join(" "),
+            [anlage.kontakt_plz, anlage.kontakt_ort]
+              .filter(Boolean)
+              .join(" "),
+          ]
+            .filter(Boolean)
+            .join(", "),
+        }
+      : undefined;
+
   const [form, setForm] = useState<UpdateAnlageInput>({
     anl_typ_id: anlage.anl_typ_id ?? null,
     kunden_id: anlage.kunden_id,
@@ -84,7 +117,19 @@ export function AnlageEditForm({ anlage, anlTypen }: AnlageEditFormProps) {
     setSaved(false);
     setError(null);
 
-    const result = await updateAnlage(anlage.id, form);
+    // Save contact person first (may create/update a kontakte record)
+    const kontaktResult = await kontaktRef.current?.save();
+    if (kontaktResult?.error) {
+      setError(kontaktResult.error);
+      setIsSaving(false);
+      return;
+    }
+
+    const result = await updateAnlage(anlage.id, {
+      ...form,
+      kontakt_kunde_id: kontaktResult?.kontakt_kunde_id ?? null,
+      kontakt_id: kontaktResult?.kontakt_id ?? null,
+    });
 
     setIsSaving(false);
     if (!result.success) {
@@ -531,6 +576,15 @@ export function AnlageEditForm({ anlage, anlTypen }: AnlageEditFormProps) {
 
           </CardContent>
         </Card>
+
+        {/* ── Ansprechpartner ────────────────────────────────────── */}
+        <KontaktSection
+          ref={kontaktRef}
+          initialMode={initialContactMode}
+          initialKundeId={anlage.kontakt_kunde_id}
+          initialKundeInfo={initialKundeInfo}
+          initialKontakt={initialKontakt}
+        />
 
       </div>
 

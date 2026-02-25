@@ -66,6 +66,15 @@ export interface AnlageListItem extends Anlage {
   owner_ort?: string;
   anl_typ_id?: number;
   anl_typ_bezeichnung?: string;
+  // Contact person (derived from kontakt_kunde_id or kontakt_id)
+  kontakt_typ?: string;
+  kontakt_name?: string;
+  kontakt_telefonnr?: string;
+  kontakt_email?: string;
+  kontakt_strasse?: string;
+  kontakt_hausnr?: string;
+  kontakt_plz?: string;
+  kontakt_ort?: string;
 }
 
 // Facility type master data

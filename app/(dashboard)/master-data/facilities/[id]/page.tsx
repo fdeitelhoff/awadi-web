@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getAnlageById, getAnlTypen } from "@/lib/data/anlagen";
+import { getKontaktById } from "@/lib/data/kontakte";
 import { AnlageEditForm } from "@/components/dashboard/anlage-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AnlTyp } from "@/lib/types/anlage";
@@ -8,7 +9,19 @@ import type { AnlTyp } from "@/lib/types/anlage";
 async function AnlageDetail({ id, anlTypen }: { id: number; anlTypen: AnlTyp[] }) {
   const anlage = await getAnlageById(id);
   if (!anlage) notFound();
-  return <AnlageEditForm anlage={anlage} anlTypen={anlTypen} />;
+
+  const initialKontakt =
+    anlage.kontakt_id != null
+      ? (await getKontaktById(anlage.kontakt_id)) ?? undefined
+      : undefined;
+
+  return (
+    <AnlageEditForm
+      anlage={anlage}
+      anlTypen={anlTypen}
+      initialKontakt={initialKontakt}
+    />
+  );
 }
 
 function AnlageDetailSkeleton() {
