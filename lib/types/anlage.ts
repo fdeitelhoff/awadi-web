@@ -60,6 +60,7 @@ export interface AnlageListItem extends Anlage {
   owner_name?: string;
   owner_telefonnr?: string;
   owner_email?: string;
+  anl_typ_bezeichnung?: string;
 }
 
 export type SortField =

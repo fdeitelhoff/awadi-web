@@ -178,7 +178,7 @@ export function AnlageTable({
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - anlagen.length);
-  const COLSPAN = 7;
+  const COLSPAN = 8;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -317,6 +317,7 @@ export function AnlageTable({
                 </button>
               </TableHead>
               <TableHead>Eigentümer</TableHead>
+              <TableHead>Typ</TableHead>
               <TableHead className="w-[90px]">
                 <button
                   onClick={() => handleSort("plz")}
@@ -363,6 +364,7 @@ export function AnlageTable({
                 <TableRow key={`sk-${i}`} className={ROW_HEIGHT}>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-14" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
@@ -404,6 +406,9 @@ export function AnlageTable({
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {anlage.owner_name ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {anlage.anl_typ_bezeichnung ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {anlage.plz}
