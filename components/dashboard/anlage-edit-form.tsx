@@ -16,6 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { updateAnlage, type UpdateAnlageInput } from "@/lib/actions/anlagen";
 import type { AnlTyp, AnlageListItem } from "@/lib/types/anlage";
+import { KundePicker } from "@/components/dashboard/kunde-picker";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -184,29 +185,27 @@ export function AnlageEditForm({ anlage, anlTypen }: AnlageEditFormProps) {
               </Select>
             </div>
 
-            {/* Eigentümer (read-only display + editable ID) */}
+            {/* Eigentümer */}
             <div className="space-y-1.5">
-              <Label>Eigentümer</Label>
-              {anlage.owner_name && (
-                <p className="text-sm text-muted-foreground">
-                  {anlage.owner_name}
-                  {anlage.owner_kundennr && ` (${anlage.owner_kundennr})`}
-                </p>
-              )}
-              <div className="flex items-center gap-2">
-                <Label htmlFor="kunden_id" className="text-xs text-muted-foreground shrink-0">
-                  Kunden-ID:
-                </Label>
-                <Input
-                  id="kunden_id"
-                  type="number"
-                  value={form.kunden_id ?? ""}
-                  onChange={(e) =>
-                    set("kunden_id", parseInt(e.target.value, 10) || 0)
-                  }
-                  className="w-28"
-                />
-              </div>
+              <Label>Eigentümer <span className="text-destructive">*</span></Label>
+              <KundePicker
+                value={form.kunden_id ?? null}
+                onChange={(id) => set("kunden_id", id ?? 0)}
+                initial={{
+                  id: anlage.kunden_id,
+                  name: anlage.owner_name ?? `Kunde #${anlage.kunden_id}`,
+                  address: [
+                    [anlage.owner_strasse, anlage.owner_hausnr]
+                      .filter(Boolean)
+                      .join(" "),
+                    [anlage.owner_plz, anlage.owner_ort]
+                      .filter(Boolean)
+                      .join(" "),
+                  ]
+                    .filter(Boolean)
+                    .join(", "),
+                }}
+              />
             </div>
 
             {/* Bezeichnung */}

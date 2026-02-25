@@ -60,6 +60,10 @@ export interface AnlageListItem extends Anlage {
   owner_name?: string;
   owner_telefonnr?: string;
   owner_email?: string;
+  owner_strasse?: string;
+  owner_hausnr?: string;
+  owner_plz?: string;
+  owner_ort?: string;
   anl_typ_id?: number;
   anl_typ_bezeichnung?: string;
 }

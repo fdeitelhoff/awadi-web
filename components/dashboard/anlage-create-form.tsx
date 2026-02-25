@@ -18,6 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { createAnlage, type CreateAnlageInput } from "@/lib/actions/anlagen";
 import type { AnlTyp } from "@/lib/types/anlage";
+import { KundePicker } from "@/components/dashboard/kunde-picker";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: CreateAnlageInput = {
@@ -74,7 +75,7 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
       return;
     }
     if (!form.kunden_id || form.kunden_id <= 0) {
-      setError("Bitte eine gültige Kunden-ID angeben.");
+      setError("Bitte einen Eigentümer auswählen.");
       return;
     }
     setIsSaving(true);
@@ -168,18 +169,10 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="kunden_id">
-                Kunden-ID (Eigentümer) <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="kunden_id"
-                type="number"
-                min={1}
-                value={form.kunden_id || ""}
-                onChange={(e) =>
-                  set("kunden_id", parseInt(e.target.value, 10) || 0)
-                }
-                placeholder="Kunden-ID eingeben"
+              <Label>Eigentümer <span className="text-destructive">*</span></Label>
+              <KundePicker
+                value={form.kunden_id || null}
+                onChange={(id) => set("kunden_id", id ?? 0)}
               />
             </div>
 
