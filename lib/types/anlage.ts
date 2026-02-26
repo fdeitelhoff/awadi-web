@@ -20,6 +20,12 @@ export interface Anlage {
   flur?: string;
   flurstueck?: string;
 
+  // Coordinates
+  rechtswert?: string;
+  hochwert?: string;
+  breitengrad?: string;
+  laengengrad?: string;
+
   // Sizing
   anlage_ausgelegt_ew?: number;
   tatsaechliche_ew?: number;

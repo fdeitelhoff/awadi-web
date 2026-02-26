@@ -23,8 +23,13 @@ export interface CreateAnlageInput {
   gemarkung?: string;
   flur?: string;
   flurstueck?: string;
+  rechtswert?: string;
+  hochwert?: string;
+  breitengrad?: string;
+  laengengrad?: string;
   anlage_ausgelegt_ew?: number;
   tatsaechliche_ew?: number;
+  gesamtgroesse_vk?: number;
   datum_naechste_wartung?: string;
   datum_abgabefrei_seit?: string;
   touren_nr?: string;
@@ -80,6 +85,10 @@ export async function createAnlage(
     "gemarkung",
     "flur",
     "flurstueck",
+    "rechtswert",
+    "hochwert",
+    "breitengrad",
+    "laengengrad",
     "datum_naechste_wartung",
     "datum_abgabefrei_seit",
     "touren_nr",
@@ -103,6 +112,7 @@ export async function createAnlage(
     "verfahren_br_anz_behaelter",
     "anlage_ausgelegt_ew",
     "tatsaechliche_ew",
+    "gesamtgroesse_vk",
     "wartungsvertrag_flag",
   ];
 
@@ -170,8 +180,13 @@ export interface UpdateAnlageInput {
   gemarkung?: string;
   flur?: string;
   flurstueck?: string;
+  rechtswert?: string;
+  hochwert?: string;
+  breitengrad?: string;
+  laengengrad?: string;
   anlage_ausgelegt_ew?: number | null;
   tatsaechliche_ew?: number | null;
+  gesamtgroesse_vk?: number | null;
   touren_nr?: string;
   touren_nr2?: string;
   touren_nr3?: string;

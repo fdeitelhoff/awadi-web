@@ -86,8 +86,13 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
     gemarkung: anlage.gemarkung ?? "",
     flur: anlage.flur ?? "",
     flurstueck: anlage.flurstueck ?? "",
+    rechtswert: anlage.rechtswert ?? "",
+    hochwert: anlage.hochwert ?? "",
+    breitengrad: anlage.breitengrad ?? "",
+    laengengrad: anlage.laengengrad ?? "",
     anlage_ausgelegt_ew: anlage.anlage_ausgelegt_ew ?? undefined,
     tatsaechliche_ew: anlage.tatsaechliche_ew ?? undefined,
+    gesamtgroesse_vk: anlage.gesamtgroesse_vk ?? undefined,
     touren_nr: anlage.touren_nr ?? "",
     touren_nr2: anlage.touren_nr2 ?? "",
     touren_nr3: anlage.touren_nr3 ?? "",
@@ -282,8 +287,8 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
               />
             </div>
 
-            {/* EW */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* EW + Gesamtgröße VK */}
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="anlage_ausgelegt_ew">Ausgelegt EW</Label>
                 <Input
@@ -310,6 +315,22 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
                     set(
                       "tatsaechliche_ew",
                       e.target.value === "" ? null : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="gesamtgroesse_vk">Gesamtgröße VK</Label>
+                <Input
+                  id="gesamtgroesse_vk"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={form.gesamtgroesse_vk ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "gesamtgroesse_vk",
+                      e.target.value === "" ? null : parseFloat(e.target.value)
                     )
                   }
                 />
@@ -407,6 +428,46 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
                   id="flurstueck"
                   value={form.flurstueck}
                   onChange={(e) => set("flurstueck", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="breitengrad">Breitengrad</Label>
+                <Input
+                  id="breitengrad"
+                  value={form.breitengrad}
+                  onChange={(e) => set("breitengrad", e.target.value)}
+                  placeholder="z. B. 51.123456"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="laengengrad">Längengrad</Label>
+                <Input
+                  id="laengengrad"
+                  value={form.laengengrad}
+                  onChange={(e) => set("laengengrad", e.target.value)}
+                  placeholder="z. B. 9.123456"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="rechtswert">Rechtswert</Label>
+                <Input
+                  id="rechtswert"
+                  value={form.rechtswert}
+                  onChange={(e) => set("rechtswert", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="hochwert">Hochwert</Label>
+                <Input
+                  id="hochwert"
+                  value={form.hochwert}
+                  onChange={(e) => set("hochwert", e.target.value)}
                 />
               </div>
             </div>

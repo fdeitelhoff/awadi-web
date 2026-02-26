@@ -41,8 +41,13 @@ const EMPTY_FORM: CreateAnlageInput = {
   gemarkung: "",
   flur: "",
   flurstueck: "",
+  rechtswert: "",
+  hochwert: "",
+  breitengrad: "",
+  laengengrad: "",
   anlage_ausgelegt_ew: undefined,
   tatsaechliche_ew: undefined,
+  gesamtgroesse_vk: undefined,
   datum_naechste_wartung: "",
   datum_abgabefrei_seit: "",
   touren_nr: "",
@@ -220,7 +225,7 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="anlage_ausgelegt_ew">Ausgelegt EW</Label>
                 <Input
@@ -247,6 +252,22 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
                     set(
                       "tatsaechliche_ew",
                       e.target.value === "" ? undefined : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="gesamtgroesse_vk">Gesamtgröße VK</Label>
+                <Input
+                  id="gesamtgroesse_vk"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={form.gesamtgroesse_vk ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "gesamtgroesse_vk",
+                      e.target.value === "" ? undefined : parseFloat(e.target.value)
                     )
                   }
                 />
@@ -343,6 +364,46 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
                   id="flurstueck"
                   value={form.flurstueck}
                   onChange={(e) => set("flurstueck", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="breitengrad">Breitengrad</Label>
+                <Input
+                  id="breitengrad"
+                  value={form.breitengrad}
+                  onChange={(e) => set("breitengrad", e.target.value)}
+                  placeholder="z. B. 51.123456"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="laengengrad">Längengrad</Label>
+                <Input
+                  id="laengengrad"
+                  value={form.laengengrad}
+                  onChange={(e) => set("laengengrad", e.target.value)}
+                  placeholder="z. B. 9.123456"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="rechtswert">Rechtswert</Label>
+                <Input
+                  id="rechtswert"
+                  value={form.rechtswert}
+                  onChange={(e) => set("rechtswert", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="hochwert">Hochwert</Label>
+                <Input
+                  id="hochwert"
+                  value={form.hochwert}
+                  onChange={(e) => set("hochwert", e.target.value)}
                 />
               </div>
             </div>
