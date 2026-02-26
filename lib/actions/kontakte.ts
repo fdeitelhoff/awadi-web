@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { KontaktFormData } from "@/lib/types/kontakt";
+import type { KontaktFormData, KontaktQueryParams, KontaktQueryResult } from "@/lib/types/kontakt";
+import { getKontakte } from "@/lib/data/kontakte";
 
 const TEXT_FIELDS: (keyof KontaktFormData)[] = [
   "firma",
@@ -73,4 +74,31 @@ export async function updateKontakt(
   }
 
   return { success: true };
+}
+
+export async function deleteKontakt(
+  id: number
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("kontakte").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting kontakt:", error);
+    if (error.code === "23503") {
+      return {
+        success: false,
+        error: "Dieser Kontakt kann nicht gelöscht werden, da er noch verwendet wird.",
+      };
+    }
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function fetchKontakte(
+  params: KontaktQueryParams = {}
+): Promise<KontaktQueryResult> {
+  return getKontakte(params);
 }

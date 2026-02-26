@@ -37,3 +37,29 @@ export interface KontaktFormData {
   email?: string;
   anmerkungen?: string;
 }
+
+export type KontaktSortField =
+  | "nachname"
+  | "vorname"
+  | "ort"
+  | "plz"
+  | "telefonnr"
+  | "mobilnr"
+  | "email";
+
+export type SortDirection = "asc" | "desc";
+
+export interface KontaktQueryParams {
+  search?: string;
+  filterOrt?: string;
+  sortField?: KontaktSortField;
+  sortDirection?: SortDirection;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface KontaktQueryResult {
+  data: Kontakt[];
+  totalCount: number;
+  filterOptions: { orte: string[] };
+}

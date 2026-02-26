@@ -1,12 +1,13 @@
+import { Suspense } from "react";
+import { KontaktPageContent } from "@/components/dashboard/kontakt-table-server";
+import { MasterDataSkeleton } from "../loading";
+
 export default function ContactsPage() {
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Kontakte</h1>
-        <p className="text-muted-foreground">
-          Verwalten Sie Ihre Ansprechpartner und Kontakte
-        </p>
-      </div>
+    <div className="flex flex-col flex-1 min-h-0 p-6 gap-4">
+      <Suspense fallback={<MasterDataSkeleton />}>
+        <KontaktPageContent />
+      </Suspense>
     </div>
   );
 }
