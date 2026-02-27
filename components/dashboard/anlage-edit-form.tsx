@@ -91,12 +91,8 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
     anlage_ausgelegt_ew: anlage.anlage_ausgelegt_ew ?? undefined,
     tatsaechliche_ew: anlage.tatsaechliche_ew ?? undefined,
     gesamtgroesse_vk: anlage.gesamtgroesse_vk ?? undefined,
-    touren_nr: anlage.touren_nr ?? "",
-    touren_nr2: anlage.touren_nr2 ?? "",
-    touren_nr3: anlage.touren_nr3 ?? "",
-    datum_abgabefrei_seit: anlage.datum_abgabefrei_seit ?? "",
-    ansprechpartner_legacy: anlage.ansprechpartner_legacy ?? "",
-    telefonnr_legacy: anlage.telefonnr_legacy ?? "",
+
+
     comment: anlage.comment ?? "",
     anmerkungen_gesamt: anlage.anmerkungen_gesamt ?? "",
   });
@@ -464,44 +460,6 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
           </CardHeader>
           <CardContent className="space-y-4">
 
-            <div className="space-y-1.5">
-              <Label htmlFor="datum_abgabefrei_seit">Abgabefrei seit</Label>
-              <Input
-                id="datum_abgabefrei_seit"
-                type="date"
-                value={form.datum_abgabefrei_seit}
-                onChange={(e) => set("datum_abgabefrei_seit", e.target.value)}
-              />
-            </div>
-
-            {/* Touren */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="touren_nr">Tour 1</Label>
-                <Input
-                  id="touren_nr"
-                  value={form.touren_nr}
-                  onChange={(e) => set("touren_nr", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="touren_nr2">Tour 2</Label>
-                <Input
-                  id="touren_nr2"
-                  value={form.touren_nr2}
-                  onChange={(e) => set("touren_nr2", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="touren_nr3">Tour 3</Label>
-                <Input
-                  id="touren_nr3"
-                  value={form.touren_nr3}
-                  onChange={(e) => set("touren_nr3", e.target.value)}
-                />
-              </div>
-            </div>
-
           </CardContent>
         </Card>
 
@@ -511,28 +469,6 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
             <CardTitle className="text-base">Anmerkungen</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="ansprechpartner_legacy">Ansprechpartner</Label>
-                <Input
-                  id="ansprechpartner_legacy"
-                  value={form.ansprechpartner_legacy}
-                  onChange={(e) =>
-                    set("ansprechpartner_legacy", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="telefonnr_legacy">Telefon (Anlage)</Label>
-                <Input
-                  id="telefonnr_legacy"
-                  type="tel"
-                  value={form.telefonnr_legacy}
-                  onChange={(e) => set("telefonnr_legacy", e.target.value)}
-                />
-              </div>
-            </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="comment">Kommentar</Label>

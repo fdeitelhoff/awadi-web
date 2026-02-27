@@ -29,12 +29,6 @@ export interface CreateAnlageInput {
   anlage_ausgelegt_ew?: number;
   tatsaechliche_ew?: number;
   gesamtgroesse_vk?: number;
-  datum_abgabefrei_seit?: string;
-  touren_nr?: string;
-  touren_nr2?: string;
-  touren_nr3?: string;
-  ansprechpartner_legacy?: string;
-  telefonnr_legacy?: string;
   comment?: string;
   anmerkungen_gesamt?: string;
 }
@@ -82,12 +76,6 @@ export async function createAnlage(
     "hochwert",
     "breitengrad",
     "laengengrad",
-    "datum_abgabefrei_seit",
-    "touren_nr",
-    "touren_nr2",
-    "touren_nr3",
-    "ansprechpartner_legacy",
-    "telefonnr_legacy",
     "comment",
     "anmerkungen_gesamt",
   ];
@@ -176,12 +164,6 @@ export interface UpdateAnlageInput {
   anlage_ausgelegt_ew?: number | null;
   tatsaechliche_ew?: number | null;
   gesamtgroesse_vk?: number | null;
-  touren_nr?: string;
-  touren_nr2?: string;
-  touren_nr3?: string;
-  datum_abgabefrei_seit?: string;
-  ansprechpartner_legacy?: string;
-  telefonnr_legacy?: string;
   comment?: string;
   anmerkungen_gesamt?: string;
 }

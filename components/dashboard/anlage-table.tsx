@@ -168,7 +168,7 @@ export function AnlageTable({
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - anlagen.length);
-  const COLSPAN = 6;
+  const COLSPAN = 10;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -306,8 +306,12 @@ export function AnlageTable({
                   <SortIcon field="anlagen_nr" />
                 </button>
               </TableHead>
-              <TableHead>Eigentümer</TableHead>
               <TableHead>Typ</TableHead>
+              <TableHead>Eigentümer</TableHead>
+              <TableHead>Ansprechpartner</TableHead>
+              <TableHead>Telefon</TableHead>
+              <TableHead>Straße</TableHead>
+              <TableHead className="w-[80px]">Hausnr.</TableHead>
               <TableHead className="w-[90px]">
                 <button
                   onClick={() => handleSort("plz")}
@@ -335,8 +339,12 @@ export function AnlageTable({
               Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <TableRow key={`sk-${i}`} className={ROW_HEIGHT}>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-14" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell />
@@ -375,10 +383,22 @@ export function AnlageTable({
                       {anlage.anlagen_nr ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
+                      {anlage.anl_typ_bezeichnung ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {anlage.owner_name ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {anlage.anl_typ_bezeichnung ?? "—"}
+                      {anlage.kontakt_name ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {anlage.kontakt_telefonnr ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {anlage.strasse}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {anlage.hausnr}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {anlage.plz}

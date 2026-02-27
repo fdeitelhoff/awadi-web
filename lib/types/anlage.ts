@@ -30,20 +30,9 @@ export interface Anlage {
   tatsaechliche_ew?: number;
   gesamtgroesse_vk?: number;
 
-  // Tour / route planning
-  touren_nr?: string;
-  touren_nr2?: string;
-  touren_nr3?: string;
-
-  // Scheduling
-  datum_abgabefrei_seit?: string;
-
   // Contact references
   kontakt_kunde_id?: number;
   kontakt_id?: number;
-  ansprechpartner_legacy?: string;
-  telefonnr_legacy?: string;
-
   comment?: string;
   anmerkungen_gesamt?: string;
   bezeichnung?: string;
