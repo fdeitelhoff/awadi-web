@@ -36,6 +36,10 @@ export interface Anlage {
   comment?: string;
   anmerkungen_gesamt?: string;
   bezeichnung?: string;
+  cleaning_class?: string;
+  oxygen_demand_class?: string;
+  discharged_in?: string;
+  number_of_biologies?: number;
 
   trace_mark?: number;
   last_update?: string;

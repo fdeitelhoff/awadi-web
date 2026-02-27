@@ -31,6 +31,10 @@ export interface CreateAnlageInput {
   gesamtgroesse_vk?: number;
   comment?: string;
   anmerkungen_gesamt?: string;
+  cleaning_class?: string;
+  oxygen_demand_class?: string;
+  discharged_in?: string;
+  number_of_biologies?: number;
 }
 
 export async function createAnlage(
@@ -78,6 +82,9 @@ export async function createAnlage(
     "laengengrad",
     "comment",
     "anmerkungen_gesamt",
+    "cleaning_class",
+    "oxygen_demand_class",
+    "discharged_in",
   ];
 
   for (const field of textFields) {
@@ -92,6 +99,7 @@ export async function createAnlage(
     "anlage_ausgelegt_ew",
     "tatsaechliche_ew",
     "gesamtgroesse_vk",
+    "number_of_biologies",
   ];
 
   for (const field of numericFields) {
@@ -166,6 +174,10 @@ export interface UpdateAnlageInput {
   gesamtgroesse_vk?: number | null;
   comment?: string;
   anmerkungen_gesamt?: string;
+  cleaning_class?: string;
+  oxygen_demand_class?: string;
+  discharged_in?: string;
+  number_of_biologies?: number | null;
 }
 
 export async function updateAnlage(

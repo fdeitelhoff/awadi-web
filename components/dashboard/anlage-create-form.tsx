@@ -50,6 +50,10 @@ const EMPTY_FORM: CreateAnlageInput = {
 
   comment: "",
   anmerkungen_gesamt: "",
+  cleaning_class: "",
+  oxygen_demand_class: "",
+  discharged_in: "",
+  number_of_biologies: undefined,
 };
 
 interface AnlageCreateFormProps {
@@ -145,25 +149,79 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
               />
             </div>
 
-            {/* Anlagentyp */}
+            {/* Anlagentyp + Klassen */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="anl_typ_id">Anlagentyp</Label>
+                <Select
+                  value={form.anl_typ_id != null ? String(form.anl_typ_id) : "none"}
+                  onValueChange={(v) =>
+                    set("anl_typ_id", v === "none" ? undefined : parseInt(v, 10))
+                  }
+                >
+                  <SelectTrigger id="anl_typ_id">
+                    <SelectValue placeholder="Typ auswählen…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Kein Typ —</SelectItem>
+                    {anlTypen.map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.bezeichnung}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="oxygen_demand_class">Sauerstoffbedarfsklasse</Label>
+                <Select
+                  value={form.oxygen_demand_class || "none"}
+                  onValueChange={(v) => set("oxygen_demand_class", v === "none" ? "" : v)}
+                >
+                  <SelectTrigger id="oxygen_demand_class">
+                    <SelectValue placeholder="Klasse auswählen…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Keine —</SelectItem>
+                    <SelectItem value="CSB">CSB</SelectItem>
+                    <SelectItem value="BSB">BSB</SelectItem>
+                    <SelectItem value="SSR">SSR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="cleaning_class">Reinigungsklasse</Label>
+                <Select
+                  value={form.cleaning_class || "none"}
+                  onValueChange={(v) => set("cleaning_class", v === "none" ? "" : v)}
+                >
+                  <SelectTrigger id="cleaning_class">
+                    <SelectValue placeholder="Klasse auswählen…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Keine —</SelectItem>
+                    <SelectItem value="A">A</SelectItem>
+                    <SelectItem value="B">B</SelectItem>
+                    <SelectItem value="C">C</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Einleitung in */}
             <div className="space-y-1.5">
-              <Label htmlFor="anl_typ_id">Anlagentyp</Label>
+              <Label htmlFor="discharged_in">Einleitung in</Label>
               <Select
-                value={form.anl_typ_id != null ? String(form.anl_typ_id) : "none"}
-                onValueChange={(v) =>
-                  set("anl_typ_id", v === "none" ? undefined : parseInt(v, 10))
-                }
+                value={form.discharged_in || "none"}
+                onValueChange={(v) => set("discharged_in", v === "none" ? "" : v)}
               >
-                <SelectTrigger id="anl_typ_id">
-                  <SelectValue placeholder="Typ auswählen…" />
+                <SelectTrigger id="discharged_in">
+                  <SelectValue placeholder="Auswählen…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">— Kein Typ —</SelectItem>
-                  {anlTypen.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.bezeichnung}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="none">— Keine —</SelectItem>
+                  <SelectItem value="Grundwasser">Grundwasser</SelectItem>
+                  <SelectItem value="Platzhalter">Platzhalter</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -185,22 +243,39 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="verfahren_br_anz_behaelter">
-                Anzahl Vorklärbehälter
-              </Label>
-              <Input
-                id="verfahren_br_anz_behaelter"
-                type="number"
-                min={0}
-                value={form.verfahren_br_anz_behaelter ?? ""}
-                onChange={(e) =>
-                  set(
-                    "verfahren_br_anz_behaelter",
-                    e.target.value === "" ? undefined : parseInt(e.target.value, 10)
-                  )
-                }
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="verfahren_br_anz_behaelter">
+                  Anzahl Vorklärbehälter
+                </Label>
+                <Input
+                  id="verfahren_br_anz_behaelter"
+                  type="number"
+                  min={0}
+                  value={form.verfahren_br_anz_behaelter ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "verfahren_br_anz_behaelter",
+                      e.target.value === "" ? undefined : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="number_of_biologies">Anzahl Biologien</Label>
+                <Input
+                  id="number_of_biologies"
+                  type="number"
+                  min={0}
+                  value={form.number_of_biologies ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "number_of_biologies",
+                      e.target.value === "" ? undefined : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
