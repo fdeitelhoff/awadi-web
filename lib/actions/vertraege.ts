@@ -16,6 +16,10 @@ export interface CreateVertragInput {
   dauer_wartung_minuten?: number;
   preis_je_wartung?: number;
   aktiv?: boolean;
+  datum_naechste_wartung?: string;
+  wartungsvertrag_flag?: number;
+  datum_wartungsvertrag?: string;
+  export_erlaubt_wartung?: boolean;
   comment?: string;
 }
 
@@ -31,6 +35,10 @@ export interface UpdateVertragInput {
   dauer_wartung_minuten?: number | null;
   preis_je_wartung?: number | null;
   aktiv?: boolean;
+  datum_naechste_wartung?: string;
+  wartungsvertrag_flag?: number | null;
+  datum_wartungsvertrag?: string;
+  export_erlaubt_wartung?: boolean;
   comment?: string;
 }
 
@@ -47,11 +55,17 @@ export async function createVertrag(
   if (input.kunden_id != null) row.kunden_id = input.kunden_id;
   if (input.anl_typ_id != null) row.anl_typ_id = input.anl_typ_id;
 
+  if (input.export_erlaubt_wartung !== undefined) {
+    row.export_erlaubt_wartung = input.export_erlaubt_wartung;
+  }
+
   const textFields: (keyof CreateVertragInput)[] = [
     "vertragsnummer",
     "vertragsdatum",
     "gueltig_ab",
     "gueltig_bis",
+    "datum_naechste_wartung",
+    "datum_wartungsvertrag",
     "comment",
   ];
   for (const field of textFields) {
@@ -65,6 +79,7 @@ export async function createVertrag(
     "intervall_monate",
     "dauer_wartung_minuten",
     "preis_je_wartung",
+    "wartungsvertrag_flag",
   ];
   for (const field of numericFields) {
     const value = input[field];

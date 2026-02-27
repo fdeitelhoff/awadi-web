@@ -37,6 +37,10 @@ const EMPTY_FORM: CreateVertragInput = {
   dauer_wartung_minuten: undefined,
   preis_je_wartung: undefined,
   aktiv: true,
+  datum_naechste_wartung: "",
+  wartungsvertrag_flag: undefined,
+  datum_wartungsvertrag: "",
+  export_erlaubt_wartung: true,
   comment: "",
 };
 
@@ -173,6 +177,66 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
                   )
                 }
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="datum_naechste_wartung">Nächste Wartung</Label>
+              <Input
+                id="datum_naechste_wartung"
+                type="date"
+                value={form.datum_naechste_wartung}
+                onChange={(e) => set("datum_naechste_wartung", e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="wartungsvertrag_flag">Vertragstyp</Label>
+                <Select
+                  value={
+                    form.wartungsvertrag_flag != null
+                      ? String(form.wartungsvertrag_flag)
+                      : "none"
+                  }
+                  onValueChange={(v) =>
+                    set(
+                      "wartungsvertrag_flag",
+                      v === "none" ? undefined : parseInt(v, 10)
+                    )
+                  }
+                >
+                  <SelectTrigger id="wartungsvertrag_flag">
+                    <SelectValue placeholder="Auswählen…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Kein Vertrag</SelectItem>
+                    <SelectItem value="1">Aktiv (1)</SelectItem>
+                    <SelectItem value="2">Passiv/Sondervertrag (2)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="datum_wartungsvertrag">Vertragsdatum (Text)</Label>
+                <Input
+                  id="datum_wartungsvertrag"
+                  value={form.datum_wartungsvertrag}
+                  onChange={(e) => set("datum_wartungsvertrag", e.target.value)}
+                  placeholder="TT.MM.JJJJ"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="export_erlaubt_wartung"
+                checked={form.export_erlaubt_wartung}
+                onCheckedChange={(checked) =>
+                  set("export_erlaubt_wartung", !!checked)
+                }
+              />
+              <Label htmlFor="export_erlaubt_wartung">
+                Export für Wartungsplanung erlaubt
+              </Label>
             </div>
 
           </CardContent>

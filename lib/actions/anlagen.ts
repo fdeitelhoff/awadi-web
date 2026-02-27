@@ -10,7 +10,6 @@ export interface CreateAnlageInput {
   anl_typ_id?: number;
   kontakt_kunde_id?: number;
   kontakt_id?: number;
-  ist_aktiv?: boolean;
   anlagen_nr?: string;
   bezeichnung?: string;
   verfahren_br_anz_behaelter?: number;
@@ -30,14 +29,10 @@ export interface CreateAnlageInput {
   anlage_ausgelegt_ew?: number;
   tatsaechliche_ew?: number;
   gesamtgroesse_vk?: number;
-  datum_naechste_wartung?: string;
   datum_abgabefrei_seit?: string;
   touren_nr?: string;
   touren_nr2?: string;
   touren_nr3?: string;
-  export_erlaubt_wartung?: boolean;
-  wartungsvertrag_flag?: number;
-  datum_wartungsvertrag?: string;
   ansprechpartner_legacy?: string;
   telefonnr_legacy?: string;
   comment?: string;
@@ -62,8 +57,6 @@ export async function createAnlage(
   const row: Record<string, unknown> = {
     id: newId,
     kunden_id: input.kunden_id,
-    ist_aktiv: input.ist_aktiv ?? true,
-    export_erlaubt_wartung: input.export_erlaubt_wartung ?? true,
   };
 
   // XOR: at most one of kontakt_kunde_id / kontakt_id
@@ -89,12 +82,10 @@ export async function createAnlage(
     "hochwert",
     "breitengrad",
     "laengengrad",
-    "datum_naechste_wartung",
     "datum_abgabefrei_seit",
     "touren_nr",
     "touren_nr2",
     "touren_nr3",
-    "datum_wartungsvertrag",
     "ansprechpartner_legacy",
     "telefonnr_legacy",
     "comment",
@@ -113,7 +104,6 @@ export async function createAnlage(
     "anlage_ausgelegt_ew",
     "tatsaechliche_ew",
     "gesamtgroesse_vk",
-    "wartungsvertrag_flag",
   ];
 
   for (const field of numericFields) {
@@ -167,7 +157,6 @@ export interface UpdateAnlageInput {
   kunden_id?: number;
   kontakt_kunde_id?: number | null;
   kontakt_id?: number | null;
-  ist_aktiv?: boolean;
   anlagen_nr?: string;
   bezeichnung?: string;
   verfahren_br_anz_behaelter?: number | null;
@@ -190,11 +179,7 @@ export interface UpdateAnlageInput {
   touren_nr?: string;
   touren_nr2?: string;
   touren_nr3?: string;
-  datum_naechste_wartung?: string;
   datum_abgabefrei_seit?: string;
-  wartungsvertrag_flag?: number | null;
-  datum_wartungsvertrag?: string;
-  export_erlaubt_wartung?: boolean;
   ansprechpartner_legacy?: string;
   telefonnr_legacy?: string;
   comment?: string;

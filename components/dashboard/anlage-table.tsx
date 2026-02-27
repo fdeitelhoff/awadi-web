@@ -56,16 +56,6 @@ interface AnlageTableProps {
   initialFilterOrte: string[];
 }
 
-function formatDate(value?: string | null): string {
-  if (!value) return "—";
-  const d = new Date(value);
-  return d.toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
-
 export function AnlageTable({
   initialData,
   initialCount,
@@ -178,7 +168,7 @@ export function AnlageTable({
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - anlagen.length);
-  const COLSPAN = 8;
+  const COLSPAN = 6;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -336,24 +326,6 @@ export function AnlageTable({
                   <SortIcon field="ort" />
                 </button>
               </TableHead>
-              <TableHead className="w-[150px]">
-                <button
-                  onClick={() => handleSort("datum_naechste_wartung")}
-                  className="flex items-center font-medium hover:text-foreground"
-                >
-                  Nächste Wartung
-                  <SortIcon field="datum_naechste_wartung" />
-                </button>
-              </TableHead>
-              <TableHead className="w-[80px]">
-                <button
-                  onClick={() => handleSort("ist_aktiv")}
-                  className="flex items-center font-medium hover:text-foreground"
-                >
-                  Status
-                  <SortIcon field="ist_aktiv" />
-                </button>
-              </TableHead>
               <TableHead className="w-[90px]" />
             </TableRow>
           </TableHeader>
@@ -367,8 +339,6 @@ export function AnlageTable({
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-14" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-14" /></TableCell>
                   <TableCell />
                 </TableRow>
               ))
@@ -414,20 +384,6 @@ export function AnlageTable({
                       {anlage.plz}
                     </TableCell>
                     <TableCell>{anlage.ort}</TableCell>
-                    <TableCell className="text-muted-foreground tabular-nums">
-                      {formatDate(anlage.datum_naechste_wartung)}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          anlage.ist_aktiv
-                            ? "text-xs font-medium text-green-700 dark:text-green-400"
-                            : "text-xs font-medium text-muted-foreground"
-                        }
-                      >
-                        {anlage.ist_aktiv ? "Aktiv" : "Inaktiv"}
-                      </span>
-                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="destructive"

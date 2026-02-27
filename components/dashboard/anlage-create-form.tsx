@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -28,7 +27,6 @@ import { Loader2, ArrowLeft } from "lucide-react";
 const EMPTY_FORM: CreateAnlageInput = {
   kunden_id: 0,
   anl_typ_id: undefined,
-  ist_aktiv: true,
   anlagen_nr: "",
   bezeichnung: "",
   verfahren_br_anz_behaelter: undefined,
@@ -48,14 +46,10 @@ const EMPTY_FORM: CreateAnlageInput = {
   anlage_ausgelegt_ew: undefined,
   tatsaechliche_ew: undefined,
   gesamtgroesse_vk: undefined,
-  datum_naechste_wartung: "",
   datum_abgabefrei_seit: "",
   touren_nr: "",
   touren_nr2: "",
   touren_nr3: "",
-  export_erlaubt_wartung: true,
-  wartungsvertrag_flag: undefined,
-  datum_wartungsvertrag: "",
   ansprechpartner_legacy: "",
   telefonnr_legacy: "",
   comment: "",
@@ -143,28 +137,16 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="anlagen_nr">
-                  Anlagen-Nr. <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="anlagen_nr"
-                  value={form.anlagen_nr}
-                  onChange={(e) => set("anlagen_nr", e.target.value)}
-                  placeholder="z. B. AS-290"
-                />
-              </div>
-              <div className="flex items-end pb-1">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="ist_aktiv"
-                    checked={form.ist_aktiv}
-                    onCheckedChange={(checked) => set("ist_aktiv", !!checked)}
-                  />
-                  <Label htmlFor="ist_aktiv">Aktiv</Label>
-                </div>
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="anlagen_nr">
+                Anlagen-Nr. <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="anlagen_nr"
+                value={form.anlagen_nr}
+                onChange={(e) => set("anlagen_nr", e.target.value)}
+                placeholder="z. B. AS-290"
+              />
             </div>
 
             {/* Anlagentyp */}
@@ -419,16 +401,6 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
           <CardContent className="space-y-4">
 
             <div className="space-y-1.5">
-              <Label htmlFor="datum_naechste_wartung">Nächste Wartung</Label>
-              <Input
-                id="datum_naechste_wartung"
-                type="date"
-                value={form.datum_naechste_wartung}
-                onChange={(e) => set("datum_naechste_wartung", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
               <Label htmlFor="datum_abgabefrei_seit">Abgabefrei seit</Label>
               <Input
                 id="datum_abgabefrei_seit"
@@ -463,56 +435,6 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
                   onChange={(e) => set("touren_nr3", e.target.value)}
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="wartungsvertrag_flag">Wartungsvertrag</Label>
-                <Select
-                  value={
-                    form.wartungsvertrag_flag != null
-                      ? String(form.wartungsvertrag_flag)
-                      : "none"
-                  }
-                  onValueChange={(v) =>
-                    set(
-                      "wartungsvertrag_flag",
-                      v === "none" ? undefined : parseInt(v, 10)
-                    )
-                  }
-                >
-                  <SelectTrigger id="wartungsvertrag_flag">
-                    <SelectValue placeholder="Auswählen…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Kein Vertrag</SelectItem>
-                    <SelectItem value="1">Aktiv (1)</SelectItem>
-                    <SelectItem value="2">Passiv/Sondervertrag (2)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="datum_wartungsvertrag">Vertragsdatum</Label>
-                <Input
-                  id="datum_wartungsvertrag"
-                  value={form.datum_wartungsvertrag}
-                  onChange={(e) => set("datum_wartungsvertrag", e.target.value)}
-                  placeholder="TT.MM.JJJJ"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="export_erlaubt_wartung"
-                checked={form.export_erlaubt_wartung}
-                onCheckedChange={(checked) =>
-                  set("export_erlaubt_wartung", !!checked)
-                }
-              />
-              <Label htmlFor="export_erlaubt_wartung">
-                Export für Wartungsplanung erlaubt
-              </Label>
             </div>
 
           </CardContent>

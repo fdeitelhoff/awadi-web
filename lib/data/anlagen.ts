@@ -10,15 +10,12 @@ const SORT_FIELD_TO_COLUMN: Record<SortField, string> = {
   anlagen_nr: "anlagen_nr",
   ort: "ort",
   plz: "plz",
-  datum_naechste_wartung: "datum_naechste_wartung",
-  ist_aktiv: "ist_aktiv",
 };
 
 export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
   return {
     id: row.id as number,
     kunden_id: row.kunden_id as number,
-    ist_aktiv: row.ist_aktiv as boolean,
     anlagen_nr: row.anlagen_nr as string | undefined,
     verfahren_br_anz_behaelter: row.verfahren_br_anz_behaelter as
       | number
@@ -42,11 +39,7 @@ export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
     touren_nr: row.touren_nr as string | undefined,
     touren_nr2: row.touren_nr2 as string | undefined,
     touren_nr3: row.touren_nr3 as string | undefined,
-    datum_naechste_wartung: row.datum_naechste_wartung as string | undefined,
     datum_abgabefrei_seit: row.datum_abgabefrei_seit as string | undefined,
-    wartungsvertrag_flag: row.wartungsvertrag_flag as number | undefined,
-    datum_wartungsvertrag: row.datum_wartungsvertrag as string | undefined,
-    export_erlaubt_wartung: row.export_erlaubt_wartung as boolean,
     kontakt_kunde_id: row.kontakt_kunde_id as number | undefined,
     kontakt_id: row.kontakt_id as number | undefined,
     ansprechpartner_legacy: row.ansprechpartner_legacy as string | undefined,

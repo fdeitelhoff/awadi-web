@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -73,7 +72,6 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
   const [form, setForm] = useState<UpdateAnlageInput>({
     anl_typ_id: anlage.anl_typ_id ?? null,
     kunden_id: anlage.kunden_id,
-    ist_aktiv: anlage.ist_aktiv,
     anlagen_nr: anlage.anlagen_nr ?? "",
     bezeichnung: anlage.bezeichnung ?? "",
     verfahren_br_anz_behaelter: anlage.verfahren_br_anz_behaelter ?? undefined,
@@ -96,11 +94,7 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
     touren_nr: anlage.touren_nr ?? "",
     touren_nr2: anlage.touren_nr2 ?? "",
     touren_nr3: anlage.touren_nr3 ?? "",
-    datum_naechste_wartung: anlage.datum_naechste_wartung ?? "",
     datum_abgabefrei_seit: anlage.datum_abgabefrei_seit ?? "",
-    wartungsvertrag_flag: anlage.wartungsvertrag_flag ?? undefined,
-    datum_wartungsvertrag: anlage.datum_wartungsvertrag ?? "",
-    export_erlaubt_wartung: anlage.export_erlaubt_wartung,
     ansprechpartner_legacy: anlage.ansprechpartner_legacy ?? "",
     telefonnr_legacy: anlage.telefonnr_legacy ?? "",
     comment: anlage.comment ?? "",
@@ -189,27 +183,15 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Anlagen-Nr. + ist_aktiv */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="anlagen_nr">Anlagen-Nr.</Label>
-                <Input
-                  id="anlagen_nr"
-                  value={form.anlagen_nr}
-                  onChange={(e) => set("anlagen_nr", e.target.value)}
-                  placeholder="z. B. AS-290"
-                />
-              </div>
-              <div className="flex items-end pb-1">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="ist_aktiv"
-                    checked={form.ist_aktiv}
-                    onCheckedChange={(checked) => set("ist_aktiv", !!checked)}
-                  />
-                  <Label htmlFor="ist_aktiv">Aktiv</Label>
-                </div>
-              </div>
+            {/* Anlagen-Nr. */}
+            <div className="space-y-1.5">
+              <Label htmlFor="anlagen_nr">Anlagen-Nr.</Label>
+              <Input
+                id="anlagen_nr"
+                value={form.anlagen_nr}
+                onChange={(e) => set("anlagen_nr", e.target.value)}
+                placeholder="z. B. AS-290"
+              />
             </div>
 
             {/* Anlagentyp */}
@@ -483,16 +465,6 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
           <CardContent className="space-y-4">
 
             <div className="space-y-1.5">
-              <Label htmlFor="datum_naechste_wartung">Nächste Wartung</Label>
-              <Input
-                id="datum_naechste_wartung"
-                type="date"
-                value={form.datum_naechste_wartung}
-                onChange={(e) => set("datum_naechste_wartung", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
               <Label htmlFor="datum_abgabefrei_seit">Abgabefrei seit</Label>
               <Input
                 id="datum_abgabefrei_seit"
@@ -528,59 +500,6 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
                   onChange={(e) => set("touren_nr3", e.target.value)}
                 />
               </div>
-            </div>
-
-            {/* Wartungsvertrag */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="wartungsvertrag_flag">Wartungsvertrag</Label>
-                <Select
-                  value={
-                    form.wartungsvertrag_flag != null
-                      ? String(form.wartungsvertrag_flag)
-                      : "none"
-                  }
-                  onValueChange={(v) =>
-                    set(
-                      "wartungsvertrag_flag",
-                      v === "none" ? null : parseInt(v, 10)
-                    )
-                  }
-                >
-                  <SelectTrigger id="wartungsvertrag_flag">
-                    <SelectValue placeholder="Auswählen…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Kein Vertrag</SelectItem>
-                    <SelectItem value="1">Aktiv (1)</SelectItem>
-                    <SelectItem value="2">Passiv/Sondervertrag (2)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="datum_wartungsvertrag">Vertragsdatum</Label>
-                <Input
-                  id="datum_wartungsvertrag"
-                  value={form.datum_wartungsvertrag}
-                  onChange={(e) =>
-                    set("datum_wartungsvertrag", e.target.value)
-                  }
-                  placeholder="TT.MM.JJJJ"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="export_erlaubt_wartung"
-                checked={form.export_erlaubt_wartung}
-                onCheckedChange={(checked) =>
-                  set("export_erlaubt_wartung", !!checked)
-                }
-              />
-              <Label htmlFor="export_erlaubt_wartung">
-                Export für Wartungsplanung erlaubt
-              </Label>
             </div>
 
           </CardContent>

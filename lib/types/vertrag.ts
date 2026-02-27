@@ -12,6 +12,10 @@ export interface Vertrag {
   dauer_wartung_minuten?: number;
   preis_je_wartung?: number;
   aktiv: boolean;
+  datum_naechste_wartung?: string;
+  wartungsvertrag_flag?: number;
+  datum_wartungsvertrag?: string;
+  export_erlaubt_wartung?: boolean;
   comment?: string;
   last_update?: string;
   created_at: string;

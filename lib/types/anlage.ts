@@ -2,7 +2,6 @@
 export interface Anlage {
   id: number;
   kunden_id: number;
-  ist_aktiv: boolean;
   anlagen_nr?: string;
 
   verfahren_br_anz_behaelter?: number;
@@ -37,13 +36,7 @@ export interface Anlage {
   touren_nr3?: string;
 
   // Scheduling
-  datum_naechste_wartung?: string;
   datum_abgabefrei_seit?: string;
-
-  // Contract
-  wartungsvertrag_flag?: number;
-  datum_wartungsvertrag?: string;
-  export_erlaubt_wartung: boolean;
 
   // Contact references
   kontakt_kunde_id?: number;
@@ -92,9 +85,7 @@ export interface AnlTyp {
 export type SortField =
   | "anlagen_nr"
   | "ort"
-  | "plz"
-  | "datum_naechste_wartung"
-  | "ist_aktiv";
+  | "plz";
 
 export type SortDirection = "asc" | "desc";
 
