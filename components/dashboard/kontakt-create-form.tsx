@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createKontakt, type KontaktFormData } from "@/lib/actions/kontakte";
+import { createKontakt } from "@/lib/actions/kontakte";
+import type { KontaktFormData } from "@/lib/types/kontakt";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: KontaktFormData = {

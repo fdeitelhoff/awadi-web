@@ -4,7 +4,8 @@ import { getProfileById } from "@/lib/data/profiles";
 import { UserEditForm } from "@/components/dashboard/user-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 
-async function UserDetail({ id }: { id: string }) {
+async function UserDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const profile = await getProfileById(id);
 
   if (!profile) notFound();
@@ -34,18 +35,16 @@ function UserDetailSkeleton() {
   );
 }
 
-export default async function UserDetailPage({
+export default function UserDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
       <div className="p-6 w-full">
         <Suspense fallback={<UserDetailSkeleton />}>
-          <UserDetail id={id} />
+          <UserDetail params={params} />
         </Suspense>
       </div>
     </div>

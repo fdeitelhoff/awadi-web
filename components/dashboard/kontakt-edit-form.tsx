@@ -14,8 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { updateKontakt, type KontaktFormData } from "@/lib/actions/kontakte";
-import type { Kontakt } from "@/lib/types/kontakt";
+import { updateKontakt } from "@/lib/actions/kontakte";
+import type { Kontakt, KontaktFormData } from "@/lib/types/kontakt";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 
 interface KontaktEditFormProps {

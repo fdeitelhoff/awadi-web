@@ -3,7 +3,6 @@ import { Kunde } from "@/lib/types/customer";
 export const customers: Kunde[] = [
   {
     id: 1,
-    ist_kunde: true,
     kundennr: "KD-001",
     anrede: "Herr",
     vorname: "Hans",
@@ -19,7 +18,6 @@ export const customers: Kunde[] = [
   },
   {
     id: 2,
-    ist_kunde: true,
     kundennr: "KD-002",
     anrede: "Frau",
     vorname: "Maria",
@@ -34,7 +32,6 @@ export const customers: Kunde[] = [
   },
   {
     id: 3,
-    ist_kunde: true,
     kundennr: "KD-003",
     anrede: "Herr",
     vorname: "Karl",
@@ -51,7 +48,6 @@ export const customers: Kunde[] = [
   },
   {
     id: 6,
-    ist_kunde: true,
     kundennr: "KD-006",
     anrede: "Herr",
     titel: "Dr.",
