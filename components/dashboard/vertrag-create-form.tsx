@@ -28,14 +28,14 @@ import { Loader2, ArrowLeft } from "lucide-react";
 const EMPTY_FORM: CreateVertragInput = {
   anlage_id: 0,
   kunden_id: null,
-  vertragsnummer: "",
+
   vertragsdatum: "",
   gueltig_ab: "",
   gueltig_bis: "",
   anl_typ_id: null,
   intervall_monate: undefined,
-  dauer_wartung_minuten: undefined,
-  preis_je_wartung: undefined,
+
+
   aktiv: true,
   datum_naechste_wartung: "",
   wartungsvertrag_flag: undefined,
@@ -108,26 +108,13 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="vertragsnummer">Vertragsnr.</Label>
-                <Input
-                  id="vertragsnummer"
-                  value={form.vertragsnummer}
-                  onChange={(e) => set("vertragsnummer", e.target.value)}
-                  placeholder="z. B. WV-001"
-                />
-              </div>
-              <div className="flex items-end pb-1">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="aktiv"
-                    checked={form.aktiv}
-                    onCheckedChange={(checked) => set("aktiv", !!checked)}
-                  />
-                  <Label htmlFor="aktiv">Aktiv</Label>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="aktiv"
+                checked={form.aktiv}
+                onCheckedChange={(checked) => set("aktiv", !!checked)}
+              />
+              <Label htmlFor="aktiv">Aktiv</Label>
             </div>
 
             <div className="space-y-1.5">
@@ -299,43 +286,6 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="dauer_wartung_minuten">Dauer Wartung (Min.)</Label>
-                <Input
-                  id="dauer_wartung_minuten"
-                  type="number"
-                  min={0}
-                  value={form.dauer_wartung_minuten ?? ""}
-                  onChange={(e) =>
-                    set(
-                      "dauer_wartung_minuten",
-                      e.target.value === ""
-                        ? undefined
-                        : parseInt(e.target.value, 10)
-                    )
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="preis_je_wartung">Preis je Wartung (€)</Label>
-                <Input
-                  id="preis_je_wartung"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.preis_je_wartung ?? ""}
-                  onChange={(e) =>
-                    set(
-                      "preis_je_wartung",
-                      e.target.value === ""
-                        ? undefined
-                        : parseFloat(e.target.value)
-                    )
-                  }
-                />
-              </div>
-            </div>
 
           </CardContent>
         </Card>

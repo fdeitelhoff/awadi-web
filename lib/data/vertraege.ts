@@ -7,7 +7,6 @@ import type {
 } from "@/lib/types/vertrag";
 
 const SORT_FIELD_TO_COLUMN: Record<VertragSortField, string> = {
-  vertragsnummer: "vertragsnummer",
   gueltig_ab: "gueltig_ab",
   gueltig_bis: "gueltig_bis",
   intervall_monate: "intervall_monate",
@@ -30,14 +29,11 @@ export function mapRowToVertrag(row: Record<string, unknown>): Vertrag {
     id: row.id as number,
     anlage_id: row.anlage_id as number,
     kunden_id: row.kunden_id as number | undefined,
-    vertragsnummer: row.vertragsnummer as string | undefined,
     vertragsdatum: row.vertragsdatum as string | undefined,
     gueltig_ab: row.gueltig_ab as string | undefined,
     gueltig_bis: row.gueltig_bis as string | undefined,
     anl_typ_id: row.anl_typ_id as number | undefined,
     intervall_monate: row.intervall_monate as number | undefined,
-    dauer_wartung_minuten: row.dauer_wartung_minuten as number | undefined,
-    preis_je_wartung: row.preis_je_wartung as number | undefined,
     aktiv: row.aktiv as boolean,
     datum_naechste_wartung: row.datum_naechste_wartung as string | undefined,
     wartungsvertrag_flag: row.wartungsvertrag_flag as number | undefined,
@@ -79,11 +75,6 @@ export async function getVertraege(
     .select("*, anlagen(anlagen_nr), kunden(nachname, vorname, firma)", {
       count: "exact",
     });
-
-  if (search.trim()) {
-    const pattern = `%${search.trim()}%`;
-    query = query.ilike("vertragsnummer", pattern);
-  }
 
   if (kundenId != null) {
     query = query.eq("kunden_id", kundenId);

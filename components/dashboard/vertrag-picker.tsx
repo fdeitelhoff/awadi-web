@@ -79,7 +79,7 @@ export function VertragPicker({ kundenId }: VertragPickerProps) {
         <FileText className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium leading-snug">
-            {selected.vertragsnummer ?? `Vertrag #${selected.id}`}
+            {selected.anlagen_nr ? `Anlage ${selected.anlagen_nr}` : `Vertrag #${selected.id}`}
             {selected.aktiv && (
               <span className="ml-2 text-xs font-normal text-green-700 dark:text-green-400">
                 Aktiv
@@ -126,7 +126,7 @@ export function VertragPicker({ kundenId }: VertragPickerProps) {
                       }}
                     >
                       <p className="text-sm font-medium truncate">
-                        {v.vertragsnummer ?? `Vertrag #${v.id}`}
+                        {v.anlagen_nr ? `Anlage ${v.anlagen_nr}` : `Vertrag #${v.id}`}
                         {v.aktiv && (
                           <span className="ml-2 text-xs font-normal text-green-700 dark:text-green-400">
                             Aktiv

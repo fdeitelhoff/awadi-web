@@ -7,14 +7,11 @@ import type { VertragQueryParams, VertragQueryResult } from "@/lib/types/vertrag
 export interface CreateVertragInput {
   anlage_id: number;
   kunden_id?: number | null;
-  vertragsnummer?: string;
   vertragsdatum?: string;
   gueltig_ab?: string;
   gueltig_bis?: string;
   anl_typ_id?: number | null;
   intervall_monate?: number;
-  dauer_wartung_minuten?: number;
-  preis_je_wartung?: number;
   aktiv?: boolean;
   datum_naechste_wartung?: string;
   wartungsvertrag_flag?: number;
@@ -26,14 +23,11 @@ export interface CreateVertragInput {
 export interface UpdateVertragInput {
   anlage_id?: number;
   kunden_id?: number | null;
-  vertragsnummer?: string;
   vertragsdatum?: string;
   gueltig_ab?: string;
   gueltig_bis?: string;
   anl_typ_id?: number | null;
   intervall_monate?: number | null;
-  dauer_wartung_minuten?: number | null;
-  preis_je_wartung?: number | null;
   aktiv?: boolean;
   datum_naechste_wartung?: string;
   wartungsvertrag_flag?: number | null;
@@ -60,7 +54,6 @@ export async function createVertrag(
   }
 
   const textFields: (keyof CreateVertragInput)[] = [
-    "vertragsnummer",
     "vertragsdatum",
     "gueltig_ab",
     "gueltig_bis",
@@ -77,8 +70,6 @@ export async function createVertrag(
 
   const numericFields: (keyof CreateVertragInput)[] = [
     "intervall_monate",
-    "dauer_wartung_minuten",
-    "preis_je_wartung",
     "wartungsvertrag_flag",
   ];
   for (const field of numericFields) {

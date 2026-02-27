@@ -3,14 +3,11 @@ export interface Vertrag {
   id: number;
   anlage_id: number;
   kunden_id?: number;
-  vertragsnummer?: string;
   vertragsdatum?: string;
   gueltig_ab?: string;
   gueltig_bis?: string;
   anl_typ_id?: number;
   intervall_monate?: number;
-  dauer_wartung_minuten?: number;
-  preis_je_wartung?: number;
   aktiv: boolean;
   datum_naechste_wartung?: string;
   wartungsvertrag_flag?: number;
@@ -27,7 +24,6 @@ export interface Vertrag {
 }
 
 export type VertragSortField =
-  | "vertragsnummer"
   | "gueltig_ab"
   | "gueltig_bis"
   | "intervall_monate";

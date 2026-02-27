@@ -50,7 +50,7 @@ import {
 
 const PAGE_SIZE = 14;
 const ROW_HEIGHT = "h-[46px]";
-const COLSPAN = 8;
+const COLSPAN = 7;
 
 function formatDate(value?: string | null): string {
   if (!value) return "—";
@@ -292,15 +292,7 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[130px]">
-                <button
-                  onClick={() => handleSort("vertragsnummer")}
-                  className="flex items-center font-medium hover:text-foreground"
-                >
-                  Vertragsnr.
-                  <SortIcon field="vertragsnummer" />
-                </button>
-              </TableHead>
+              <TableHead className="w-[80px]">Status</TableHead>
               <TableHead>Anlage</TableHead>
               <TableHead>Kunde</TableHead>
               <TableHead className="w-[110px]">
@@ -330,7 +322,6 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                   <SortIcon field="intervall_monate" />
                 </button>
               </TableHead>
-              <TableHead className="w-[80px]">Status</TableHead>
               <TableHead className="w-[90px]" />
             </TableRow>
           </TableHeader>
@@ -339,13 +330,12 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
             {isLoading ? (
               Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <TableRow key={`sk-${i}`} className={ROW_HEIGHT}>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell />
                 </TableRow>
               ))
@@ -378,8 +368,16 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                       router.push(`/master-data/contracts/${vertrag.id}`)
                     }
                   >
-                    <TableCell className="font-medium">
-                      {vertrag.vertragsnummer ?? "—"}
+                    <TableCell>
+                      {vertrag.aktiv ? (
+                        <span className="text-success text-sm font-medium">
+                          Aktiv
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          Inaktiv
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {vertrag.anlagen_nr ?? vertrag.anlage_id}
@@ -395,17 +393,6 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                       {vertrag.intervall_monate != null
                         ? `${vertrag.intervall_monate} Mon.`
                         : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {vertrag.aktiv ? (
-                        <span className="text-success text-sm font-medium">
-                          Aktiv
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">
-                          Inaktiv
-                        </span>
-                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
