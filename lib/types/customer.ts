@@ -1,7 +1,6 @@
 // Kunde — maps 1:1 to public.kunden table
 export interface Kunde {
   id: number;
-  ist_kunde: boolean;
   kundennr?: string;
 
   firma?: string;
@@ -21,8 +20,8 @@ export interface Kunde {
   telefonnr_geschaeft?: string;
   mobilnr?: string;
   mobilnr2?: string;
-  faxnr?: string;
   email?: string;
+  email_secondary?: string;
   homepage?: string;
 
   comment?: string;

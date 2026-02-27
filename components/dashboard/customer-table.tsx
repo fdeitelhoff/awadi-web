@@ -169,7 +169,7 @@ export function CustomerTable({
   // plus transparent filler rows so the table height never changes.
   const fillerCount = Math.max(0, PAGE_SIZE - kunden.length);
 
-  const COLSPAN = 8;
+  const COLSPAN = 9;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -320,7 +320,8 @@ export function CustomerTable({
                   <SortIcon field="nachname" />
                 </button>
               </TableHead>
-              <TableHead>Firma</TableHead>
+              <TableHead>Straße</TableHead>
+              <TableHead className="w-[80px]">Hausnr.</TableHead>
               <TableHead className="w-[90px]">
                 <button
                   onClick={() => handleSort("plz")}
@@ -361,6 +362,7 @@ export function CustomerTable({
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-14" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
@@ -401,7 +403,8 @@ export function CustomerTable({
                     </TableCell>
                     <TableCell>{kunde.vorname}</TableCell>
                     <TableCell className="font-medium">{kunde.nachname}</TableCell>
-                    <TableCell className="text-muted-foreground">{kunde.firma}</TableCell>
+                    <TableCell className="text-muted-foreground">{kunde.strasse}</TableCell>
+                    <TableCell className="text-muted-foreground">{kunde.hausnr}</TableCell>
                     <TableCell className="text-muted-foreground">{kunde.plz}</TableCell>
                     <TableCell>{kunde.ort}</TableCell>
                     <TableCell className="text-muted-foreground">{kunde.telefonnr}</TableCell>

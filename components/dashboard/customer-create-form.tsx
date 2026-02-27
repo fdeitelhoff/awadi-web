@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -21,7 +20,6 @@ import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: CreateKundeInput = {
   kundennr: "",
-  ist_kunde: true,
   anrede: "",
   titel: "",
   vorname: "",
@@ -38,8 +36,8 @@ const EMPTY_FORM: CreateKundeInput = {
   telefonnr_geschaeft: "",
   mobilnr: "",
   mobilnr2: "",
-  faxnr: "",
   email: "",
+  email_secondary: "",
   homepage: "",
   comment: "",
   interne_anmerkungen: "",
@@ -105,26 +103,14 @@ export function CustomerCreateForm() {
           </CardHeader>
           <CardContent className="space-y-4">
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="kundennr">Kunden-Nr.</Label>
-                <Input
-                  id="kundennr"
-                  value={form.kundennr}
-                  onChange={(e) => set("kundennr", e.target.value)}
-                  placeholder="z. B. AS-001"
-                />
-              </div>
-              <div className="flex items-end pb-1">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="ist_kunde"
-                    checked={form.ist_kunde}
-                    onCheckedChange={(checked) => set("ist_kunde", !!checked)}
-                  />
-                  <Label htmlFor="ist_kunde">Ist Kunde</Label>
-                </div>
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="kundennr">Kunden-Nr.</Label>
+              <Input
+                id="kundennr"
+                value={form.kundennr}
+                onChange={(e) => set("kundennr", e.target.value)}
+                placeholder="z. B. AS-001"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -299,7 +285,7 @@ export function CustomerCreateForm() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mobilnr2">Mobil 2</Label>
+                <Label htmlFor="mobilnr2">Mobil (Geschäft)</Label>
                 <Input
                   id="mobilnr2"
                   type="tel"
@@ -311,21 +297,21 @@ export function CustomerCreateForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="faxnr">Fax</Label>
-                <Input
-                  id="faxnr"
-                  type="tel"
-                  value={form.faxnr}
-                  onChange={(e) => set("faxnr", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
                 <Label htmlFor="email">E-Mail</Label>
                 <Input
                   id="email"
                   type="email"
                   value={form.email}
                   onChange={(e) => set("email", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="email_secondary">E-Mail (Geschäft)</Label>
+                <Input
+                  id="email_secondary"
+                  type="email"
+                  value={form.email_secondary}
+                  onChange={(e) => set("email_secondary", e.target.value)}
                 />
               </div>
             </div>

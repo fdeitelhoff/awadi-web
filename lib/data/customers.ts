@@ -14,7 +14,6 @@ const SORT_FIELD_TO_COLUMN: Record<SortField, string> = {
 export function mapRowToKunde(row: Record<string, unknown>): Kunde {
   return {
     id: row.id as number,
-    ist_kunde: row.ist_kunde as boolean,
     kundennr: row.kundennr as string | undefined,
     firma: row.firma as string | undefined,
     nachname: row.nachname as string | undefined,
@@ -31,8 +30,8 @@ export function mapRowToKunde(row: Record<string, unknown>): Kunde {
     telefonnr_geschaeft: row.telefonnr_geschaeft as string | undefined,
     mobilnr: row.mobilnr as string | undefined,
     mobilnr2: row.mobilnr2 as string | undefined,
-    faxnr: row.faxnr as string | undefined,
     email: row.email as string | undefined,
+    email_secondary: row.email_secondary as string | undefined,
     homepage: row.homepage as string | undefined,
     comment: row.comment as string | undefined,
     interne_anmerkungen: row.interne_anmerkungen as string | undefined,

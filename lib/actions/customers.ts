@@ -6,7 +6,6 @@ import type { KundeQueryParams, KundeQueryResult } from "@/lib/types/customer";
 
 export interface CreateKundeInput {
   kundennr?: string;
-  ist_kunde?: boolean;
   anrede?: string;
   titel?: string;
   vorname?: string;
@@ -23,8 +22,8 @@ export interface CreateKundeInput {
   telefonnr_geschaeft?: string;
   mobilnr?: string;
   mobilnr2?: string;
-  faxnr?: string;
   email?: string;
+  email_secondary?: string;
   homepage?: string;
   comment?: string;
   interne_anmerkungen?: string;
@@ -43,8 +42,6 @@ export async function createKunde(
       row[key] = value.trim();
     }
   }
-  if (!("ist_kunde" in row)) row.ist_kunde = true;
-
   const { data, error } = await supabase
     .from("kunden")
     .insert(row)
@@ -61,7 +58,6 @@ export async function createKunde(
 
 export interface UpdateKundeInput {
   kundennr?: string;
-  ist_kunde?: boolean;
   anrede?: string;
   titel?: string;
   vorname?: string;
@@ -78,8 +74,8 @@ export interface UpdateKundeInput {
   telefonnr_geschaeft?: string;
   mobilnr?: string;
   mobilnr2?: string;
-  faxnr?: string;
   email?: string;
+  email_secondary?: string;
   homepage?: string;
   comment?: string;
   interne_anmerkungen?: string;
