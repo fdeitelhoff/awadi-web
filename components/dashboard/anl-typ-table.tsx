@@ -38,7 +38,7 @@ import {
 
 const PAGE_SIZE = 14;
 const ROW_HEIGHT = "h-[46px]";
-const COLSPAN = 6;
+const COLSPAN = 5;
 
 interface AnlTypTableProps {
   initialData: AnlTypFull[];
@@ -294,9 +294,6 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
               <TableHead className="w-[140px]">
                 Dauer Wartung
               </TableHead>
-              <TableHead className="w-[140px]">
-                Preis je Wartung
-              </TableHead>
               <TableHead className="w-[90px]" />
             </TableRow>
           </TableHeader>
@@ -309,7 +306,6 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
                   <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell />
                 </TableRow>
               ))
@@ -353,9 +349,6 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {typ.dauer_wartung_minuten} Min.
-                    </TableCell>
-                    <TableCell className="text-muted-foreground tabular-nums">
-                      {formatPrice(typ.preis_je_wartung)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

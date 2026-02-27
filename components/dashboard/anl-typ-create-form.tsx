@@ -15,11 +15,8 @@ const EMPTY_FORM: CreateAnlTypInput = {
   sortiernr: undefined,
   bezeichnung: "",
   bio_felder: "",
-  preis_je_wartung: 0,
-  preis_je_kontrolle: 0,
   wartungsintervall_monate: 12,
   dauer_wartung_minuten: 60,
-  dauer_kontrolle_minuten: undefined,
   comment: "",
 };
 
@@ -165,64 +162,19 @@ export function AnlTypCreateForm() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="dauer_wartung_minuten">
-                  Dauer Wartung (Min.)
-                </Label>
-                <Input
-                  id="dauer_wartung_minuten"
-                  type="number"
-                  min={0}
-                  value={form.dauer_wartung_minuten ?? ""}
-                  onChange={(e) =>
-                    setNum("dauer_wartung_minuten", e.target.value)
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="dauer_kontrolle_minuten">
-                  Dauer Kontrolle (Min.)
-                </Label>
-                <Input
-                  id="dauer_kontrolle_minuten"
-                  type="number"
-                  min={0}
-                  value={form.dauer_kontrolle_minuten ?? ""}
-                  onChange={(e) =>
-                    setNum("dauer_kontrolle_minuten", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="preis_je_wartung">Preis je Wartung (€)</Label>
-                <Input
-                  id="preis_je_wartung"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.preis_je_wartung ?? ""}
-                  onChange={(e) => setNum("preis_je_wartung", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="preis_je_kontrolle">
-                  Preis je Kontrolle (€)
-                </Label>
-                <Input
-                  id="preis_je_kontrolle"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.preis_je_kontrolle ?? ""}
-                  onChange={(e) =>
-                    setNum("preis_je_kontrolle", e.target.value)
-                  }
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dauer_wartung_minuten">
+                Dauer Wartung (Min.)
+              </Label>
+              <Input
+                id="dauer_wartung_minuten"
+                type="number"
+                min={0}
+                value={form.dauer_wartung_minuten ?? ""}
+                onChange={(e) =>
+                  setNum("dauer_wartung_minuten", e.target.value)
+                }
+              />
             </div>
 
           </CardContent>
