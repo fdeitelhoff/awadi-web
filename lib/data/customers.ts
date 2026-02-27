@@ -15,6 +15,7 @@ export function mapRowToKunde(row: Record<string, unknown>): Kunde {
   return {
     id: row.id as number,
     kundennr: row.kundennr as string | undefined,
+    hat_aktiven_vertrag: row.hat_aktiven_vertrag as boolean | undefined,
     firma: row.firma as string | undefined,
     nachname: row.nachname as string | undefined,
     vorname: row.vorname as string | undefined,
@@ -33,9 +34,7 @@ export function mapRowToKunde(row: Record<string, unknown>): Kunde {
     email: row.email as string | undefined,
     email_secondary: row.email_secondary as string | undefined,
     homepage: row.homepage as string | undefined,
-    comment: row.comment as string | undefined,
     interne_anmerkungen: row.interne_anmerkungen as string | undefined,
-    bezeichnung: row.bezeichnung as string | undefined,
     trace_mark: row.trace_mark as number | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,
@@ -66,7 +65,7 @@ export async function getCustomers(
 
   const supabase = await createClient();
 
-  let query = supabase.from("kunden").select("*", { count: "exact" });
+  let query = supabase.from("kunden_details").select("*", { count: "exact" });
 
   if (search.trim()) {
     const pattern = `%${search.trim()}%`;

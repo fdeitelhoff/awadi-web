@@ -55,6 +55,7 @@ export async function getVertraege(
   params: {
     search?: string;
     filterAktiv?: VertragFilterAktiv;
+    kundenId?: number;
     sortField?: VertragSortField;
     sortDirection?: "asc" | "desc";
     page?: number;
@@ -64,6 +65,7 @@ export async function getVertraege(
   const {
     search = "",
     filterAktiv = "all",
+    kundenId,
     sortField = "gueltig_ab",
     sortDirection = "desc",
     page = 1,
@@ -81,6 +83,10 @@ export async function getVertraege(
   if (search.trim()) {
     const pattern = `%${search.trim()}%`;
     query = query.ilike("vertragsnummer", pattern);
+  }
+
+  if (kundenId != null) {
+    query = query.eq("kunden_id", kundenId);
   }
 
   if (filterAktiv === "aktiv") {

@@ -17,6 +17,7 @@ import { updateKunde, type UpdateKundeInput } from "@/lib/actions/customers";
 import type { Kunde } from "@/lib/types/customer";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { VertragPicker } from "@/components/dashboard/vertrag-picker";
 
 interface CustomerEditFormProps {
   kunde: Kunde;
@@ -41,7 +42,6 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
     vorname: kunde.vorname ?? "",
     nachname: kunde.nachname ?? "",
     firma: kunde.firma ?? "",
-    bezeichnung: kunde.bezeichnung ?? "",
     strasse: kunde.strasse ?? "",
     hausnr: kunde.hausnr ?? "",
     laenderkennung: kunde.laenderkennung ?? "",
@@ -55,7 +55,6 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
     email: kunde.email ?? "",
     email_secondary: kunde.email_secondary ?? "",
     homepage: kunde.homepage ?? "",
-    comment: kunde.comment ?? "",
     interne_anmerkungen: kunde.interne_anmerkungen ?? "",
   });
 
@@ -134,15 +133,21 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Kunden-Nr. */}
-            <div className="space-y-1.5">
-              <Label htmlFor="kundennr">Kunden-Nr.</Label>
-              <Input
-                id="kundennr"
-                value={form.kundennr}
-                onChange={(e) => set("kundennr", e.target.value)}
-                placeholder="z. B. AS-001"
-              />
+            {/* Kunden-Nr. + Wartungsvertrag */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="kundennr">Kunden-Nr.</Label>
+                <Input
+                  id="kundennr"
+                  value={form.kundennr}
+                  onChange={(e) => set("kundennr", e.target.value)}
+                  placeholder="z. B. AS-001"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Wartungsvertrag</Label>
+                <VertragPicker kundenId={kunde.id} />
+              </div>
             </div>
 
             {/* Anrede + Titel */}
@@ -194,24 +199,14 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
               </div>
             </div>
 
-            {/* Firma + Bezeichnung */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="firma">Firma</Label>
-                <Input
-                  id="firma"
-                  value={form.firma}
-                  onChange={(e) => set("firma", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="bezeichnung">Bezeichnung</Label>
-                <Input
-                  id="bezeichnung"
-                  value={form.bezeichnung}
-                  onChange={(e) => set("bezeichnung", e.target.value)}
-                />
-              </div>
+            {/* Firma */}
+            <div className="space-y-1.5">
+              <Label htmlFor="firma">Firma</Label>
+              <Input
+                id="firma"
+                value={form.firma}
+                onChange={(e) => set("firma", e.target.value)}
+              />
             </div>
 
           </CardContent>
@@ -370,15 +365,6 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
             <CardTitle className="text-base">Anmerkungen</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Kommentar</Label>
-              <Textarea
-                id="comment"
-                rows={4}
-                value={form.comment}
-                onChange={(e) => set("comment", e.target.value)}
-              />
-            </div>
             <div className="space-y-1.5">
               <Label htmlFor="interne_anmerkungen">Interne Anmerkungen</Label>
               <Textarea

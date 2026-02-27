@@ -25,7 +25,6 @@ const EMPTY_FORM: CreateKundeInput = {
   vorname: "",
   nachname: "",
   firma: "",
-  bezeichnung: "",
   strasse: "",
   hausnr: "",
   laenderkennung: "",
@@ -39,7 +38,6 @@ const EMPTY_FORM: CreateKundeInput = {
   email: "",
   email_secondary: "",
   homepage: "",
-  comment: "",
   interne_anmerkungen: "",
 };
 
@@ -160,23 +158,13 @@ export function CustomerCreateForm() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="firma">Firma</Label>
-                <Input
-                  id="firma"
-                  value={form.firma}
-                  onChange={(e) => set("firma", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="bezeichnung">Bezeichnung</Label>
-                <Input
-                  id="bezeichnung"
-                  value={form.bezeichnung}
-                  onChange={(e) => set("bezeichnung", e.target.value)}
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="firma">Firma</Label>
+              <Input
+                id="firma"
+                value={form.firma}
+                onChange={(e) => set("firma", e.target.value)}
+              />
             </div>
 
           </CardContent>
@@ -335,15 +323,6 @@ export function CustomerCreateForm() {
             <CardTitle className="text-base">Anmerkungen</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Kommentar</Label>
-              <Textarea
-                id="comment"
-                rows={4}
-                value={form.comment}
-                onChange={(e) => set("comment", e.target.value)}
-              />
-            </div>
             <div className="space-y-1.5">
               <Label htmlFor="interne_anmerkungen">Interne Anmerkungen</Label>
               <Textarea

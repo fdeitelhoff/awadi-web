@@ -11,7 +11,6 @@ export interface CreateKundeInput {
   vorname?: string;
   nachname?: string;
   firma?: string;
-  bezeichnung?: string;
   strasse?: string;
   hausnr?: string;
   laenderkennung?: string;
@@ -25,7 +24,6 @@ export interface CreateKundeInput {
   email?: string;
   email_secondary?: string;
   homepage?: string;
-  comment?: string;
   interne_anmerkungen?: string;
 }
 
@@ -63,7 +61,6 @@ export interface UpdateKundeInput {
   vorname?: string;
   nachname?: string;
   firma?: string;
-  bezeichnung?: string;
   strasse?: string;
   hausnr?: string;
   laenderkennung?: string;
@@ -77,7 +74,6 @@ export interface UpdateKundeInput {
   email?: string;
   email_secondary?: string;
   homepage?: string;
-  comment?: string;
   interne_anmerkungen?: string;
 }
 

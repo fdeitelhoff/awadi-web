@@ -39,6 +39,7 @@ export type VertragFilterAktiv = "all" | "aktiv" | "inaktiv";
 export interface VertragQueryParams {
   search?: string;
   filterAktiv?: VertragFilterAktiv;
+  kundenId?: number;
   sortField?: VertragSortField;
   sortDirection?: SortDirection;
   page?: number;

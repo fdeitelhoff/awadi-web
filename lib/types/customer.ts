@@ -1,7 +1,8 @@
-// Kunde — maps 1:1 to public.kunden table
+// Kunde — maps 1:1 to public.kunden table (extended by kunden_details view)
 export interface Kunde {
   id: number;
   kundennr?: string;
+  hat_aktiven_vertrag?: boolean;
 
   firma?: string;
   nachname?: string;
@@ -24,10 +25,7 @@ export interface Kunde {
   email_secondary?: string;
   homepage?: string;
 
-  comment?: string;
   interne_anmerkungen?: string;
-  bezeichnung?: string;
-
   trace_mark?: number;
   last_update?: string;
   created_at: string;

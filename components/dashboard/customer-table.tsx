@@ -169,7 +169,7 @@ export function CustomerTable({
   // plus transparent filler rows so the table height never changes.
   const fillerCount = Math.max(0, PAGE_SIZE - kunden.length);
 
-  const COLSPAN = 9;
+  const COLSPAN = 10;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -302,6 +302,7 @@ export function CustomerTable({
                   <SortIcon field="kundennr" />
                 </button>
               </TableHead>
+              <TableHead className="w-[70px]">Status</TableHead>
               <TableHead>
                 <button
                   onClick={() => handleSort("vorname")}
@@ -359,6 +360,7 @@ export function CustomerTable({
               Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <TableRow key={`sk-${i}`} className={ROW_HEIGHT}>
                   <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
@@ -400,6 +402,13 @@ export function CustomerTable({
                   >
                     <TableCell className="text-muted-foreground">
                       {kunde.kundennr}
+                    </TableCell>
+                    <TableCell>
+                      {kunde.hat_aktiven_vertrag && (
+                        <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                          Aktiv
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>{kunde.vorname}</TableCell>
                     <TableCell className="font-medium">{kunde.nachname}</TableCell>
