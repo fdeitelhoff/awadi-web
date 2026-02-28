@@ -19,10 +19,13 @@ import {
   type UpdateProfileInput,
 } from "@/lib/actions/profiles";
 import type { Profile } from "@/lib/types/profile";
+import type { InternalComment } from "@/lib/types/kommentar";
+import { InternalComments } from "@/components/dashboard/internal-comments";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 
 interface UserEditFormProps {
   profile: Profile;
+  initialKommentare: InternalComment[];
 }
 
 type Day = "mo" | "di" | "mi" | "do" | "fr" | "sa" | "so";
@@ -73,7 +76,7 @@ function toFormInput(profile: Profile): UpdateProfileInput {
   };
 }
 
-export function UserEditForm({ profile }: UserEditFormProps) {
+export function UserEditForm({ profile, initialKommentare }: UserEditFormProps) {
   const [form, setForm] = useState<UpdateProfileInput>(toFormInput(profile));
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -266,7 +269,7 @@ export function UserEditForm({ profile }: UserEditFormProps) {
         </Card>
 
         {/* ── Arbeitszeiten ─────────────────────────────────────── */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">Arbeitszeiten</CardTitle>
           </CardHeader>
@@ -331,6 +334,13 @@ export function UserEditForm({ profile }: UserEditFormProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* ── Anmerkungen ───────────────────────────────────────── */}
+        <InternalComments
+          refTable="profiles"
+          refId={profile.id}
+          initialComments={initialKommentare}
+        />
 
       </div>
 

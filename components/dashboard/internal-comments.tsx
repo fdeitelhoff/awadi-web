@@ -22,7 +22,7 @@ import type { InternalComment } from "@/lib/types/kommentar";
 
 interface InternalCommentsProps {
   refTable: string;
-  refId: number;
+  refId: number | string;
   initialComments: InternalComment[];
 }
 

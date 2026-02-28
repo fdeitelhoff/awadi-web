@@ -6,7 +6,7 @@ import type { InternalComment } from "@/lib/types/kommentar";
 
 export async function createInternalComment(
   refTable: string,
-  refId: number,
+  refId: number | string,
   kommentar: string
 ): Promise<{ success: boolean; comment?: InternalComment; error?: string }> {
   const supabase = await createClient();
@@ -19,7 +19,7 @@ export async function createInternalComment(
     .from("interne_anmerkungen")
     .insert({
       ref_table: refTable,
-      ref_id: refId,
+      ref_id: String(refId),
       kommentar: kommentar.trim(),
       user_id: user?.id ?? null,
       user_name:

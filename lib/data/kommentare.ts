@@ -5,7 +5,7 @@ export function mapRowToComment(row: Record<string, unknown>): InternalComment {
   return {
     id: row.id as number,
     ref_table: row.ref_table as string,
-    ref_id: row.ref_id as number,
+    ref_id: String(row.ref_id),
     kommentar: row.kommentar as string,
     user_id: row.user_id as string | undefined,
     user_name: row.user_name as string | undefined,
@@ -16,7 +16,7 @@ export function mapRowToComment(row: Record<string, unknown>): InternalComment {
 
 export async function getInternalComments(
   refTable: string,
-  refId: number
+  refId: number | string
 ): Promise<InternalComment[]> {
   const supabase = await createClient();
 
@@ -24,7 +24,7 @@ export async function getInternalComments(
     .from("interne_anmerkungen")
     .select("*")
     .eq("ref_table", refTable)
-    .eq("ref_id", refId)
+    .eq("ref_id", String(refId))
     .order("created_at", { ascending: false });
 
   if (error) {
