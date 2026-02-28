@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { createKontakt } from "@/lib/actions/kontakte";
 import type { KontaktFormData } from "@/lib/types/kontakt";
 import { Loader2, ArrowLeft } from "lucide-react";
@@ -34,7 +33,6 @@ const EMPTY_FORM: KontaktFormData = {
   telefonnr: "",
   mobilnr: "",
   email: "",
-  anmerkungen: "",
 };
 
 export function KontaktCreateForm() {
@@ -263,23 +261,6 @@ export function KontaktCreateForm() {
           </CardContent>
         </Card>
 
-        {/* ── Anmerkungen ──────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              <Label htmlFor="anmerkungen">Anmerkungen</Label>
-              <Textarea
-                id="anmerkungen"
-                rows={6}
-                value={form.anmerkungen}
-                onChange={(e) => set("anmerkungen", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
 
       </div>
 

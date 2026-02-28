@@ -32,7 +32,6 @@ export function mapRowToKontakt(row: Record<string, unknown>): Kontakt {
     telefonnr: row.telefonnr as string | undefined,
     mobilnr: row.mobilnr as string | undefined,
     email: row.email as string | undefined,
-    anmerkungen: row.anmerkungen as string | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,
   };

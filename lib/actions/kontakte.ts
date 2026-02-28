@@ -19,7 +19,6 @@ const TEXT_FIELDS: (keyof KontaktFormData)[] = [
   "telefonnr",
   "mobilnr",
   "email",
-  "anmerkungen",
 ];
 
 export async function createKontakt(

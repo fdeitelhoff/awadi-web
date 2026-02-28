@@ -15,7 +15,6 @@ export interface Kontakt {
   telefonnr?: string;
   mobilnr?: string;
   email?: string;
-  anmerkungen?: string;
   last_update?: string;
   created_at: string;
 }
@@ -35,7 +34,6 @@ export interface KontaktFormData {
   telefonnr?: string;
   mobilnr?: string;
   email?: string;
-  anmerkungen?: string;
 }
 
 export type KontaktSortField =

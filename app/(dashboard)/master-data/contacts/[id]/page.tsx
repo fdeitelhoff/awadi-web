@@ -1,13 +1,17 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getKontaktById } from "@/lib/data/kontakte";
+import { getInternalComments } from "@/lib/data/kommentare";
 import { KontaktEditForm } from "@/components/dashboard/kontakt-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function KontaktDetail({ id }: { id: number }) {
-  const kontakt = await getKontaktById(id);
+  const [kontakt, initialKommentare] = await Promise.all([
+    getKontaktById(id),
+    getInternalComments("kontakte", id),
+  ]);
   if (!kontakt) notFound();
-  return <KontaktEditForm kontakt={kontakt} />;
+  return <KontaktEditForm kontakt={kontakt} initialKommentare={initialKommentare} />;
 }
 
 function KontaktDetailSkeleton() {

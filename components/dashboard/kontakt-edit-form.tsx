@@ -13,13 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { updateKontakt } from "@/lib/actions/kontakte";
 import type { Kontakt, KontaktFormData } from "@/lib/types/kontakt";
+import type { InternalComment } from "@/lib/types/kommentar";
+import { InternalComments } from "@/components/dashboard/internal-comments";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 
 interface KontaktEditFormProps {
   kontakt: Kontakt;
+  initialKommentare: InternalComment[];
 }
 
 function formatDateTime(value?: string | null) {
@@ -33,7 +35,7 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function KontaktEditForm({ kontakt }: KontaktEditFormProps) {
+export function KontaktEditForm({ kontakt, initialKommentare }: KontaktEditFormProps) {
   const [form, setForm] = useState<KontaktFormData>({
     anrede: kontakt.anrede ?? "",
     titel: kontakt.titel ?? "",
@@ -49,7 +51,6 @@ export function KontaktEditForm({ kontakt }: KontaktEditFormProps) {
     telefonnr: kontakt.telefonnr ?? "",
     mobilnr: kontakt.mobilnr ?? "",
     email: kontakt.email ?? "",
-    anmerkungen: kontakt.anmerkungen ?? "",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -291,22 +292,11 @@ export function KontaktEditForm({ kontakt }: KontaktEditFormProps) {
         </Card>
 
         {/* ── Anmerkungen ──────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              <Label htmlFor="anmerkungen">Anmerkungen</Label>
-              <Textarea
-                id="anmerkungen"
-                rows={6}
-                value={form.anmerkungen}
-                onChange={(e) => set("anmerkungen", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <InternalComments
+          refTable="kontakte"
+          refId={kontakt.id}
+          initialComments={initialKommentare}
+        />
 
       </div>
 

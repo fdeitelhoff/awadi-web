@@ -56,7 +56,6 @@ export const KontaktSection = forwardRef<KontaktSectionRef, KontaktSectionProps>
       telefonnr: initialKontakt?.telefonnr ?? "",
       mobilnr: initialKontakt?.mobilnr ?? "",
       email: initialKontakt?.email ?? "",
-      anmerkungen: initialKontakt?.anmerkungen ?? "",
     });
 
     useImperativeHandle(ref, () => ({
@@ -262,14 +261,6 @@ export const KontaktSection = forwardRef<KontaktSectionRef, KontaktSectionProps>
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="k_anmerkungen">Anmerkungen</Label>
-                <Input
-                  id="k_anmerkungen"
-                  value={kontaktForm.anmerkungen}
-                  onChange={(e) => setField("anmerkungen", e.target.value)}
-                />
-              </div>
 
             </div>
           )}
