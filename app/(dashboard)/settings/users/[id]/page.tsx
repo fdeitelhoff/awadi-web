@@ -1,20 +1,27 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getProfileById } from "@/lib/data/profiles";
+import { getProfileById, getUserRollen } from "@/lib/data/profiles";
 import { getInternalComments } from "@/lib/data/kommentare";
 import { UserEditForm } from "@/components/dashboard/user-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function UserDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [profile, initialKommentare] = await Promise.all([
+  const [profile, initialKommentare, rollen] = await Promise.all([
     getProfileById(id),
     getInternalComments("profiles", id),
+    getUserRollen(),
   ]);
 
   if (!profile) notFound();
 
-  return <UserEditForm profile={profile} initialKommentare={initialKommentare} />;
+  return (
+    <UserEditForm
+      profile={profile}
+      initialKommentare={initialKommentare}
+      rollen={rollen}
+    />
+  );
 }
 
 function UserDetailSkeleton() {

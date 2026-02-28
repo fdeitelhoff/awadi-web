@@ -1,9 +1,15 @@
+export interface UserRolle {
+  id: number;
+  name: string;
+}
+
 export interface Profile {
   id: string;
   email: string;
   vorname?: string;
   nachname?: string;
-  rolle: "techniker" | "disponent";
+  rollen_id: number;
+  rollen_name?: string; // joined from user_rollen
   telefonnr?: string;
   aktiv: boolean;
   farbe?: string;
@@ -25,13 +31,12 @@ export interface Profile {
   last_update?: string;
 }
 
-export type ProfileSortField = "email" | "nachname" | "vorname" | "rolle";
-export type ProfileFilterRolle = "all" | "techniker" | "disponent";
+export type ProfileSortField = "email" | "nachname" | "vorname" | "rollen_id";
 export type SortDirection = "asc" | "desc";
 
 export interface ProfileQueryParams {
   search?: string;
-  filterRolle?: ProfileFilterRolle;
+  filterRollenId?: number;
   sortField?: ProfileSortField;
   sortDirection?: SortDirection;
   page?: number;

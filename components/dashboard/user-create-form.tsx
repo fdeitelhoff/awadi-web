@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { inviteUser, type UpdateProfileInput } from "@/lib/actions/profiles";
+import type { UserRolle } from "@/lib/types/profile";
 import { Loader2, ArrowLeft, Mail } from "lucide-react";
 
 type Day = "mo" | "di" | "mi" | "do" | "fr" | "sa" | "so";
@@ -30,26 +31,32 @@ const DAYS: { key: Day; label: string }[] = [
   { key: "so", label: "Sonntag" },
 ];
 
-const EMPTY_FORM: UpdateProfileInput = {
-  vorname: "",
-  nachname: "",
-  rolle: "techniker",
-  telefonnr: "",
+function emptyForm(rollen: UserRolle[]): UpdateProfileInput {
+  return {
+    vorname: "",
+    nachname: "",
+    rollen_id: rollen[0]?.id ?? 0,
+    telefonnr: "",
   aktiv: true,
   farbe: "",
-  mo_von: null, mo_bis: null,
-  di_von: null, di_bis: null,
-  mi_von: null, mi_bis: null,
-  do_von: null, do_bis: null,
-  fr_von: null, fr_bis: null,
-  sa_von: null, sa_bis: null,
-  so_von: null, so_bis: null,
-};
+    mo_von: null, mo_bis: null,
+    di_von: null, di_bis: null,
+    mi_von: null, mi_bis: null,
+    do_von: null, do_bis: null,
+    fr_von: null, fr_bis: null,
+    sa_von: null, sa_bis: null,
+    so_von: null, so_bis: null,
+  };
+}
 
-export function UserCreateForm() {
+interface UserCreateFormProps {
+  rollen: UserRolle[];
+}
+
+export function UserCreateForm({ rollen }: UserCreateFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [form, setForm] = useState<UpdateProfileInput>(EMPTY_FORM);
+  const [form, setForm] = useState<UpdateProfileInput>(() => emptyForm(rollen));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -161,17 +168,18 @@ export function UserCreateForm() {
             <div className="space-y-1.5">
               <Label htmlFor="rolle">Rolle</Label>
               <Select
-                value={form.rolle}
-                onValueChange={(v) =>
-                  set("rolle", v as "techniker" | "disponent")
-                }
+                value={String(form.rollen_id)}
+                onValueChange={(v) => set("rollen_id", parseInt(v, 10))}
               >
                 <SelectTrigger id="rolle">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="techniker">Techniker</SelectItem>
-                  <SelectItem value="disponent">Disponent</SelectItem>
+                  {rollen.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -28,6 +28,7 @@ const EMPTY_FORM: CreateAnlageInput = {
   anl_typ_id: undefined,
   hersteller: "",
   typ: "",
+  techniker_id: undefined,
   anlagen_nr: "",
   bezeichnung: "",
   verfahren_br_anz_behaelter: undefined,
@@ -57,9 +58,10 @@ const EMPTY_FORM: CreateAnlageInput = {
 
 interface AnlageCreateFormProps {
   anlTypen: AnlTyp[];
+  techniker: { id: string; name: string }[];
 }
 
-export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
+export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps) {
   const router = useRouter();
   const kontaktRef = useRef<KontaktSectionRef>(null);
   const [form, setForm] = useState<CreateAnlageInput>(EMPTY_FORM);
@@ -489,6 +491,28 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
             <CardTitle className="text-base">Wartung &amp; Planung</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+
+            <div className="space-y-1.5">
+              <Label htmlFor="techniker_id">Techniker</Label>
+              <Select
+                value={form.techniker_id ?? "none"}
+                onValueChange={(v) =>
+                  set("techniker_id", v === "none" ? undefined : v)
+                }
+              >
+                <SelectTrigger id="techniker_id">
+                  <SelectValue placeholder="Techniker auswählen…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Kein Techniker —</SelectItem>
+                  {techniker.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
           </CardContent>
         </Card>

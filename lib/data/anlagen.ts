@@ -59,6 +59,8 @@ export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
     anl_typ_bezeichnung: row.anl_typ_bezeichnung as string | undefined,
     hersteller: row.hersteller as string | undefined,
     typ: row.typ as string | undefined,
+    techniker_id: row.techniker_id as string | undefined,
+    techniker_name: row.techniker_name as string | undefined,
     // Contact person fields
     kontakt_typ: row.kontakt_typ as string | undefined,
     kontakt_name: row.kontakt_name as string | undefined,
@@ -192,6 +194,31 @@ export async function getAnlTypen(): Promise<AnlTyp[]> {
   return (data ?? []).map((r) => ({
     id: r.id as number,
     bezeichnung: r.bezeichnung as string,
+  }));
+}
+
+export async function getActiveTechniker(): Promise<
+  { id: string; name: string }[]
+> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, vorname, nachname, email")
+    .eq("aktiv", true)
+    .order("nachname", { nullsFirst: false })
+    .order("vorname", { nullsFirst: false });
+
+  if (error) {
+    console.error("Error fetching active techniker:", error);
+    return [];
+  }
+
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    name:
+      [r.vorname, r.nachname].filter(Boolean).join(" ") ||
+      (r.email as string),
   }));
 }
 

@@ -28,6 +28,7 @@ import Link from "next/link";
 interface AnlageEditFormProps {
   anlage: AnlageListItem;
   anlTypen: AnlTyp[];
+  techniker: { id: string; name: string }[];
   initialKontakt?: Kontakt;
   initialKommentare: InternalComment[];
 }
@@ -43,7 +44,7 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlageEditForm({ anlage, anlTypen, initialKontakt, initialKommentare }: AnlageEditFormProps) {
+export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, initialKommentare }: AnlageEditFormProps) {
   const kontaktRef = useRef<KontaktSectionRef>(null);
 
   const initialContactMode: "none" | "kunde" | "kontakt" =
@@ -75,6 +76,7 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt, initialKommen
     anl_typ_id: anlage.anl_typ_id ?? null,
     hersteller: anlage.hersteller ?? "",
     typ: anlage.typ ?? "",
+    techniker_id: anlage.techniker_id ?? null,
     kunden_id: anlage.kunden_id,
     anlagen_nr: anlage.anlagen_nr ?? "",
     bezeichnung: anlage.bezeichnung ?? "",
@@ -556,6 +558,28 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt, initialKommen
             <CardTitle className="text-base">Wartung &amp; Planung</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+
+            <div className="space-y-1.5">
+              <Label htmlFor="techniker_id">Techniker</Label>
+              <Select
+                value={form.techniker_id ?? "none"}
+                onValueChange={(v) =>
+                  set("techniker_id", v === "none" ? null : v)
+                }
+              >
+                <SelectTrigger id="techniker_id">
+                  <SelectValue placeholder="Techniker auswählen…" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Kein Techniker —</SelectItem>
+                  {techniker.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
           </CardContent>
         </Card>

@@ -35,7 +35,7 @@ import type {
   Profile,
   ProfileSortField,
   SortDirection,
-  ProfileFilterRolle,
+  UserRolle,
 } from "@/lib/types/profile";
 import { fetchProfiles, deleteProfile } from "@/lib/actions/profiles";
 import {
@@ -56,14 +56,15 @@ const COLSPAN = 7;
 interface UserTableProps {
   initialData: Profile[];
   initialCount: number;
+  rollen: UserRolle[];
 }
 
-export function UserTable({ initialData, initialCount }: UserTableProps) {
+export function UserTable({ initialData, initialCount, rollen }: UserTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [sortField, setSortField] = useState<ProfileSortField>("nachname");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [filterRolle, setFilterRolle] = useState<ProfileFilterRolle>("all");
+  const [filterRollenId, setFilterRollenId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [profiles, setProfiles] = useState<Profile[]>(initialData);
@@ -119,7 +120,7 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
 
     fetchProfiles({
       search: activeSearch,
-      filterRolle,
+      filterRollenId: filterRollenId ?? undefined,
       sortField,
       sortDirection,
       page: currentPage,
@@ -134,12 +135,12 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
     return () => {
       cancelled = true;
     };
-  }, [activeSearch, filterRolle, sortField, sortDirection, currentPage]);
+  }, [activeSearch, filterRollenId, sortField, sortDirection, currentPage]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   const handleFilterChange = (value: string) => {
-    setFilterRolle(value as ProfileFilterRolle);
+    setFilterRollenId(value === "all" ? null : parseInt(value, 10));
     setCurrentPage(1);
   };
 
@@ -261,14 +262,20 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
 
         {/* Right: role filter + new */}
         <div className="flex items-center gap-2">
-          <Select value={filterRolle} onValueChange={handleFilterChange}>
+          <Select
+            value={filterRollenId == null ? "all" : String(filterRollenId)}
+            onValueChange={handleFilterChange}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Rolle filtern" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle Rollen</SelectItem>
-              <SelectItem value="techniker">Techniker</SelectItem>
-              <SelectItem value="disponent">Disponent</SelectItem>
+              {rollen.map((r) => (
+                <SelectItem key={r.id} value={String(r.id)}>
+                  {r.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button onClick={() => router.push("/settings/users/new")}>
@@ -283,6 +290,7 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Aktiv</TableHead>
               <TableHead>
                 <button
                   onClick={() => handleSort("email")}
@@ -312,15 +320,14 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
               </TableHead>
               <TableHead>
                 <button
-                  onClick={() => handleSort("rolle")}
+                  onClick={() => handleSort("rollen_id")}
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Rolle
-                  <SortIcon field="rolle" />
+                  <SortIcon field="rollen_id" />
                 </button>
               </TableHead>
               <TableHead>Telefon</TableHead>
-              <TableHead className="w-[80px]">Aktiv</TableHead>
               <TableHead className="w-[90px]" />
             </TableRow>
           </TableHeader>
@@ -329,12 +336,12 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
             {isLoading ? (
               Array.from({ length: PAGE_SIZE }).map((_, i) => (
                 <TableRow key={`sk-${i}`} className={ROW_HEIGHT}>
+                  <TableCell><Skeleton className="h-5 w-12 rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20 rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                  <TableCell><Skeleton className="h-5 w-12 rounded-full" /></TableCell>
                   <TableCell />
                 </TableRow>
               ))
@@ -365,17 +372,6 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
                     className={`${ROW_HEIGHT} cursor-pointer`}
                     onClick={() => router.push(`/settings/users/${profile.id}`)}
                   >
-                    <TableCell className="font-medium">{profile.email}</TableCell>
-                    <TableCell>{profile.vorname}</TableCell>
-                    <TableCell>{profile.nachname}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={profile.rolle === "disponent" ? "default" : "secondary"}
-                      >
-                        {profile.rolle === "disponent" ? "Disponent" : "Techniker"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{profile.telefonnr}</TableCell>
                     <TableCell>
                       {profile.aktiv ? (
                         <Badge variant="outline" className="text-green-600 border-green-600">
@@ -387,6 +383,15 @@ export function UserTable({ initialData, initialCount }: UserTableProps) {
                         </Badge>
                       )}
                     </TableCell>
+                    <TableCell className="font-medium">{profile.email}</TableCell>
+                    <TableCell>{profile.vorname}</TableCell>
+                    <TableCell>{profile.nachname}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {profile.rollen_name ?? profile.rollen_id}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{profile.telefonnr}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="destructive"

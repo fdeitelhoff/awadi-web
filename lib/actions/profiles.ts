@@ -33,7 +33,7 @@ export async function deleteProfile(
 export type UpdateProfileInput = {
   vorname?: string;
   nachname?: string;
-  rolle: "techniker" | "disponent";
+  rollen_id: number;
   telefonnr?: string;
   aktiv: boolean;
   farbe?: string;
@@ -63,7 +63,7 @@ export async function inviteUser(
   const admin = createAdminClient();
 
   const { data, error } = await admin.auth.admin.inviteUserByEmail(input.email, {
-    data: { rolle: input.rolle },
+    data: { rollen_id: input.rollen_id },
   });
 
   if (error) return { success: false, error: error.message };

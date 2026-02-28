@@ -35,6 +35,7 @@ export interface CreateAnlageInput {
   number_of_biologies?: number;
   hersteller?: string;
   typ?: string;
+  techniker_id?: string;
 }
 
 export async function createAnlage(
@@ -59,6 +60,10 @@ export async function createAnlage(
 
   if (input.anl_typ_id != null) {
     row.anl_typ_id = input.anl_typ_id;
+  }
+
+  if (input.techniker_id != null) {
+    row.techniker_id = input.techniker_id;
   }
 
   // XOR: at most one of kontakt_kunde_id / kontakt_id
@@ -179,6 +184,7 @@ export interface UpdateAnlageInput {
   number_of_biologies?: number | null;
   hersteller?: string;
   typ?: string;
+  techniker_id?: string | null;
 }
 
 export async function updateAnlage(

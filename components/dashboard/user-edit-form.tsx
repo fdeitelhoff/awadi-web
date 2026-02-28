@@ -18,7 +18,7 @@ import {
   updateProfile,
   type UpdateProfileInput,
 } from "@/lib/actions/profiles";
-import type { Profile } from "@/lib/types/profile";
+import type { Profile, UserRolle } from "@/lib/types/profile";
 import type { InternalComment } from "@/lib/types/kommentar";
 import { InternalComments } from "@/components/dashboard/internal-comments";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
@@ -26,6 +26,7 @@ import { Loader2, Check, ArrowLeft } from "lucide-react";
 interface UserEditFormProps {
   profile: Profile;
   initialKommentare: InternalComment[];
+  rollen: UserRolle[];
 }
 
 type Day = "mo" | "di" | "mi" | "do" | "fr" | "sa" | "so";
@@ -55,7 +56,7 @@ function toFormInput(profile: Profile): UpdateProfileInput {
   return {
     vorname: profile.vorname ?? "",
     nachname: profile.nachname ?? "",
-    rolle: profile.rolle,
+    rollen_id: profile.rollen_id,
     telefonnr: profile.telefonnr ?? "",
     aktiv: profile.aktiv,
     farbe: profile.farbe ?? "",
@@ -76,7 +77,7 @@ function toFormInput(profile: Profile): UpdateProfileInput {
   };
 }
 
-export function UserEditForm({ profile, initialKommentare }: UserEditFormProps) {
+export function UserEditForm({ profile, initialKommentare, rollen }: UserEditFormProps) {
   const [form, setForm] = useState<UpdateProfileInput>(toFormInput(profile));
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -202,17 +203,18 @@ export function UserEditForm({ profile, initialKommentare }: UserEditFormProps) 
             <div className="space-y-1.5">
               <Label htmlFor="rolle">Rolle</Label>
               <Select
-                value={form.rolle}
-                onValueChange={(v) =>
-                  set("rolle", v as "techniker" | "disponent")
-                }
+                value={String(form.rollen_id)}
+                onValueChange={(v) => set("rollen_id", parseInt(v, 10))}
               >
                 <SelectTrigger id="rolle">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="techniker">Techniker</SelectItem>
-                  <SelectItem value="disponent">Disponent</SelectItem>
+                  {rollen.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

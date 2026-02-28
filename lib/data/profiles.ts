@@ -3,6 +3,7 @@ import type {
   Profile,
   ProfileQueryParams,
   ProfileQueryResult,
+  UserRolle,
 } from "@/lib/types/profile";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,7 +13,8 @@ function mapRowToProfile(row: any): Profile {
     email: row.email as string,
     vorname: row.vorname as string | undefined,
     nachname: row.nachname as string | undefined,
-    rolle: row.rolle as "techniker" | "disponent",
+    rollen_id: row.rollen_id as number,
+    rollen_name: (row.user_rollen as { name: string } | null)?.name,
     telefonnr: row.telefonnr as string | undefined,
     aktiv: row.aktiv as boolean,
     farbe: row.farbe as string | undefined,
@@ -35,13 +37,28 @@ function mapRowToProfile(row: any): Profile {
   };
 }
 
+export async function getUserRollen(): Promise<UserRolle[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("user_rollen")
+    .select("id, name")
+    .order("id");
+
+  if (error) {
+    console.error("Error fetching user_rollen:", error);
+    return [];
+  }
+
+  return (data ?? []).map((r) => ({ id: r.id as number, name: r.name as string }));
+}
+
 export async function getProfiles(
   params: ProfileQueryParams = {}
 ): Promise<ProfileQueryResult> {
   const supabase = await createClient();
   const {
     search = "",
-    filterRolle = "all",
+    filterRollenId,
     sortField = "nachname",
     sortDirection = "asc",
     page = 1,
@@ -50,7 +67,7 @@ export async function getProfiles(
 
   let query = supabase
     .from("profiles")
-    .select("*", { count: "exact" });
+    .select("*, user_rollen(name)", { count: "exact" });
 
   if (search.trim()) {
     const term = `%${search.trim()}%`;
@@ -59,8 +76,8 @@ export async function getProfiles(
     );
   }
 
-  if (filterRolle !== "all") {
-    query = query.eq("rolle", filterRolle);
+  if (filterRollenId != null) {
+    query = query.eq("rollen_id", filterRollenId);
   }
 
   query = query
@@ -81,7 +98,7 @@ export async function getProfileById(id: string): Promise<Profile | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select("*, user_rollen(name)")
     .eq("id", id)
     .single();
 
