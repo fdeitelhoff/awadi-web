@@ -25,7 +25,6 @@ export interface Kunde {
   email_secondary?: string;
   homepage?: string;
 
-  interne_anmerkungen?: string;
   trace_mark?: number;
   last_update?: string;
   created_at: string;

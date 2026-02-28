@@ -34,7 +34,6 @@ export function mapRowToKunde(row: Record<string, unknown>): Kunde {
     email: row.email as string | undefined,
     email_secondary: row.email_secondary as string | undefined,
     homepage: row.homepage as string | undefined,
-    interne_anmerkungen: row.interne_anmerkungen as string | undefined,
     trace_mark: row.trace_mark as number | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,

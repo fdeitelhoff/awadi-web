@@ -1,13 +1,17 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getCustomerById } from "@/lib/data/customers";
+import { getInternalComments } from "@/lib/data/kommentare";
 import { CustomerEditForm } from "@/components/dashboard/customer-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function CustomerDetail({ id }: { id: number }) {
-  const kunde = await getCustomerById(id);
+  const [kunde, kommentare] = await Promise.all([
+    getCustomerById(id),
+    getInternalComments("kunden", id),
+  ]);
   if (!kunde) notFound();
-  return <CustomerEditForm kunde={kunde} />;
+  return <CustomerEditForm kunde={kunde} initialKommentare={kommentare} />;
 }
 
 function CustomerDetailSkeleton() {

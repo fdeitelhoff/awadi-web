@@ -24,7 +24,6 @@ export interface CreateKundeInput {
   email?: string;
   email_secondary?: string;
   homepage?: string;
-  interne_anmerkungen?: string;
 }
 
 export async function createKunde(
@@ -74,7 +73,6 @@ export interface UpdateKundeInput {
   email?: string;
   email_secondary?: string;
   homepage?: string;
-  interne_anmerkungen?: string;
 }
 
 export async function updateKunde(

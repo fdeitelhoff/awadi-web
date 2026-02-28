@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { createKunde, type CreateKundeInput } from "@/lib/actions/customers";
 import { Loader2, ArrowLeft } from "lucide-react";
 
@@ -38,7 +37,6 @@ const EMPTY_FORM: CreateKundeInput = {
   email: "",
   email_secondary: "",
   homepage: "",
-  interne_anmerkungen: "",
 };
 
 export function CustomerCreateForm() {
@@ -317,23 +315,6 @@ export function CustomerCreateForm() {
           </CardContent>
         </Card>
 
-        {/* ── Anmerkungen ──────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="interne_anmerkungen">Interne Anmerkungen</Label>
-              <Textarea
-                id="interne_anmerkungen"
-                rows={4}
-                value={form.interne_anmerkungen}
-                onChange={(e) => set("interne_anmerkungen", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
 
       </div>
 

@@ -12,15 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { updateKunde, type UpdateKundeInput } from "@/lib/actions/customers";
 import type { Kunde } from "@/lib/types/customer";
+import type { InternalComment } from "@/lib/types/kommentar";
+import { InternalComments } from "@/components/dashboard/internal-comments";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { VertragPicker } from "@/components/dashboard/vertrag-picker";
 
 interface CustomerEditFormProps {
   kunde: Kunde;
+  initialKommentare: InternalComment[];
 }
 
 function formatDateTime(value?: string | null) {
@@ -34,7 +36,7 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
+export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormProps) {
   const [form, setForm] = useState<UpdateKundeInput>({
     kundennr: kunde.kundennr ?? "",
     anrede: kunde.anrede ?? "",
@@ -55,7 +57,6 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
     email: kunde.email ?? "",
     email_secondary: kunde.email_secondary ?? "",
     homepage: kunde.homepage ?? "",
-    interne_anmerkungen: kunde.interne_anmerkungen ?? "",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -360,22 +361,11 @@ export function CustomerEditForm({ kunde }: CustomerEditFormProps) {
         </Card>
 
         {/* ── Anmerkungen ──────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="interne_anmerkungen">Interne Anmerkungen</Label>
-              <Textarea
-                id="interne_anmerkungen"
-                rows={4}
-                value={form.interne_anmerkungen}
-                onChange={(e) => set("interne_anmerkungen", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <InternalComments
+          refTable="kunden"
+          refId={kunde.id}
+          initialComments={initialKommentare}
+        />
 
       </div>
 
