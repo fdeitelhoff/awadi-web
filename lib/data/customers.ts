@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Kunde, KundeQueryResult, SortField } from "@/lib/types/customer";
+import type { Kunde, KundeQueryResult, KundeFilterAktiv, SortField } from "@/lib/types/customer";
 
 const SORT_FIELD_TO_COLUMN: Record<SortField, string> = {
   kundennr: "kundennr",
@@ -47,6 +47,7 @@ export async function getCustomers(
   params: {
     search?: string;
     filterOrt?: string;
+    filterAktiv?: KundeFilterAktiv;
     sortField?: SortField;
     sortDirection?: "asc" | "desc";
     page?: number;
@@ -56,6 +57,7 @@ export async function getCustomers(
   const {
     search = "",
     filterOrt,
+    filterAktiv = "all",
     sortField = "nachname",
     sortDirection = "asc",
     page = 1,
@@ -84,6 +86,12 @@ export async function getCustomers(
 
   if (filterOrt && filterOrt !== "all") {
     query = query.eq("ort", filterOrt);
+  }
+
+  if (filterAktiv === "aktiv") {
+    query = query.eq("hat_aktiven_vertrag", true);
+  } else if (filterAktiv === "inaktiv") {
+    query = query.eq("hat_aktiven_vertrag", false);
   }
 
   const dbColumn = SORT_FIELD_TO_COLUMN[sortField] ?? "nachname";

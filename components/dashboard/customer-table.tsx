@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Kunde, SortField, SortDirection } from "@/lib/types/customer";
+import type { Kunde, SortField, SortDirection, KundeFilterAktiv } from "@/lib/types/customer";
 import { fetchCustomers, deleteKunde } from "@/lib/actions/customers";
 import {
   ArrowUpDown,
@@ -62,6 +62,7 @@ export function CustomerTable({
   const [activeSearch, setActiveSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("nachname");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [filterAktiv, setFilterAktiv] = useState<KundeFilterAktiv>("all");
   const [filterOrt, setFilterOrt] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -120,6 +121,7 @@ export function CustomerTable({
     fetchCustomers({
       search: activeSearch,
       filterOrt,
+      filterAktiv,
       sortField,
       sortDirection,
       page: currentPage,
@@ -135,7 +137,7 @@ export function CustomerTable({
     return () => {
       cancelled = true;
     };
-  }, [activeSearch, filterOrt, sortField, sortDirection, currentPage]);
+  }, [activeSearch, filterAktiv, filterOrt, sortField, sortDirection, currentPage]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
@@ -251,6 +253,22 @@ export function CustomerTable({
 
         {/* Right: filter + new */}
         <div className="flex items-center gap-2">
+          <Select
+            value={filterAktiv}
+            onValueChange={(v) => {
+              setFilterAktiv(v as KundeFilterAktiv);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Alle Kunden</SelectItem>
+              <SelectItem value="aktiv">Aktive</SelectItem>
+              <SelectItem value="inaktiv">Inaktive</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={filterOrt} onValueChange={handleFilterChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Ort filtern" />
@@ -293,6 +311,7 @@ export function CustomerTable({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[70px]">Status</TableHead>
               <TableHead className="w-[100px]">
                 <button
                   onClick={() => handleSort("kundennr")}
@@ -302,7 +321,6 @@ export function CustomerTable({
                   <SortIcon field="kundennr" />
                 </button>
               </TableHead>
-              <TableHead className="w-[70px]">Status</TableHead>
               <TableHead>
                 <button
                   onClick={() => handleSort("vorname")}
@@ -400,15 +418,19 @@ export function CustomerTable({
                     className={`${ROW_HEIGHT} cursor-pointer`}
                     onClick={() => router.push(`/master-data/customers/${kunde.id}`)}
                   >
-                    <TableCell className="text-muted-foreground">
-                      {kunde.kundennr}
-                    </TableCell>
                     <TableCell>
-                      {kunde.hat_aktiven_vertrag && (
-                        <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                      {kunde.hat_aktiven_vertrag ? (
+                        <span className="text-success text-sm font-medium">
                           Aktiv
                         </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">
+                          Inaktiv
+                        </span>
                       )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {kunde.kundennr}
                     </TableCell>
                     <TableCell>{kunde.vorname}</TableCell>
                     <TableCell className="font-medium">{kunde.nachname}</TableCell>

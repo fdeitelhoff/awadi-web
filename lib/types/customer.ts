@@ -43,10 +43,12 @@ export type SortField =
   | "telefonnr";
 
 export type SortDirection = "asc" | "desc";
+export type KundeFilterAktiv = "all" | "aktiv" | "inaktiv";
 
 export interface KundeQueryParams {
   search?: string;
   filterOrt?: string;
+  filterAktiv?: KundeFilterAktiv;
   sortField?: SortField;
   sortDirection?: SortDirection;
   page?: number;
