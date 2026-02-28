@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getAnlTypById } from "@/lib/data/anl-typen";
+import { getInternalComments } from "@/lib/data/kommentare";
 import { AnlTypEditForm } from "@/components/dashboard/anl-typ-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -8,9 +9,12 @@ async function AnlTypDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const typId = parseInt(id, 10);
   if (isNaN(typId)) notFound();
-  const typ = await getAnlTypById(typId);
+  const [typ, initialKommentare] = await Promise.all([
+    getAnlTypById(typId),
+    getInternalComments("anl_typen", typId),
+  ]);
   if (!typ) notFound();
-  return <AnlTypEditForm typ={typ} />;
+  return <AnlTypEditForm typ={typ} initialKommentare={initialKommentare} />;
 }
 
 function AnlTypDetailSkeleton() {

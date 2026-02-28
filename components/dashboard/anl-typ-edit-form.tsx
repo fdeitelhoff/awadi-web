@@ -5,14 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { updateAnlTyp, type UpdateAnlTypInput } from "@/lib/actions/anl-typen";
 import type { AnlTypFull } from "@/lib/types/anl-typ";
+import type { InternalComment } from "@/lib/types/kommentar";
+import { InternalComments } from "@/components/dashboard/internal-comments";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface AnlTypEditFormProps {
   typ: AnlTypFull;
+  initialKommentare: InternalComment[];
 }
 
 function formatDateTime(value?: string | null) {
@@ -26,14 +28,13 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlTypEditForm({ typ }: AnlTypEditFormProps) {
+export function AnlTypEditForm({ typ, initialKommentare }: AnlTypEditFormProps) {
   const [form, setForm] = useState<UpdateAnlTypInput>({
     sortiernr: typ.sortiernr ?? undefined,
     bezeichnung: typ.bezeichnung,
     bio_felder: typ.bio_felder ?? "",
     wartungsintervall_monate: typ.wartungsintervall_monate,
     dauer_wartung_minuten: typ.dauer_wartung_minuten,
-    comment: typ.comment ?? "",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -154,16 +155,6 @@ export function AnlTypEditForm({ typ }: AnlTypEditFormProps) {
               </p>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Notizen</Label>
-              <Textarea
-                id="comment"
-                rows={4}
-                value={form.comment}
-                onChange={(e) => setStr("comment", e.target.value)}
-              />
-            </div>
-
           </CardContent>
         </Card>
 
@@ -206,6 +197,13 @@ export function AnlTypEditForm({ typ }: AnlTypEditFormProps) {
 
           </CardContent>
         </Card>
+
+        {/* ── Anmerkungen ───────────────────────────────────────── */}
+        <InternalComments
+          refTable="anl_typen"
+          refId={typ.id}
+          initialComments={initialKommentare}
+        />
 
       </div>
 

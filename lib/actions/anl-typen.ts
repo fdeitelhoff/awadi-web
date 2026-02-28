@@ -14,7 +14,6 @@ export interface CreateAnlTypInput {
   wartungsintervall_monate?: number;
   dauer_wartung_minuten?: number;
   dauer_kontrolle_minuten?: number;
-  comment?: string;
 }
 
 export interface UpdateAnlTypInput {
@@ -26,7 +25,6 @@ export interface UpdateAnlTypInput {
   wartungsintervall_monate?: number;
   dauer_wartung_minuten?: number;
   dauer_kontrolle_minuten?: number | null;
-  comment?: string;
 }
 
 export async function createAnlTyp(
@@ -57,7 +55,6 @@ export async function createAnlTyp(
   if (input.bio_felder?.trim()) row.bio_felder = input.bio_felder.trim();
   if (input.dauer_kontrolle_minuten != null)
     row.dauer_kontrolle_minuten = input.dauer_kontrolle_minuten;
-  if (input.comment?.trim()) row.comment = input.comment.trim();
 
   const { error } = await supabase.from("anl_typen").insert(row);
 

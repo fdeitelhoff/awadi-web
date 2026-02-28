@@ -10,7 +10,6 @@ export interface AnlTypFull {
   wartungsintervall_monate: number;
   dauer_wartung_minuten: number;
   dauer_kontrolle_minuten?: number;
-  comment?: string;
   last_update?: string;
   created_at: string;
 }

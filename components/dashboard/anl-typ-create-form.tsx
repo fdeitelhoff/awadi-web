@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { createAnlTyp, type CreateAnlTypInput } from "@/lib/actions/anl-typen";
 import { Loader2, ArrowLeft } from "lucide-react";
 
@@ -17,7 +16,6 @@ const EMPTY_FORM: CreateAnlTypInput = {
   bio_felder: "",
   wartungsintervall_monate: 12,
   dauer_wartung_minuten: 60,
-  comment: "",
 };
 
 export function AnlTypCreateForm() {
@@ -125,16 +123,6 @@ export function AnlTypCreateForm() {
               <p className="text-xs text-muted-foreground">
                 Pipe-getrennte Liste der Inspektionsfelder für diesen Typ.
               </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Notizen</Label>
-              <Textarea
-                id="comment"
-                rows={4}
-                value={form.comment}
-                onChange={(e) => setStr("comment", e.target.value)}
-              />
             </div>
 
           </CardContent>
