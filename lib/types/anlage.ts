@@ -32,6 +32,8 @@ export interface Anlage {
 
   // Facility type
   anl_typ_id?: number;
+  hersteller?: string;
+  typ?: string;
 
   // Contact references
   kontakt_kunde_id?: number;

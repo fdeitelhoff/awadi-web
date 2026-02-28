@@ -57,6 +57,8 @@ export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
     owner_ort: row.owner_ort as string | undefined,
     anl_typ_id: row.anl_typ_id as number | undefined,
     anl_typ_bezeichnung: row.anl_typ_bezeichnung as string | undefined,
+    hersteller: row.hersteller as string | undefined,
+    typ: row.typ as string | undefined,
     // Contact person fields
     kontakt_typ: row.kontakt_typ as string | undefined,
     kontakt_name: row.kontakt_name as string | undefined,

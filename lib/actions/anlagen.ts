@@ -33,6 +33,8 @@ export interface CreateAnlageInput {
   oxygen_demand_class?: string;
   discharged_in?: string;
   number_of_biologies?: number;
+  hersteller?: string;
+  typ?: string;
 }
 
 export async function createAnlage(
@@ -85,6 +87,8 @@ export async function createAnlage(
     "cleaning_class",
     "oxygen_demand_class",
     "discharged_in",
+    "hersteller",
+    "typ",
   ];
 
   for (const field of textFields) {
@@ -173,6 +177,8 @@ export interface UpdateAnlageInput {
   oxygen_demand_class?: string;
   discharged_in?: string;
   number_of_biologies?: number | null;
+  hersteller?: string;
+  typ?: string;
 }
 
 export async function updateAnlage(

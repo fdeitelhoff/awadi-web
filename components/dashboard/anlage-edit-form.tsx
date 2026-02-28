@@ -73,6 +73,8 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt, initialKommen
 
   const [form, setForm] = useState<UpdateAnlageInput>({
     anl_typ_id: anlage.anl_typ_id ?? null,
+    hersteller: anlage.hersteller ?? "",
+    typ: anlage.typ ?? "",
     kunden_id: anlage.kunden_id,
     anlagen_nr: anlage.anlagen_nr ?? "",
     bezeichnung: anlage.bezeichnung ?? "",
@@ -250,6 +252,26 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt, initialKommen
                     <SelectItem value="C">C</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* Hersteller + Typ */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="hersteller">Hersteller</Label>
+                <Input
+                  id="hersteller"
+                  value={form.hersteller ?? ""}
+                  onChange={(e) => set("hersteller", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="typ">Typ</Label>
+                <Input
+                  id="typ"
+                  value={form.typ ?? ""}
+                  onChange={(e) => set("typ", e.target.value)}
+                />
               </div>
             </div>
 

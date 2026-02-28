@@ -26,6 +26,8 @@ import { Loader2, ArrowLeft } from "lucide-react";
 const EMPTY_FORM: CreateAnlageInput = {
   kunden_id: 0,
   anl_typ_id: undefined,
+  hersteller: "",
+  typ: "",
   anlagen_nr: "",
   bezeichnung: "",
   verfahren_br_anz_behaelter: undefined,
@@ -202,6 +204,26 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
                     <SelectItem value="C">C</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* Hersteller + Typ */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="hersteller">Hersteller</Label>
+                <Input
+                  id="hersteller"
+                  value={form.hersteller ?? ""}
+                  onChange={(e) => set("hersteller", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="typ">Typ</Label>
+                <Input
+                  id="typ"
+                  value={form.typ ?? ""}
+                  onChange={(e) => set("typ", e.target.value)}
+                />
               </div>
             </div>
 
