@@ -55,6 +55,10 @@ export async function createAnlage(
     kunden_id: input.kunden_id,
   };
 
+  if (input.anl_typ_id != null) {
+    row.anl_typ_id = input.anl_typ_id;
+  }
+
   // XOR: at most one of kontakt_kunde_id / kontakt_id
   if (input.kontakt_kunde_id != null) {
     row.kontakt_kunde_id = input.kontakt_kunde_id;
@@ -128,9 +132,6 @@ export async function createAnlage(
     bio_nummer: 1,
     vorhanden: true,
   };
-  if (input.anl_typ_id != null) {
-    bioRow.anl_typ_id = input.anl_typ_id;
-  }
 
   const { error: bioError } = await supabase
     .from("anl_biologien")
@@ -180,14 +181,11 @@ export async function updateAnlage(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
 
-  // Separate anl_typ_id (lives on anl_biologien) from the rest
-  const { anl_typ_id, ...anlageFields } = input;
-
   const row: Record<string, unknown> = {
     last_update: new Date().toISOString(),
   };
 
-  for (const [key, value] of Object.entries(anlageFields)) {
+  for (const [key, value] of Object.entries(input)) {
     if (typeof value === "boolean") {
       row[key] = value;
     } else if (typeof value === "number") {
@@ -204,31 +202,6 @@ export async function updateAnlage(
   if (error) {
     console.error("Error updating anlage:", error);
     return { success: false, error: error.message };
-  }
-
-  // Update the type on the first active biology if anl_typ_id was provided
-  if (anl_typ_id !== undefined) {
-    // Find the first active biology for this facility
-    const { data: bioRow } = await supabase
-      .from("anl_biologien")
-      .select("id")
-      .eq("anlage_id", id)
-      .eq("vorhanden", true)
-      .order("bio_nummer")
-      .limit(1)
-      .single();
-
-    if (bioRow) {
-      const { error: bioError } = await supabase
-        .from("anl_biologien")
-        .update({ anl_typ_id: anl_typ_id })
-        .eq("id", bioRow.id);
-
-      if (bioError) {
-        console.error("Error updating anl_biologie type:", bioError);
-        return { success: false, error: bioError.message };
-      }
-    }
   }
 
   return { success: true };

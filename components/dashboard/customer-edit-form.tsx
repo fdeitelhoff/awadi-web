@@ -295,7 +295,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="telefonnr_geschaeft">Telefon (Geschäft)</Label>
+                <Label htmlFor="telefonnr_geschaeft">Telefon (geschäftlich)</Label>
                 <Input
                   id="telefonnr_geschaeft"
                   type="tel"
@@ -316,7 +316,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mobilnr2">Mobil (Geschäft)</Label>
+                <Label htmlFor="mobilnr2">Mobil (geschäftlich)</Label>
                 <Input
                   id="mobilnr2"
                   type="tel"
@@ -337,7 +337,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email_secondary">E-Mail (Geschäft)</Label>
+                <Label htmlFor="email_secondary">E-Mail (geschäftlich)</Label>
                 <Input
                   id="email_secondary"
                   type="email"

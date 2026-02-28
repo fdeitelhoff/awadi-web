@@ -30,6 +30,9 @@ export interface Anlage {
   tatsaechliche_ew?: number;
   gesamtgroesse_vk?: number;
 
+  // Facility type
+  anl_typ_id?: number;
+
   // Contact references
   kontakt_kunde_id?: number;
   kontakt_id?: number;
@@ -54,7 +57,6 @@ export interface AnlageListItem extends Anlage {
   owner_hausnr?: string;
   owner_plz?: string;
   owner_ort?: string;
-  anl_typ_id?: number;
   anl_typ_bezeichnung?: string;
   // Contact person (derived from kontakt_kunde_id or kontakt_id)
   kontakt_typ?: string;
