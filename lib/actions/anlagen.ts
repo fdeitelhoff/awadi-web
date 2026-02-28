@@ -29,8 +29,6 @@ export interface CreateAnlageInput {
   anlage_ausgelegt_ew?: number;
   tatsaechliche_ew?: number;
   gesamtgroesse_vk?: number;
-  comment?: string;
-  anmerkungen_gesamt?: string;
   cleaning_class?: string;
   oxygen_demand_class?: string;
   discharged_in?: string;
@@ -80,8 +78,6 @@ export async function createAnlage(
     "hochwert",
     "breitengrad",
     "laengengrad",
-    "comment",
-    "anmerkungen_gesamt",
     "cleaning_class",
     "oxygen_demand_class",
     "discharged_in",
@@ -172,8 +168,6 @@ export interface UpdateAnlageInput {
   anlage_ausgelegt_ew?: number | null;
   tatsaechliche_ew?: number | null;
   gesamtgroesse_vk?: number | null;
-  comment?: string;
-  anmerkungen_gesamt?: string;
   cleaning_class?: string;
   oxygen_demand_class?: string;
   discharged_in?: string;

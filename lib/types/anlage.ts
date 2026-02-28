@@ -33,8 +33,6 @@ export interface Anlage {
   // Contact references
   kontakt_kunde_id?: number;
   kontakt_id?: number;
-  comment?: string;
-  anmerkungen_gesamt?: string;
   bezeichnung?: string;
   cleaning_class?: string;
   oxygen_demand_class?: string;

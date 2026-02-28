@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { createAnlage, type CreateAnlageInput } from "@/lib/actions/anlagen";
 import type { AnlTyp } from "@/lib/types/anlage";
 import { KundePicker } from "@/components/dashboard/kunde-picker";
@@ -48,8 +47,6 @@ const EMPTY_FORM: CreateAnlageInput = {
   gesamtgroesse_vk: undefined,
 
 
-  comment: "",
-  anmerkungen_gesamt: "",
   cleaning_class: "",
   oxygen_demand_class: "",
   discharged_in: "",
@@ -474,35 +471,6 @@ export function AnlageCreateForm({ anlTypen }: AnlageCreateFormProps) {
           </CardContent>
         </Card>
 
-        {/* ── Anmerkungen ────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Kommentar</Label>
-              <Textarea
-                id="comment"
-                rows={3}
-                value={form.comment}
-                onChange={(e) => set("comment", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="anmerkungen_gesamt">Anmerkungen gesamt</Label>
-              <Textarea
-                id="anmerkungen_gesamt"
-                rows={3}
-                value={form.anmerkungen_gesamt}
-                onChange={(e) => set("anmerkungen_gesamt", e.target.value)}
-              />
-            </div>
-
-          </CardContent>
-        </Card>
 
         {/* ── Ansprechpartner ────────────────────────────────────── */}
         <KontaktSection ref={kontaktRef} />

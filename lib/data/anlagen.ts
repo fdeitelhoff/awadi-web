@@ -38,8 +38,6 @@ export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
     gesamtgroesse_vk: row.gesamtgroesse_vk as number | undefined,
     kontakt_kunde_id: row.kontakt_kunde_id as number | undefined,
     kontakt_id: row.kontakt_id as number | undefined,
-    comment: row.comment as string | undefined,
-    anmerkungen_gesamt: row.anmerkungen_gesamt as string | undefined,
     bezeichnung: row.bezeichnung as string | undefined,
     cleaning_class: row.cleaning_class as string | undefined,
     oxygen_demand_class: row.oxygen_demand_class as string | undefined,

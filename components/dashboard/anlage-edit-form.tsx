@@ -12,10 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { updateAnlage, type UpdateAnlageInput } from "@/lib/actions/anlagen";
 import type { AnlTyp, AnlageListItem } from "@/lib/types/anlage";
 import type { Kontakt } from "@/lib/types/kontakt";
+import type { InternalComment } from "@/lib/types/kommentar";
+import { InternalComments } from "@/components/dashboard/internal-comments";
 import { KundePicker } from "@/components/dashboard/kunde-picker";
 import {
   KontaktSection,
@@ -28,6 +29,7 @@ interface AnlageEditFormProps {
   anlage: AnlageListItem;
   anlTypen: AnlTyp[];
   initialKontakt?: Kontakt;
+  initialKommentare: InternalComment[];
 }
 
 function formatDateTime(value?: string | null) {
@@ -41,7 +43,7 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditFormProps) {
+export function AnlageEditForm({ anlage, anlTypen, initialKontakt, initialKommentare }: AnlageEditFormProps) {
   const kontaktRef = useRef<KontaktSectionRef>(null);
 
   const initialContactMode: "none" | "kunde" | "kontakt" =
@@ -93,8 +95,6 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
     gesamtgroesse_vk: anlage.gesamtgroesse_vk ?? undefined,
 
 
-    comment: anlage.comment ?? "",
-    anmerkungen_gesamt: anlage.anmerkungen_gesamt ?? "",
     cleaning_class: anlage.cleaning_class ?? "",
     oxygen_demand_class: anlage.oxygen_demand_class ?? "",
     discharged_in: anlage.discharged_in ?? "",
@@ -539,34 +539,11 @@ export function AnlageEditForm({ anlage, anlTypen, initialKontakt }: AnlageEditF
         </Card>
 
         {/* ── Anmerkungen ────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Kommentar</Label>
-              <Textarea
-                id="comment"
-                rows={3}
-                value={form.comment}
-                onChange={(e) => set("comment", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="anmerkungen_gesamt">Anmerkungen gesamt</Label>
-              <Textarea
-                id="anmerkungen_gesamt"
-                rows={3}
-                value={form.anmerkungen_gesamt}
-                onChange={(e) => set("anmerkungen_gesamt", e.target.value)}
-              />
-            </div>
-
-          </CardContent>
-        </Card>
+        <InternalComments
+          refTable="anlagen"
+          refId={anlage.id}
+          initialComments={initialKommentare}
+        />
 
         {/* ── Ansprechpartner ────────────────────────────────────── */}
         <KontaktSection
