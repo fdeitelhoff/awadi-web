@@ -14,13 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   updateVertrag,
   type UpdateVertragInput,
 } from "@/lib/actions/vertraege";
 import type { Vertrag } from "@/lib/types/vertrag";
 import type { AnlTyp } from "@/lib/types/anlage";
+import type { InternalComment } from "@/lib/types/kommentar";
+import { InternalComments } from "@/components/dashboard/internal-comments";
 import {
   AnlagePicker,
   type SelectedAnlage,
@@ -36,6 +37,7 @@ interface VertragEditFormProps {
   anlTypen: AnlTyp[];
   initialAnlage?: SelectedAnlage;
   initialKunde?: SelectedKunde;
+  initialKommentare: InternalComment[];
 }
 
 function formatDateTime(value?: string | null) {
@@ -54,6 +56,7 @@ export function VertragEditForm({
   anlTypen,
   initialAnlage,
   initialKunde,
+  initialKommentare,
 }: VertragEditFormProps) {
   const [form, setForm] = useState<UpdateVertragInput>({
     anlage_id: vertrag.anlage_id,
@@ -68,7 +71,6 @@ export function VertragEditForm({
     wartungsvertrag_flag: vertrag.wartungsvertrag_flag ?? undefined,
     datum_wartungsvertrag: vertrag.datum_wartungsvertrag ?? "",
     export_erlaubt_wartung: vertrag.export_erlaubt_wartung ?? true,
-    comment: vertrag.comment ?? "",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -325,22 +327,11 @@ export function VertragEditForm({
         </Card>
 
         {/* ── Anmerkungen ───────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Kommentar</Label>
-              <Textarea
-                id="comment"
-                rows={6}
-                value={form.comment}
-                onChange={(e) => set("comment", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <InternalComments
+          refTable="wartungsvertraege"
+          refId={vertrag.id}
+          initialComments={initialKommentare}
+        />
 
       </div>
 

@@ -17,7 +17,6 @@ export interface CreateVertragInput {
   wartungsvertrag_flag?: number;
   datum_wartungsvertrag?: string;
   export_erlaubt_wartung?: boolean;
-  comment?: string;
 }
 
 export interface UpdateVertragInput {
@@ -33,7 +32,6 @@ export interface UpdateVertragInput {
   wartungsvertrag_flag?: number | null;
   datum_wartungsvertrag?: string;
   export_erlaubt_wartung?: boolean;
-  comment?: string;
 }
 
 export async function createVertrag(
@@ -59,7 +57,6 @@ export async function createVertrag(
     "gueltig_bis",
     "datum_naechste_wartung",
     "datum_wartungsvertrag",
-    "comment",
   ];
   for (const field of textFields) {
     const value = input[field];

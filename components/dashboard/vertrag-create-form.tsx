@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   createVertrag,
   type CreateVertragInput,
@@ -41,7 +40,6 @@ const EMPTY_FORM: CreateVertragInput = {
   wartungsvertrag_flag: undefined,
   datum_wartungsvertrag: "",
   export_erlaubt_wartung: true,
-  comment: "",
 };
 
 interface VertragCreateFormProps {
@@ -290,23 +288,6 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
           </CardContent>
         </Card>
 
-        {/* ── Anmerkungen ───────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Anmerkungen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1.5">
-              <Label htmlFor="comment">Kommentar</Label>
-              <Textarea
-                id="comment"
-                rows={6}
-                value={form.comment}
-                onChange={(e) => set("comment", e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
 
       </div>
 

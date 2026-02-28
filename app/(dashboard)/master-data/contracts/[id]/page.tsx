@@ -2,15 +2,17 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getVertragById } from "@/lib/data/vertraege";
 import { getAnlTypen } from "@/lib/data/anlagen";
+import { getInternalComments } from "@/lib/data/kommentare";
 import { VertragEditForm } from "@/components/dashboard/vertrag-edit-form";
 import type { SelectedAnlage } from "@/components/dashboard/anlage-picker";
 import type { SelectedKunde } from "@/components/dashboard/kunde-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function VertragDetail({ id }: { id: number }) {
-  const [vertrag, anlTypen] = await Promise.all([
+  const [vertrag, anlTypen, initialKommentare] = await Promise.all([
     getVertragById(id),
     getAnlTypen(),
+    getInternalComments("wartungsvertraege", id),
   ]);
 
   if (!vertrag) notFound();
@@ -35,6 +37,7 @@ async function VertragDetail({ id }: { id: number }) {
       anlTypen={anlTypen}
       initialAnlage={initialAnlage}
       initialKunde={initialKunde}
+      initialKommentare={initialKommentare}
     />
   );
 }

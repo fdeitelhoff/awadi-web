@@ -13,7 +13,6 @@ export interface Vertrag {
   wartungsvertrag_flag?: number;
   datum_wartungsvertrag?: string;
   export_erlaubt_wartung?: boolean;
-  comment?: string;
   last_update?: string;
   created_at: string;
 

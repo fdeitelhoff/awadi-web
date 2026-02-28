@@ -39,7 +39,6 @@ export function mapRowToVertrag(row: Record<string, unknown>): Vertrag {
     wartungsvertrag_flag: row.wartungsvertrag_flag as number | undefined,
     datum_wartungsvertrag: row.datum_wartungsvertrag as string | undefined,
     export_erlaubt_wartung: row.export_erlaubt_wartung as boolean | undefined,
-    comment: row.comment as string | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,
     anlagen_nr: anlagen?.anlagen_nr ?? undefined,
