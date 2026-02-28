@@ -1,3 +1,11 @@
+// Row from public.anl_typ_bio_felder
+export interface AnlTypBioFeld {
+  id: number;
+  anl_typ_id: number;
+  bio_key: string;
+  bio_name: string | null;
+}
+
 // AnlTypFull — maps 1:1 to public.anl_typen table
 // Note: id is NOT auto-generated (legacy PK, max+1 on insert)
 export interface AnlTypFull {

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
+  AnlTypBioFeld,
   AnlTypFull,
   AnlTypQueryParams,
   AnlTypQueryResult,
@@ -87,6 +88,28 @@ export async function getAnlTypById(id: number): Promise<AnlTypFull | null> {
 
   if (error || !data) return null;
   return mapRowToAnlTyp(data as Record<string, unknown>);
+}
+
+export async function getBioFelder(anl_typ_id: number): Promise<AnlTypBioFeld[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("anl_typ_bio_felder")
+    .select("id, anl_typ_id, bio_key, bio_name")
+    .eq("anl_typ_id", anl_typ_id)
+    .order("id");
+
+  if (error) {
+    console.error("Error fetching bio_felder:", error);
+    return [];
+  }
+
+  return (data ?? []).map((r) => ({
+    id: r.id as number,
+    anl_typ_id: r.anl_typ_id as number,
+    bio_key: r.bio_key as string,
+    bio_name: r.bio_name as string | null,
+  }));
 }
 
 export async function getAnlTypCount(): Promise<number> {

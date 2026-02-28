@@ -6,15 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateAnlTyp, type UpdateAnlTypInput } from "@/lib/actions/anl-typen";
-import type { AnlTypFull } from "@/lib/types/anl-typ";
+import type { AnlTypBioFeld, AnlTypFull } from "@/lib/types/anl-typ";
 import type { InternalComment } from "@/lib/types/kommentar";
 import { InternalComments } from "@/components/dashboard/internal-comments";
+import { AnlTypBioFelderCard } from "@/components/dashboard/anl-typ-bio-felder-card";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface AnlTypEditFormProps {
   typ: AnlTypFull;
   initialKommentare: InternalComment[];
+  initialBioFelder: AnlTypBioFeld[];
 }
 
 function formatDateTime(value?: string | null) {
@@ -28,11 +30,10 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlTypEditForm({ typ, initialKommentare }: AnlTypEditFormProps) {
+export function AnlTypEditForm({ typ, initialKommentare, initialBioFelder }: AnlTypEditFormProps) {
   const [form, setForm] = useState<UpdateAnlTypInput>({
     sortiernr: typ.sortiernr ?? undefined,
     bezeichnung: typ.bezeichnung,
-    bio_felder: typ.bio_felder ?? "",
     wartungsintervall_monate: typ.wartungsintervall_monate,
     dauer_wartung_minuten: typ.dauer_wartung_minuten,
   });
@@ -141,20 +142,6 @@ export function AnlTypEditForm({ typ, initialKommentare }: AnlTypEditFormProps) 
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="bio_felder">Bio-Felder</Label>
-              <Input
-                id="bio_felder"
-                value={form.bio_felder}
-                onChange={(e) => setStr("bio_felder", e.target.value)}
-                placeholder="|Feld1|Feld2|…"
-                className="font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Pipe-getrennte Liste der Inspektionsfelder für diesen Typ.
-              </p>
-            </div>
-
           </CardContent>
         </Card>
 
@@ -197,6 +184,12 @@ export function AnlTypEditForm({ typ, initialKommentare }: AnlTypEditFormProps) 
 
           </CardContent>
         </Card>
+
+        {/* ── Bio-Felder ────────────────────────────────────────── */}
+        <AnlTypBioFelderCard
+          anl_typ_id={typ.id}
+          initialFelder={initialBioFelder}
+        />
 
         {/* ── Anmerkungen ───────────────────────────────────────── */}
         <InternalComments

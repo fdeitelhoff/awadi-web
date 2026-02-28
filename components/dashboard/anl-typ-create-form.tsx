@@ -1,19 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createAnlTyp, type CreateAnlTypInput } from "@/lib/actions/anl-typen";
+import { createAnlTyp, createBioFeld, type CreateAnlTypInput } from "@/lib/actions/anl-typen";
+import type { DraftBioFeld } from "@/components/dashboard/anl-typ-bio-felder-card";
+import { AnlTypBioFelderCard } from "@/components/dashboard/anl-typ-bio-felder-card";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: CreateAnlTypInput = {
   sortiernr: undefined,
   bezeichnung: "",
-  bio_felder: "",
   wartungsintervall_monate: 12,
   dauer_wartung_minuten: 60,
 };
@@ -21,6 +22,7 @@ const EMPTY_FORM: CreateAnlTypInput = {
 export function AnlTypCreateForm() {
   const router = useRouter();
   const [form, setForm] = useState<CreateAnlTypInput>(EMPTY_FORM);
+  const [pendingBioFelder, setPendingBioFelder] = useState<DraftBioFeld[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +40,10 @@ export function AnlTypCreateForm() {
   const setStr = (field: keyof CreateAnlTypInput, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
+  const handleDraftChange = useCallback((felder: DraftBioFeld[]) => {
+    setPendingBioFelder(felder);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.bezeichnung?.trim()) {
@@ -49,10 +55,15 @@ export function AnlTypCreateForm() {
 
     const result = await createAnlTyp(form);
 
-    if (!result.success) {
+    if (!result.success || !result.id) {
       setIsSaving(false);
       setError(result.error ?? "Unbekannter Fehler.");
       return;
+    }
+
+    // Persist any pending bio fields
+    for (const feld of pendingBioFelder) {
+      await createBioFeld(result.id, feld.bio_key, feld.bio_name ?? undefined);
     }
 
     router.push(`/settings/facility-types/${result.id}`);
@@ -111,20 +122,6 @@ export function AnlTypCreateForm() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="bio_felder">Bio-Felder</Label>
-              <Input
-                id="bio_felder"
-                value={form.bio_felder}
-                onChange={(e) => setStr("bio_felder", e.target.value)}
-                placeholder="|Feld1|Feld2|…"
-                className="font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Pipe-getrennte Liste der Inspektionsfelder für diesen Typ.
-              </p>
-            </div>
-
           </CardContent>
         </Card>
 
@@ -144,9 +141,7 @@ export function AnlTypCreateForm() {
                 type="number"
                 min={1}
                 value={form.wartungsintervall_monate ?? ""}
-                onChange={(e) =>
-                  setNum("wartungsintervall_monate", e.target.value)
-                }
+                onChange={(e) => setNum("wartungsintervall_monate", e.target.value)}
               />
             </div>
 
@@ -159,14 +154,15 @@ export function AnlTypCreateForm() {
                 type="number"
                 min={0}
                 value={form.dauer_wartung_minuten ?? ""}
-                onChange={(e) =>
-                  setNum("dauer_wartung_minuten", e.target.value)
-                }
+                onChange={(e) => setNum("dauer_wartung_minuten", e.target.value)}
               />
             </div>
 
           </CardContent>
         </Card>
+
+        {/* ── Bio-Felder ────────────────────────────────────────── */}
+        <AnlTypBioFelderCard draft onDraftChange={handleDraftChange} />
 
       </div>
 

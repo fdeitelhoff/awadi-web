@@ -8,7 +8,6 @@ export interface CreateAnlTypInput {
   // id is auto-assigned server-side (max + 1)
   sortiernr?: number;
   bezeichnung: string;
-  bio_felder?: string;
   preis_je_wartung?: number;
   preis_je_kontrolle?: number;
   wartungsintervall_monate?: number;
@@ -19,7 +18,6 @@ export interface CreateAnlTypInput {
 export interface UpdateAnlTypInput {
   sortiernr?: number | null;
   bezeichnung?: string;
-  bio_felder?: string;
   preis_je_wartung?: number;
   preis_je_kontrolle?: number;
   wartungsintervall_monate?: number;
@@ -52,7 +50,6 @@ export async function createAnlTyp(
   };
 
   if (input.sortiernr != null) row.sortiernr = input.sortiernr;
-  if (input.bio_felder?.trim()) row.bio_felder = input.bio_felder.trim();
   if (input.dauer_kontrolle_minuten != null)
     row.dauer_kontrolle_minuten = input.dauer_kontrolle_minuten;
 
@@ -115,4 +112,65 @@ export async function fetchAnlTypen(
   params: AnlTypQueryParams = {}
 ): Promise<AnlTypQueryResult> {
   return getAnlTypenFull(params);
+}
+
+// ── Bio-Felder CRUD ───────────────────────────────────────────────────────────
+
+export async function createBioFeld(
+  anl_typ_id: number,
+  bio_key: string,
+  bio_name?: string
+): Promise<{ success: boolean; id?: number; error?: string }> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("anl_typ_bio_felder")
+    .insert({ anl_typ_id, bio_key: bio_key.trim(), bio_name: bio_name?.trim() || null })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Error creating bio_feld:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, id: data.id };
+}
+
+export async function updateBioFeld(
+  id: number,
+  bio_key: string,
+  bio_name?: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("anl_typ_bio_felder")
+    .update({ bio_key: bio_key.trim(), bio_name: bio_name?.trim() || null })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating bio_feld:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function deleteBioFeld(
+  id: number
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("anl_typ_bio_felder")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting bio_feld:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
 }
