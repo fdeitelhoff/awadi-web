@@ -7,8 +7,12 @@ import { AnlageEditForm } from "@/components/dashboard/anlage-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AnlTyp } from "@/lib/types/anlage";
 
-async function AnlageDetail({ id, anlTypen, techniker }: { id: number; anlTypen: AnlTyp[]; techniker: { id: string; name: string }[] }) {
-  const anlage = await getAnlageById(id);
+async function AnlageDetail({ id }: { id: number }) {
+  const [anlTypen, techniker, anlage] = await Promise.all([
+    getAnlTypen(),
+    getActiveTechniker(),
+    getAnlageById(id),
+  ]);
   if (!anlage) notFound();
 
   const [initialKontakt, initialKommentare] = await Promise.all([
@@ -52,28 +56,29 @@ function AnlageDetailSkeleton() {
   );
 }
 
-export default async function FacilityDetailPage({
+export default function FacilityDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const anlageId = parseInt(id, 10);
-
-  if (isNaN(anlageId)) notFound();
-
-  const [anlTypen, techniker] = await Promise.all([
-    getAnlTypen(),
-    getActiveTechniker(),
-  ]);
+  const idPromise = params.then(({ id }) => {
+    const n = parseInt(id, 10);
+    if (isNaN(n)) notFound();
+    return n;
+  });
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+    <div className="absolute inset-0 overflow-y-auto">
       <div className="p-6 w-full">
         <Suspense fallback={<AnlageDetailSkeleton />}>
-          <AnlageDetail id={anlageId} anlTypen={anlTypen} techniker={techniker} />
+          <AnlageDetailResolver idPromise={idPromise} />
         </Suspense>
       </div>
     </div>
   );
+}
+
+async function AnlageDetailResolver({ idPromise }: { idPromise: Promise<number> }) {
+  const id = await idPromise;
+  return <AnlageDetail id={id} />;
 }
