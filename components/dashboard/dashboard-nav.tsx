@@ -1,4 +1,4 @@
-import { AuthButton } from "@/components/auth-button";
+import { UserMenu } from "./user-menu";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
@@ -48,7 +48,7 @@ export function DashboardNav() {
               <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
             }
           >
-            <AuthButton />
+            <UserMenu />
           </Suspense>
         </div>
       </div>
