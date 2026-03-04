@@ -14,21 +14,11 @@ import {
 import type { Profile } from "@/lib/types/profile";
 import { Check, Loader2 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import { formatDateTime } from "@/lib/utils";
 
 interface ProfileEditFormProps {
   profile: Profile;
   authUser: User;
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) return "—";
-  return new Date(value).toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export function ProfileEditForm({ profile, authUser }: ProfileEditFormProps) {

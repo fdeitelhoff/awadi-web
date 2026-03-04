@@ -22,6 +22,7 @@ import type { Profile, UserRolle } from "@/lib/types/profile";
 import type { InternalComment } from "@/lib/types/kommentar";
 import { InternalComments } from "@/components/dashboard/internal-comments";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
 
 interface UserEditFormProps {
   profile: Profile;
@@ -40,17 +41,6 @@ const DAYS: { key: Day; label: string }[] = [
   { key: "sa", label: "Samstag" },
   { key: "so", label: "Sonntag" },
 ];
-
-function formatDateTime(value?: string | null) {
-  if (!value) return "—";
-  return new Date(value).toLocaleString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function toFormInput(profile: Profile): UpdateProfileInput {
   return {
