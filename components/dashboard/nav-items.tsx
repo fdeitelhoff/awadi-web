@@ -51,7 +51,7 @@ export function NavItems() {
         variant={isMaintenance ? "secondary" : "ghost"}
         size="sm"
         asChild
-        className="gap-2"
+        className="gap-2 cursor-pointer"
       >
         <Link href="/">
           <Wrench className="h-4 w-4" />
@@ -65,7 +65,7 @@ export function NavItems() {
           <Button
             variant={isMasterData ? "secondary" : "ghost"}
             size="sm"
-            className="gap-2"
+            className="gap-2 cursor-pointer"
           >
             <Database className="h-4 w-4" />
             <span className="hidden md:inline">Stammdaten</span>
@@ -80,7 +80,7 @@ export function NavItems() {
               <DropdownMenuItem key={item.href} asChild>
                 <Link
                   href={item.href}
-                  className={isActive ? "bg-accent" : ""}
+                  className={isActive ? "bg-accent cursor-pointer" : "cursor-pointer"}
                 >
                   <Icon className="h-4 w-4 mr-2" />
                   {item.label}
@@ -97,7 +97,7 @@ export function NavItems() {
           <Button
             variant={isSettings ? "secondary" : "ghost"}
             size="sm"
-            className="gap-2"
+            className="gap-2 cursor-pointer"
           >
             <Settings className="h-4 w-4" />
             <span className="hidden md:inline">Einstellungen</span>
@@ -112,7 +112,7 @@ export function NavItems() {
               <DropdownMenuItem key={item.href} asChild>
                 <Link
                   href={item.href}
-                  className={isActive ? "bg-accent" : ""}
+                  className={isActive ? "bg-accent cursor-pointer" : "cursor-pointer"}
                 >
                   <Icon className="h-4 w-4 mr-2" />
                   {item.label}
