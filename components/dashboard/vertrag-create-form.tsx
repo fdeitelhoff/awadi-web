@@ -37,9 +37,6 @@ const EMPTY_FORM: CreateVertragInput = {
 
   aktiv: true,
   datum_naechste_wartung: "",
-  wartungsvertrag_flag: undefined,
-  datum_wartungsvertrag: "",
-  export_erlaubt_wartung: true,
 };
 
 interface VertragCreateFormProps {
@@ -99,33 +96,71 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* ── Vertragsdaten ─────────────────────────────────────── */}
+        {/* ── Wartungsdaten ─────────────────────────────────────── */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Vertragsdaten</CardTitle>
+            <CardTitle className="text-base">Wartungsdaten</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
 
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="aktiv"
-                checked={form.aktiv}
-                onCheckedChange={(checked) => set("aktiv", !!checked)}
-              />
-              <Label htmlFor="aktiv">Aktiv</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label>
+                  Anlage <span className="text-destructive">*</span>
+                </Label>
+                <AnlagePicker
+                  value={form.anlage_id || null}
+                  onChange={(id) => set("anlage_id", id ?? 0)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Kunde</Label>
+                <KundePicker
+                  value={form.kunden_id ?? null}
+                  onChange={(id) => set("kunden_id", id)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="anl_typ_id">Anlagentyp</Label>
+                <Select
+                  value={form.anl_typ_id != null ? String(form.anl_typ_id) : "none"}
+                  onValueChange={(v) =>
+                    set("anl_typ_id", v === "none" ? null : parseInt(v, 10))
+                  }
+                >
+                  <SelectTrigger id="anl_typ_id">
+                    <SelectValue placeholder="Typ auswählen…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Kein Typ —</SelectItem>
+                    {anlTypen.map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.bezeichnung}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="vertragsdatum">Vertragsdatum</Label>
-              <Input
-                id="vertragsdatum"
-                type="date"
-                value={form.vertragsdatum}
-                onChange={(e) => set("vertragsdatum", e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-4 gap-4 items-end">
+              <div className="flex items-center gap-2 h-9">
+                <Checkbox
+                  id="aktiv"
+                  checked={form.aktiv}
+                  onCheckedChange={(checked) => set("aktiv", !!checked)}
+                />
+                <Label htmlFor="aktiv">Aktiv</Label>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="vertragsdatum">Vertragsdatum</Label>
+                <Input
+                  id="vertragsdatum"
+                  type="date"
+                  value={form.vertragsdatum}
+                  onChange={(e) => set("vertragsdatum", e.target.value)}
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="gueltig_ab">Gültig ab</Label>
                 <Input
@@ -146,144 +181,34 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="intervall_monate">Intervall (Monate)</Label>
-              <Input
-                id="intervall_monate"
-                type="number"
-                min={1}
-                value={form.intervall_monate ?? ""}
-                onChange={(e) =>
-                  set(
-                    "intervall_monate",
-                    e.target.value === ""
-                      ? undefined
-                      : parseInt(e.target.value, 10)
-                  )
-                }
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="datum_naechste_wartung">Nächste Wartung</Label>
-              <Input
-                id="datum_naechste_wartung"
-                type="date"
-                value={form.datum_naechste_wartung}
-                onChange={(e) => set("datum_naechste_wartung", e.target.value)}
-              />
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="wartungsvertrag_flag">Vertragstyp</Label>
-                <Select
-                  value={
-                    form.wartungsvertrag_flag != null
-                      ? String(form.wartungsvertrag_flag)
-                      : "none"
-                  }
-                  onValueChange={(v) =>
+                <Label htmlFor="intervall_monate">Intervall (Monate)</Label>
+                <Input
+                  id="intervall_monate"
+                  type="number"
+                  min={1}
+                  value={form.intervall_monate ?? ""}
+                  onChange={(e) =>
                     set(
-                      "wartungsvertrag_flag",
-                      v === "none" ? undefined : parseInt(v, 10)
+                      "intervall_monate",
+                      e.target.value === ""
+                        ? undefined
+                        : parseInt(e.target.value, 10)
                     )
                   }
-                >
-                  <SelectTrigger id="wartungsvertrag_flag">
-                    <SelectValue placeholder="Auswählen…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Kein Vertrag</SelectItem>
-                    <SelectItem value="1">Aktiv (1)</SelectItem>
-                    <SelectItem value="2">Passiv/Sondervertrag (2)</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="datum_wartungsvertrag">Vertragsdatum (Text)</Label>
+                <Label htmlFor="datum_naechste_wartung">Nächste Wartung</Label>
                 <Input
-                  id="datum_wartungsvertrag"
-                  value={form.datum_wartungsvertrag}
-                  onChange={(e) => set("datum_wartungsvertrag", e.target.value)}
-                  placeholder="TT.MM.JJJJ"
+                  id="datum_naechste_wartung"
+                  type="date"
+                  value={form.datum_naechste_wartung}
+                  onChange={(e) => set("datum_naechste_wartung", e.target.value)}
                 />
               </div>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="export_erlaubt_wartung"
-                checked={form.export_erlaubt_wartung}
-                onCheckedChange={(checked) =>
-                  set("export_erlaubt_wartung", !!checked)
-                }
-              />
-              <Label htmlFor="export_erlaubt_wartung">
-                Export für Wartungsplanung erlaubt
-              </Label>
-            </div>
-
-          </CardContent>
-        </Card>
-
-        {/* ── Zuordnung ─────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Zuordnung</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-
-            <div className="space-y-1.5">
-              <Label>
-                Anlage <span className="text-destructive">*</span>
-              </Label>
-              <AnlagePicker
-                value={form.anlage_id || null}
-                onChange={(id) => set("anlage_id", id ?? 0)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Kunde</Label>
-              <KundePicker
-                value={form.kunden_id ?? null}
-                onChange={(id) => set("kunden_id", id)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="anl_typ_id">Anlagentyp</Label>
-              <Select
-                value={form.anl_typ_id != null ? String(form.anl_typ_id) : "none"}
-                onValueChange={(v) =>
-                  set("anl_typ_id", v === "none" ? null : parseInt(v, 10))
-                }
-              >
-                <SelectTrigger id="anl_typ_id">
-                  <SelectValue placeholder="Typ auswählen…" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Kein Typ —</SelectItem>
-                  {anlTypen.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.bezeichnung}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-          </CardContent>
-        </Card>
-
-        {/* ── Details ───────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-
 
           </CardContent>
         </Card>

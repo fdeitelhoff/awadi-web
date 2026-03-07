@@ -14,9 +14,6 @@ export interface CreateVertragInput {
   intervall_monate?: number;
   aktiv?: boolean;
   datum_naechste_wartung?: string;
-  wartungsvertrag_flag?: number;
-  datum_wartungsvertrag?: string;
-  export_erlaubt_wartung?: boolean;
 }
 
 export interface UpdateVertragInput {
@@ -29,9 +26,6 @@ export interface UpdateVertragInput {
   intervall_monate?: number | null;
   aktiv?: boolean;
   datum_naechste_wartung?: string;
-  wartungsvertrag_flag?: number | null;
-  datum_wartungsvertrag?: string;
-  export_erlaubt_wartung?: boolean;
 }
 
 export async function createVertrag(
@@ -47,16 +41,11 @@ export async function createVertrag(
   if (input.kunden_id != null) row.kunden_id = input.kunden_id;
   if (input.anl_typ_id != null) row.anl_typ_id = input.anl_typ_id;
 
-  if (input.export_erlaubt_wartung !== undefined) {
-    row.export_erlaubt_wartung = input.export_erlaubt_wartung;
-  }
-
   const textFields: (keyof CreateVertragInput)[] = [
     "vertragsdatum",
     "gueltig_ab",
     "gueltig_bis",
     "datum_naechste_wartung",
-    "datum_wartungsvertrag",
   ];
   for (const field of textFields) {
     const value = input[field];
@@ -65,13 +54,8 @@ export async function createVertrag(
     }
   }
 
-  const numericFields: (keyof CreateVertragInput)[] = [
-    "intervall_monate",
-    "wartungsvertrag_flag",
-  ];
-  for (const field of numericFields) {
-    const value = input[field];
-    if (typeof value === "number") row[field] = value;
+  if (typeof input.intervall_monate === "number") {
+    row.intervall_monate = input.intervall_monate;
   }
 
   const { data, error } = await supabase
