@@ -161,8 +161,8 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
               </div>
             </div>
 
-            {/* Anlagentyp + Klassen */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Anlagentyp + Klassen + Techniker */}
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="anl_typ_id">Anlagentyp</Label>
                 <Select
@@ -215,6 +215,27 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
                     <SelectItem value="A">A</SelectItem>
                     <SelectItem value="B">B</SelectItem>
                     <SelectItem value="C">C</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="techniker_id">Techniker</Label>
+                <Select
+                  value={form.techniker_id ?? "none"}
+                  onValueChange={(v) =>
+                    set("techniker_id", v === "none" ? undefined : v)
+                  }
+                >
+                  <SelectTrigger id="techniker_id">
+                    <SelectValue placeholder="Techniker auswählen…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Kein Techniker —</SelectItem>
+                    {techniker.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -498,39 +519,6 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
 
           </CardContent>
         </Card>
-
-        {/* ── Wartung & Planung ───────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Wartung &amp; Planung</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-
-            <div className="space-y-1.5">
-              <Label htmlFor="techniker_id">Techniker</Label>
-              <Select
-                value={form.techniker_id ?? "none"}
-                onValueChange={(v) =>
-                  set("techniker_id", v === "none" ? undefined : v)
-                }
-              >
-                <SelectTrigger id="techniker_id">
-                  <SelectValue placeholder="Techniker auswählen…" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Kein Techniker —</SelectItem>
-                  {techniker.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-          </CardContent>
-        </Card>
-
 
         {/* ── Ansprechpartner ────────────────────────────────────── */}
         <KontaktSection ref={kontaktRef} />
