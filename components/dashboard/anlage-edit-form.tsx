@@ -200,7 +200,7 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
               />
             </div>
 
-            {/* Eigentümer + Wartungsvertrag */}
+            {/* Eigentümer + Wartungsdaten */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Eigentümer <span className="text-destructive">*</span></Label>
@@ -224,7 +224,7 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Wartungsvertrag</Label>
+                <Label>Wartungsdaten</Label>
                 <VertragPicker anlageId={anlage.id} />
               </div>
             </div>

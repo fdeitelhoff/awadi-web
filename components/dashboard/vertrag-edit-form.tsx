@@ -106,7 +106,7 @@ export function VertragEditForm({
     .filter(Boolean)
     .join(" · ");
 
-  const displayName = `Wartungsvertrag #${vertrag.id}`;
+  const displayName = `Wartungsdaten #${vertrag.id}`;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -114,7 +114,7 @@ export function VertragEditForm({
       {/* ── Page header ──────────────────────────────────────────── */}
       <div>
         <Button variant="ghost" size="sm" className="-ml-2 mb-2" asChild>
-          <Link href="/master-data/contracts">
+          <Link href="/master-data/maintenance">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Zurück
           </Link>

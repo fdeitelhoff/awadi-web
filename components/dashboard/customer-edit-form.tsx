@@ -134,7 +134,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Kunden-Nr. + Wartungsvertrag */}
+            {/* Kunden-Nr. + Wartungsdaten */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="kundennr">Kunden-Nr.</Label>
@@ -146,7 +146,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Wartungsvertrag</Label>
+                <Label>Wartungsdaten</Label>
                 <VertragPicker kundenId={kunde.id} />
               </div>
             </div>

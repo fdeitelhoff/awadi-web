@@ -11,10 +11,10 @@ export async function VertragPageContent() {
     <>
       <div className="shrink-0">
         <h1 className="text-2xl font-semibold">
-          Wartungsverträge ({vertragCount.toLocaleString("de-DE")})
+          Wartungsdaten ({vertragCount.toLocaleString("de-DE")})
         </h1>
         <p className="text-muted-foreground">
-          Verwalten Sie Ihre Wartungsverträge.
+          Verwalten Sie Ihre Wartungsdaten von Anlagen.
         </p>
       </div>
 

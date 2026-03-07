@@ -27,7 +27,7 @@ const masterDataItems = [
   { label: "Kunden", href: "/master-data/customers", icon: Users },
   { label: "Anlagen", href: "/master-data/facilities", icon: Factory },
   { label: "Kontakte", href: "/master-data/contacts", icon: Contact },
-  { label: "Wartungsverträge", href: "/master-data/contracts", icon: FileText },
+  { label: "Wartungsdaten", href: "/master-data/maintenance", icon: FileText },
   { label: "Touren", href: "/master-data/tours", icon: Route },
 ];
 

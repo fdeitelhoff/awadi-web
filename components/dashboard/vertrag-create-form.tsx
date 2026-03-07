@@ -74,7 +74,7 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
       return;
     }
 
-    router.push(`/master-data/contracts/${result.id}`);
+    router.push(`/master-data/maintenance/${result.id}`);
   };
 
   return (
@@ -83,13 +83,13 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
       {/* ── Page header ──────────────────────────────────────────── */}
       <div>
         <Button variant="ghost" size="sm" className="-ml-2 mb-2" asChild>
-          <Link href="/master-data/contracts">
+          <Link href="/master-data/maintenance">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Zurück
           </Link>
         </Button>
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-semibold">Neuer Wartungsvertrag</h1>
+          <h1 className="text-2xl font-semibold">Neue Wartungsdaten</h1>
           <Button type="submit" disabled={isSaving} className="shrink-0">
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Speichern

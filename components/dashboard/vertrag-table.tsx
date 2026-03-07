@@ -178,7 +178,7 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
       >
         <AlertDialogContent className="max-w-sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>Wartungsvertrag löschen?</AlertDialogTitle>
+            <AlertDialogTitle>Wartungsdaten löschen?</AlertDialogTitle>
             <AlertDialogDescription>
               Dieser Vorgang kann nicht rückgängig gemacht werden. Der Vertrag
               wird dauerhaft aus der Datenbank entfernt.
@@ -254,18 +254,18 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
             value={filterAktiv}
             onValueChange={(v) => handleFilterChange(v as VertragFilterAktiv)}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status filtern" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle Verträge</SelectItem>
+              <SelectItem value="all">Alle Wartungsdaten</SelectItem>
               <SelectItem value="aktiv">Aktiv</SelectItem>
               <SelectItem value="inaktiv">Inaktiv</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={() => router.push("/master-data/contracts/new")}>
+          <Button onClick={() => router.push("/master-data/maintenance/new")}>
             <Plus className="h-4 w-4 mr-2" />
-            Neuer Vertrag
+            Neue Wartungsdaten
           </Button>
         </div>
       </div>
@@ -346,7 +346,7 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                     colSpan={COLSPAN}
                     className="text-center text-muted-foreground"
                   >
-                    Keine Wartungsverträge gefunden.
+                    Keine Wartungsdaten gefunden.
                   </TableCell>
                 </TableRow>
                 {Array.from({ length: PAGE_SIZE - 1 }).map((_, i) => (
@@ -365,7 +365,7 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                     key={vertrag.id}
                     className={`${ROW_HEIGHT} cursor-pointer`}
                     onClick={() =>
-                      router.push(`/master-data/contracts/${vertrag.id}`)
+                      router.push(`/master-data/maintenance/${vertrag.id}`)
                     }
                   >
                     <TableCell>

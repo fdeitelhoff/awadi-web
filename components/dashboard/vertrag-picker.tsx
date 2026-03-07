@@ -68,7 +68,7 @@ export function VertragPicker({ kundenId, anlageId }: VertragPickerProps) {
   if (!selected) {
     return (
       <div className="rounded-md border bg-muted/30 px-3 py-2.5">
-        <p className="text-sm text-muted-foreground">Kein Vertrag vorhanden.</p>
+        <p className="text-sm text-muted-foreground">Keine Wartungsdaten vorhanden.</p>
       </div>
     );
   }
@@ -108,7 +108,7 @@ export function VertragPicker({ kundenId, anlageId }: VertragPickerProps) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md p-0" aria-describedby={undefined}>
           <DialogHeader className="px-4 pt-4 pb-2">
-            <DialogTitle>Wartungsvertrag auswählen</DialogTitle>
+            <DialogTitle>Wartungsdaten auswählen</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto max-h-[360px] border-t">
             <ul>
