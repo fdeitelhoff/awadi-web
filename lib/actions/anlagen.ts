@@ -11,7 +11,6 @@ export interface CreateAnlageInput {
   kontakt_kunde_id?: number;
   kontakt_id?: number;
   anlagen_nr?: string;
-  bezeichnung?: string;
   verfahren_br_anz_behaelter?: number;
   strasse?: string;
   hausnr?: string;
@@ -75,7 +74,6 @@ export async function createAnlage(
 
   const textFields: (keyof CreateAnlageInput)[] = [
     "anlagen_nr",
-    "bezeichnung",
     "strasse",
     "hausnr",
     "laenderkennung",
@@ -160,7 +158,6 @@ export interface UpdateAnlageInput {
   kontakt_kunde_id?: number | null;
   kontakt_id?: number | null;
   anlagen_nr?: string;
-  bezeichnung?: string;
   verfahren_br_anz_behaelter?: number | null;
   strasse?: string;
   hausnr?: string;

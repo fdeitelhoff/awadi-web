@@ -41,7 +41,6 @@ export interface Anlage {
   // Contact references
   kontakt_kunde_id?: number;
   kontakt_id?: number;
-  bezeichnung?: string;
   cleaning_class?: string;
   oxygen_demand_class?: string;
   discharged_in?: string;

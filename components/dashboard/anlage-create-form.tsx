@@ -30,7 +30,6 @@ const EMPTY_FORM: CreateAnlageInput = {
   typ: "",
   techniker_id: undefined,
   anlagen_nr: "",
-  bezeichnung: "",
   verfahren_br_anz_behaelter: undefined,
   strasse: "",
   hausnr: "",
@@ -252,15 +251,6 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
               <KundePicker
                 value={form.kunden_id || null}
                 onChange={(id) => set("kunden_id", id ?? 0)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="bezeichnung">Bezeichnung</Label>
-              <Input
-                id="bezeichnung"
-                value={form.bezeichnung}
-                onChange={(e) => set("bezeichnung", e.target.value)}
               />
             </div>
 

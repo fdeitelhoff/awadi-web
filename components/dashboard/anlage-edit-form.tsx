@@ -79,7 +79,6 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
     techniker_id: anlage.techniker_id ?? null,
     kunden_id: anlage.kunden_id,
     anlagen_nr: anlage.anlagen_nr ?? "",
-    bezeichnung: anlage.bezeichnung ?? "",
     verfahren_br_anz_behaelter: anlage.verfahren_br_anz_behaelter ?? undefined,
     strasse: anlage.strasse ?? "",
     hausnr: anlage.hausnr ?? "",
@@ -315,16 +314,6 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                     .filter(Boolean)
                     .join(", "),
                 }}
-              />
-            </div>
-
-            {/* Bezeichnung */}
-            <div className="space-y-1.5">
-              <Label htmlFor="bezeichnung">Bezeichnung</Label>
-              <Input
-                id="bezeichnung"
-                value={form.bezeichnung}
-                onChange={(e) => set("bezeichnung", e.target.value)}
               />
             </div>
 
