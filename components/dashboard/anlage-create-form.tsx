@@ -139,25 +139,35 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Anlagen-Nr. + Eigentümer */}
+            {/* Anlagen-Nr. */}
+            <div className="space-y-1.5">
+              <Label htmlFor="anlagen_nr">
+                Anlagen-Nr. <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="anlagen_nr"
+                value={form.anlagen_nr}
+                onChange={(e) => set("anlagen_nr", e.target.value)}
+                placeholder="z. B. AS-290"
+              />
+            </div>
+
+            {/* Eigentümer + Wartungsvertrag */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="anlagen_nr">
-                  Anlagen-Nr. <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="anlagen_nr"
-                  value={form.anlagen_nr}
-                  onChange={(e) => set("anlagen_nr", e.target.value)}
-                  placeholder="z. B. AS-290"
-                />
-              </div>
               <div className="space-y-1.5">
                 <Label>Eigentümer <span className="text-destructive">*</span></Label>
                 <KundePicker
                   value={form.kunden_id || null}
                   onChange={(id) => set("kunden_id", id ?? 0)}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Wartungsvertrag</Label>
+                <div className="rounded-md border bg-muted/30 px-3 py-2.5">
+                  <p className="text-sm text-muted-foreground">
+                    Erst nach dem Speichern verfügbar
+                  </p>
+                </div>
               </div>
             </div>
 

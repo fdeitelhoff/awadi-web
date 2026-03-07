@@ -51,6 +51,7 @@ export async function getVertraege(
     search?: string;
     filterAktiv?: VertragFilterAktiv;
     kundenId?: number;
+    anlageId?: number;
     sortField?: VertragSortField;
     sortDirection?: "asc" | "desc";
     page?: number;
@@ -61,6 +62,7 @@ export async function getVertraege(
     search = "",
     filterAktiv = "all",
     kundenId,
+    anlageId,
     sortField = "gueltig_ab",
     sortDirection = "desc",
     page = 1,
@@ -77,6 +79,10 @@ export async function getVertraege(
 
   if (kundenId != null) {
     query = query.eq("kunden_id", kundenId);
+  }
+
+  if (anlageId != null) {
+    query = query.eq("anlage_id", anlageId);
   }
 
   if (filterAktiv === "aktiv") {

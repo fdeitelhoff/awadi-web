@@ -35,6 +35,7 @@ export interface VertragQueryParams {
   search?: string;
   filterAktiv?: VertragFilterAktiv;
   kundenId?: number;
+  anlageId?: number;
   sortField?: VertragSortField;
   sortDirection?: SortDirection;
   page?: number;

@@ -13,7 +13,8 @@ import type { Vertrag } from "@/lib/types/vertrag";
 import { FileText } from "lucide-react";
 
 interface VertragPickerProps {
-  kundenId: number;
+  kundenId?: number;
+  anlageId?: number;
 }
 
 function formatDateRange(ab?: string, bis?: string): string {
@@ -29,7 +30,7 @@ function formatDateRange(ab?: string, bis?: string): string {
   return "";
 }
 
-export function VertragPicker({ kundenId }: VertragPickerProps) {
+export function VertragPicker({ kundenId, anlageId }: VertragPickerProps) {
   const [vertraege, setVertraege] = useState<Vertrag[]>([]);
   const [selected, setSelected] = useState<Vertrag | null>(null);
   const [open, setOpen] = useState(false);
@@ -41,6 +42,7 @@ export function VertragPicker({ kundenId }: VertragPickerProps) {
 
     fetchVertraege({
       kundenId,
+      anlageId,
       pageSize: 50,
       sortField: "gueltig_ab",
       sortDirection: "desc",
@@ -55,7 +57,7 @@ export function VertragPicker({ kundenId }: VertragPickerProps) {
     return () => {
       cancelled = true;
     };
-  }, [kundenId]);
+  }, [kundenId, anlageId]);
 
   if (isLoading) {
     return (

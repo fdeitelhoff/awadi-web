@@ -22,6 +22,7 @@ import {
   KontaktSection,
   type KontaktSectionRef,
 } from "@/components/dashboard/kontakt-section";
+import { VertragPicker } from "@/components/dashboard/vertrag-picker";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -188,17 +189,19 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Anlagen-Nr. + Eigentümer */}
+            {/* Anlagen-Nr. */}
+            <div className="space-y-1.5">
+              <Label htmlFor="anlagen_nr">Anlagen-Nr.</Label>
+              <Input
+                id="anlagen_nr"
+                value={form.anlagen_nr}
+                onChange={(e) => set("anlagen_nr", e.target.value)}
+                placeholder="z. B. AS-290"
+              />
+            </div>
+
+            {/* Eigentümer + Wartungsvertrag */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="anlagen_nr">Anlagen-Nr.</Label>
-                <Input
-                  id="anlagen_nr"
-                  value={form.anlagen_nr}
-                  onChange={(e) => set("anlagen_nr", e.target.value)}
-                  placeholder="z. B. AS-290"
-                />
-              </div>
               <div className="space-y-1.5">
                 <Label>Eigentümer <span className="text-destructive">*</span></Label>
                 <KundePicker
@@ -219,6 +222,10 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                       .join(", "),
                   }}
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Wartungsvertrag</Label>
+                <VertragPicker anlageId={anlage.id} />
               </div>
             </div>
 
