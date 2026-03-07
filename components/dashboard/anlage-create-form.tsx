@@ -47,8 +47,10 @@ const EMPTY_FORM: CreateAnlageInput = {
   anlage_ausgelegt_ew: undefined,
   tatsaechliche_ew: undefined,
   gesamtgroesse_vk: undefined,
-
-
+  groesse_vk1: undefined,
+  groesse_vk2: undefined,
+  groesse_vk3: undefined,
+  groesse_vk4: undefined,
   cleaning_class: "",
   oxygen_demand_class: "",
   discharged_in: "",
@@ -256,7 +258,8 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Verfahren + Biologien + EW */}
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="verfahren_br_anz_behaelter">
                   Anzahl Vorklärbehälter
@@ -289,9 +292,6 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
                   }
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="anlage_ausgelegt_ew">Ausgelegt EW</Label>
                 <Input
@@ -322,6 +322,10 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
                   }
                 />
               </div>
+            </div>
+
+            {/* Gesamtgröße VK + Größe VK 1–4 */}
+            <div className="grid grid-cols-5 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="gesamtgroesse_vk">Gesamtgröße VK</Label>
                 <Input
@@ -338,6 +342,24 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
                   }
                 />
               </div>
+              {([1, 2, 3, 4] as const).map((n) => {
+                const field = `groesse_vk${n}` as "groesse_vk1" | "groesse_vk2" | "groesse_vk3" | "groesse_vk4";
+                return (
+                  <div key={n} className="space-y-1.5">
+                    <Label htmlFor={field}>Größe VK {n}</Label>
+                    <Input
+                      id={field}
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={form[field] ?? ""}
+                      onChange={(e) =>
+                        set(field, e.target.value === "" ? undefined : parseFloat(e.target.value))
+                      }
+                    />
+                  </div>
+                );
+              })}
             </div>
 
           </CardContent>

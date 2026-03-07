@@ -28,6 +28,10 @@ export interface CreateAnlageInput {
   anlage_ausgelegt_ew?: number;
   tatsaechliche_ew?: number;
   gesamtgroesse_vk?: number;
+  groesse_vk1?: number;
+  groesse_vk2?: number;
+  groesse_vk3?: number;
+  groesse_vk4?: number;
   cleaning_class?: string;
   oxygen_demand_class?: string;
   discharged_in?: string;
@@ -106,6 +110,10 @@ export async function createAnlage(
     "anlage_ausgelegt_ew",
     "tatsaechliche_ew",
     "gesamtgroesse_vk",
+    "groesse_vk1",
+    "groesse_vk2",
+    "groesse_vk3",
+    "groesse_vk4",
     "number_of_biologies",
   ];
 
@@ -175,6 +183,10 @@ export interface UpdateAnlageInput {
   anlage_ausgelegt_ew?: number | null;
   tatsaechliche_ew?: number | null;
   gesamtgroesse_vk?: number | null;
+  groesse_vk1?: number | null;
+  groesse_vk2?: number | null;
+  groesse_vk3?: number | null;
+  groesse_vk4?: number | null;
   cleaning_class?: string;
   oxygen_demand_class?: string;
   discharged_in?: string;

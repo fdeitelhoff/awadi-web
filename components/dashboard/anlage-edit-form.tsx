@@ -96,8 +96,10 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
     anlage_ausgelegt_ew: anlage.anlage_ausgelegt_ew ?? undefined,
     tatsaechliche_ew: anlage.tatsaechliche_ew ?? undefined,
     gesamtgroesse_vk: anlage.gesamtgroesse_vk ?? undefined,
-
-
+    groesse_vk1: anlage.groesse_vk1 ?? undefined,
+    groesse_vk2: anlage.groesse_vk2 ?? undefined,
+    groesse_vk3: anlage.groesse_vk3 ?? undefined,
+    groesse_vk4: anlage.groesse_vk4 ?? undefined,
     cleaning_class: anlage.cleaning_class ?? "",
     oxygen_demand_class: anlage.oxygen_demand_class ?? "",
     discharged_in: anlage.discharged_in ?? "",
@@ -317,8 +319,8 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
               </Select>
             </div>
 
-            {/* Verfahren + Biologien */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Verfahren + Biologien + EW */}
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="verfahren_br_anz_behaelter">
                   Anzahl Vorklärbehälter
@@ -351,10 +353,6 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                   }
                 />
               </div>
-            </div>
-
-            {/* EW + Gesamtgröße VK */}
-            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="anlage_ausgelegt_ew">Ausgelegt EW</Label>
                 <Input
@@ -385,6 +383,10 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                   }
                 />
               </div>
+            </div>
+
+            {/* Gesamtgröße VK + Größe VK 1–4 */}
+            <div className="grid grid-cols-5 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="gesamtgroesse_vk">Gesamtgröße VK</Label>
                 <Input
@@ -401,6 +403,24 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                   }
                 />
               </div>
+              {([1, 2, 3, 4] as const).map((n) => {
+                const field = `groesse_vk${n}` as "groesse_vk1" | "groesse_vk2" | "groesse_vk3" | "groesse_vk4";
+                return (
+                  <div key={n} className="space-y-1.5">
+                    <Label htmlFor={field}>Größe VK {n}</Label>
+                    <Input
+                      id={field}
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={form[field] ?? ""}
+                      onChange={(e) =>
+                        set(field, e.target.value === "" ? null : parseFloat(e.target.value))
+                      }
+                    />
+                  </div>
+                );
+              })}
             </div>
 
           </CardContent>

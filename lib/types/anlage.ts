@@ -46,6 +46,11 @@ export interface Anlage {
   discharged_in?: string;
   number_of_biologies?: number;
 
+  groesse_vk1?: number;
+  groesse_vk2?: number;
+  groesse_vk3?: number;
+  groesse_vk4?: number;
+
   trace_mark?: number;
   last_update?: string;
   created_at: string;
