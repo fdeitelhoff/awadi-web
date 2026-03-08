@@ -148,7 +148,7 @@ export function AnlTypEditForm({ typ, initialKommentare, initialBioFelder }: Anl
         {/* ── Wartung & Preise ────────────────────────────────────── */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Wartung &amp; Preise</CardTitle>
+            <CardTitle className="text-base">Wartung</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
 
