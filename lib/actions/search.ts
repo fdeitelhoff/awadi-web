@@ -18,7 +18,7 @@ export interface SearchResult {
   href: string;
 }
 
-const LIMIT = 3;
+const LIMIT = 20;
 
 export async function searchAll(query: string): Promise<SearchResult[]> {
   if (!query.trim()) return [];

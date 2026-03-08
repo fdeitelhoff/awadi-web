@@ -139,7 +139,7 @@ export function GlobalSearch() {
               Keine Ergebnisse
             </div>
           ) : (
-            <div className="max-h-[420px] overflow-y-auto py-1">
+            <div className="max-h-[504px] overflow-y-auto py-1">
               {grouped.map(({ type, config, items }) => {
                 const Icon = config.icon;
                 return (
