@@ -65,10 +65,11 @@ export function GlobalSearch() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
+    setResults([]);
+    setIsOpen(true);
     startTransition(async () => {
       const data = await searchAll(query.trim());
       setResults(data);
-      setIsOpen(true);
     });
   }
 

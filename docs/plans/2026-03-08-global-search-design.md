@@ -48,12 +48,12 @@ interface SearchResult {
 
 | Type | Route |
 |------|-------|
-| Kunde | `/master-data/customers/[id]/edit` |
-| Anlage | `/master-data/facilities/[id]/edit` |
-| Kontakt | `/master-data/contacts/[id]/edit` |
-| Wartungsvertrag | `/master-data/maintenance/[id]/edit` |
-| Anlagentyp | `/settings/facility-types/[id]/edit` |
-| Benutzer | `/settings/users/[id]/edit` |
+| Kunde | `/master-data/customers/[id]` |
+| Anlage | `/master-data/facilities/[id]` |
+| Kontakt | `/master-data/contacts/[id]` |
+| Wartungsvertrag | `/master-data/maintenance/[id]` |
+| Anlagentyp | `/settings/facility-types/[id]` |
+| Benutzer | `/settings/users/[id]` |
 
 ## Files
 
