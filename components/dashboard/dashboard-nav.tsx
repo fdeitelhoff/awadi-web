@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { NavItems } from "./nav-items";
-import { SearchInput } from "./search-input";
+import { GlobalSearch } from "./global-search";
 
 export function DashboardNav() {
   return (
@@ -37,7 +37,7 @@ export function DashboardNav() {
 
         {/* Search - client component for input handling */}
         <div className="flex-1 flex justify-center max-w-md mx-auto">
-          <SearchInput />
+          <GlobalSearch />
         </div>
 
         {/* Right side */}
