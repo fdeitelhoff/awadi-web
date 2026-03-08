@@ -80,7 +80,14 @@ export function GlobalSearch() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") setIsOpen(false);
+    if (e.key === "Escape") {
+      if (isOpen) {
+        setIsOpen(false);
+      } else {
+        setQuery("");
+        setResults([]);
+      }
+    }
   }
 
   function handleSelect(href: string) {
