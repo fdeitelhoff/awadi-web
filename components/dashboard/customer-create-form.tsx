@@ -91,6 +91,12 @@ export function CustomerCreateForm() {
     }
   };
 
+  const handleLeave = () => {
+    setForm(EMPTY_FORM);
+    setIsDialogOpen(false);
+    router.push("/master-data/customers");
+  };
+
   const handleBackClick = () => {
     if (isDirty) {
       setIsDialogOpen(true);
@@ -117,7 +123,7 @@ export function CustomerCreateForm() {
         isSaving={isSaving}
         onStay={() => setIsDialogOpen(false)}
         onSaveAndLeave={handleSaveAndLeave}
-        onLeave={() => router.push("/master-data/customers")}
+        onLeave={handleLeave}
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">

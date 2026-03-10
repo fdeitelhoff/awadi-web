@@ -102,6 +102,14 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
     if (ok) toast.success("Gespeichert");
   };
 
+  const handleLeave = () => {
+    const snapshot = makeSnapshot(kunde);
+    setForm(snapshot);
+    setInitialValues(snapshot);
+    setIsDialogOpen(false);
+    router.push("/master-data/customers");
+  };
+
   const handleBackClick = () => {
     if (isDirty) {
       setIsDialogOpen(true);
@@ -143,7 +151,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
         isSaving={isSaving}
         onStay={() => setIsDialogOpen(false)}
         onSaveAndLeave={handleSaveAndLeave}
-        onLeave={() => router.push("/master-data/customers")}
+        onLeave={handleLeave}
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">
