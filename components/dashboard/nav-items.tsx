@@ -32,7 +32,7 @@ const masterDataItems = [
 ];
 
 const settingsItems = [
-  { label: "Anlagen Typen", href: "/settings/facility-types", icon: Building2 },
+  { label: "Anlagentypen", href: "/settings/facility-types", icon: Building2 },
   { label: "Benutzer", href: "/settings/users", icon: Users },
   { label: "Gemeinden", href: "/settings/communities", icon: MapPin },
 ];
