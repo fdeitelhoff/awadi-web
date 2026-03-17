@@ -17,6 +17,7 @@ import {
   MapPin,
   Route,
   Settings,
+  Ticket,
   Users,
   Wrench,
 } from "lucide-react";
@@ -42,6 +43,7 @@ export function NavItems() {
 
   const isMaintenance = pathname === "/";
   const isMasterData = pathname.startsWith("/master-data");
+  const isTickets = pathname.startsWith("/tickets");
   const isSettings = pathname.startsWith("/settings");
 
   return (
@@ -56,6 +58,19 @@ export function NavItems() {
         <Link href="/">
           <Wrench className="h-4 w-4" />
           <span className="hidden md:inline">Wartung</span>
+        </Link>
+      </Button>
+
+      {/* Tickets - simple link */}
+      <Button
+        variant={isTickets ? "secondary" : "ghost"}
+        size="sm"
+        asChild
+        className="gap-2 cursor-pointer"
+      >
+        <Link href="/tickets">
+          <Ticket className="h-4 w-4" />
+          <span className="hidden md:inline">Tickets</span>
         </Link>
       </Button>
 
