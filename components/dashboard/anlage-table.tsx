@@ -168,7 +168,7 @@ export function AnlageTable({
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - anlagen.length);
-  const COLSPAN = 10;
+  const COLSPAN = 11;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -310,6 +310,7 @@ export function AnlageTable({
               <TableHead>Eigentümer</TableHead>
               <TableHead>Ansprechpartner</TableHead>
               <TableHead>Telefon</TableHead>
+              <TableHead>E-Mail</TableHead>
               <TableHead>Straße</TableHead>
               <TableHead className="w-[80px]">Hausnr.</TableHead>
               <TableHead className="w-[90px]">
@@ -343,6 +344,7 @@ export function AnlageTable({
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-12" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-14" /></TableCell>
@@ -393,6 +395,17 @@ export function AnlageTable({
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {anlage.kontakt_telefonnr ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {anlage.kontakt_email ? (
+                        <a
+                          href={`mailto:${anlage.kontakt_email}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="hover:underline"
+                        >
+                          {anlage.kontakt_email}
+                        </a>
+                      ) : "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {anlage.strasse}
