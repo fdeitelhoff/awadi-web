@@ -171,7 +171,7 @@ export function CustomerTable({
   // plus transparent filler rows so the table height never changes.
   const fillerCount = Math.max(0, PAGE_SIZE - kunden.length);
 
-  const COLSPAN = 10;
+  const COLSPAN = 11;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -368,6 +368,15 @@ export function CustomerTable({
                   <SortIcon field="telefonnr" />
                 </button>
               </TableHead>
+              <TableHead>
+                <button
+                  onClick={() => handleSort("email")}
+                  className="flex items-center font-medium hover:text-foreground"
+                >
+                  E-Mail
+                  <SortIcon field="email" />
+                </button>
+              </TableHead>
               <TableHead className="w-[90px]" />
             </TableRow>
           </TableHeader>
@@ -386,6 +395,7 @@ export function CustomerTable({
                   <TableCell><Skeleton className="h-4 w-14" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell />
                 </TableRow>
               ))
@@ -439,6 +449,7 @@ export function CustomerTable({
                     <TableCell className="text-muted-foreground">{kunde.plz}</TableCell>
                     <TableCell>{kunde.ort}</TableCell>
                     <TableCell className="text-muted-foreground">{kunde.telefonnr}</TableCell>
+                    <TableCell className="text-muted-foreground">{kunde.email ?? "—"}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="destructive"
