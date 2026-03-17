@@ -297,12 +297,8 @@ export function TourPlanningDialog({
               <Route className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>
-                  Der Algorithmus weist Techniker basierend auf den Maschinentypen zu
-                  und berechnet optimierte Routen pro Tag.
-                </p>
-                <p className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  Techniker werden automatisch zugewiesen
+                  Der Algorithmus plant für den Zeitraum die Touren gemäß den anstehenden
+                  Wartungen und den Technikern, die den Anlagen zugewiesen sind.
                 </p>
               </div>
             </div>
