@@ -25,6 +25,23 @@ export function DashboardNav() {
 
         <Separator orientation="vertical" className="h-6" />
 
+        {/* ATB logo */}
+        <a
+          href="https://www.atbwater.de/shop/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0"
+        >
+          <Image
+            src="/atb-logo.svg"
+            alt="ATB Water"
+            width={86}
+            height={28}
+          />
+        </a>
+
+        <Separator orientation="vertical" className="h-6" />
+
         {/* Navigation - client component for active state */}
         <Suspense
           fallback={
