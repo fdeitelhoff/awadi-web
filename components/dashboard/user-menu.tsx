@@ -57,6 +57,10 @@ export async function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <LogoutMenuItem />
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+          v{process.env.NEXT_PUBLIC_APP_VERSION ?? "unknown"} ({process.env.NEXT_PUBLIC_GIT_COMMIT ?? "unknown"})
+        </DropdownMenuLabel>
       </DropdownMenuContent>
     </DropdownMenu>
   );
