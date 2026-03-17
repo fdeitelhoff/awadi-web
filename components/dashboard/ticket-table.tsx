@@ -84,6 +84,24 @@ function PrioritätBadge({ priorität }: { priorität: TicketPriorität }) {
   );
 }
 
+// ── Sort icon ─────────────────────────────────────────────────────────────────
+
+function SortIcon({
+  field,
+  sortField,
+  sortDirection,
+}: {
+  field: TicketSortField;
+  sortField: TicketSortField;
+  sortDirection: SortDirection;
+}) {
+  if (sortField !== field)
+    return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/50" />;
+  return sortDirection === "asc"
+    ? <ArrowUp className="ml-1 h-3 w-3" />
+    : <ArrowDown className="ml-1 h-3 w-3" />;
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 interface TicketTableProps {
@@ -163,7 +181,8 @@ export function TicketTable({ initialData, initialCount }: TicketTableProps) {
       if (cancelled) return;
       setTickets(result.data);
       setTotalCount(result.totalCount);
-      setIsLoading(false);
+    }).finally(() => {
+      if (!cancelled) setIsLoading(false);
     });
 
     return () => { cancelled = true; };
@@ -180,14 +199,6 @@ export function TicketTable({ initialData, initialCount }: TicketTableProps) {
       setSortDirection("asc");
     }
     setCurrentPage(1);
-  };
-
-  const SortIcon = ({ field }: { field: TicketSortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/50" />;
-    return sortDirection === "asc"
-      ? <ArrowUp className="ml-1 h-3 w-3" />
-      : <ArrowDown className="ml-1 h-3 w-3" />;
   };
 
   return (
@@ -341,7 +352,7 @@ export function TicketTable({ initialData, initialCount }: TicketTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Ticket-Nr.
-                  <SortIcon field="ticket_nr" />
+                  <SortIcon field="ticket_nr" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -350,7 +361,7 @@ export function TicketTable({ initialData, initialCount }: TicketTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Titel
-                  <SortIcon field="titel" />
+                  <SortIcon field="titel" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[120px]">
@@ -359,7 +370,7 @@ export function TicketTable({ initialData, initialCount }: TicketTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Status
-                  <SortIcon field="status" />
+                  <SortIcon field="status" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[110px]">
@@ -368,7 +379,7 @@ export function TicketTable({ initialData, initialCount }: TicketTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Priorität
-                  <SortIcon field="prioritaet" />
+                  <SortIcon field="prioritaet" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>Kontakt</TableHead>
@@ -380,7 +391,7 @@ export function TicketTable({ initialData, initialCount }: TicketTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Erstellt am
-                  <SortIcon field="created_at" />
+                  <SortIcon field="created_at" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[90px]" />
