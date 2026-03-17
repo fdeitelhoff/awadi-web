@@ -26,7 +26,7 @@ import { usePathname } from "next/navigation";
 const masterDataItems = [
   { label: "Kunden", href: "/master-data/customers", icon: Users },
   { label: "Anlagen", href: "/master-data/facilities", icon: Factory },
-  { label: "Kontakte", href: "/master-data/contacts", icon: Contact },
+  { label: "Kontakte", href: "/master-data/contacts", icon: Contact, hidden: true },
   { label: "Wartungsdaten", href: "/master-data/maintenance", icon: FileText },
   { label: "Touren", href: "/master-data/tours", icon: Route },
 ];
@@ -73,7 +73,7 @@ export function NavItems() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          {masterDataItems.map((item) => {
+          {masterDataItems.filter((item) => !item.hidden).map((item) => {
             const Icon = item.icon;
             const isActive = pathname.startsWith(item.href);
             return (
