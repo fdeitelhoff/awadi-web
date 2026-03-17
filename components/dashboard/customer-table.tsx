@@ -449,7 +449,17 @@ export function CustomerTable({
                     <TableCell className="text-muted-foreground">{kunde.plz}</TableCell>
                     <TableCell>{kunde.ort}</TableCell>
                     <TableCell className="text-muted-foreground">{kunde.telefonnr}</TableCell>
-                    <TableCell className="text-muted-foreground">{kunde.email ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {kunde.email ? (
+                        <a
+                          href={`mailto:${kunde.email}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="hover:underline"
+                        >
+                          {kunde.email}
+                        </a>
+                      ) : "—"}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="destructive"
