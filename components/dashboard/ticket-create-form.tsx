@@ -142,7 +142,8 @@ export function TicketCreateForm({ techniker }: TicketCreateFormProps) {
       setError(result.error ?? "Unbekannter Fehler.");
       return;
     }
-    router.push(`/tickets/${result.id}`);
+    setIsSaving(false);
+  router.replace(`/tickets/${result.id}`);
   };
 
   return (
