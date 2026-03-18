@@ -19,7 +19,7 @@ async function VertragDetail({ id }: { id: number }) {
 
   const initialAnlage: SelectedAnlage = {
     id: vertrag.anlage_id,
-    anlagen_nr: vertrag.anlagen_nr,
+    label: vertrag.anlagen_nr ?? `Anlage #${vertrag.anlage_id}`,
   };
 
   const initialKunde: SelectedKunde | undefined =

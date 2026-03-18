@@ -9,26 +9,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { fetchAnlagen } from "@/lib/actions/anlagen";
-import type { AnlageListItem } from "@/lib/types/anlage";
+import {
+  fetchAnlagenForPicker,
+  type AnlagePickerResult,
+} from "@/lib/actions/anlagen";
 import { Search, Building2, X } from "lucide-react";
 
 export interface SelectedAnlage {
   id: number;
-  anlagen_nr?: string;
-  info?: string;
+  label: string;    // anlagen_nr (primary display)
+  sublabel?: string; // anl_typ_bezeichnung + ort (secondary)
 }
 
 interface AnlagePickerProps {
   value: number | null;
-  onChange: (id: number | null) => void;
+  onChange: (id: number | null, details: AnlagePickerResult | null) => void;
   initial?: SelectedAnlage;
 }
 
 export function AnlagePicker({ value, onChange, initial }: AnlagePickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [results, setResults] = useState<AnlageListItem[]>([]);
+  const [results, setResults] = useState<AnlagePickerResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selected, setSelected] = useState<SelectedAnlage | null>(
     initial ?? null
@@ -41,14 +43,9 @@ export function AnlagePicker({ value, onChange, initial }: AnlagePickerProps) {
 
     const delay = search.trim() ? 300 : 0;
     const timer = setTimeout(() => {
-      fetchAnlagen({
-        search: search.trim(),
-        pageSize: 15,
-        sortField: "anlagen_nr",
-        sortDirection: "asc",
-      }).then((r) => {
+      fetchAnlagenForPicker(search.trim()).then((r) => {
         if (!cancelled) {
-          setResults(r.data);
+          setResults(r);
           setIsSearching(false);
         }
       });
@@ -60,27 +57,22 @@ export function AnlagePicker({ value, onChange, initial }: AnlagePickerProps) {
     };
   }, [search, open]);
 
-  const handleSelect = (anlage: AnlageListItem) => {
-    const cityParts = [anlage.plz, anlage.ort].filter(Boolean).join(" ");
-    const streetParts = [anlage.strasse, anlage.hausnr]
-      .filter(Boolean)
-      .join(" ");
-    const info = [streetParts, cityParts].filter(Boolean).join(", ");
-
+  const handleSelect = (anlage: AnlagePickerResult) => {
+    const parts = [anlage.anl_typ_bezeichnung, anlage.ort].filter(Boolean);
     const sel: SelectedAnlage = {
       id: anlage.id,
-      anlagen_nr: anlage.anlagen_nr,
-      info: info || undefined,
+      label: anlage.anlagen_nr ?? `Anlage #${anlage.id}`,
+      sublabel: parts.join(" · ") || undefined,
     };
     setSelected(sel);
-    onChange(anlage.id);
+    onChange(anlage.id, anlage);
     setOpen(false);
     setSearch("");
   };
 
   const handleClear = () => {
     setSelected(null);
-    onChange(null);
+    onChange(null, null);
   };
 
   const handleOpenChange = (o: boolean) => {
@@ -94,12 +86,10 @@ export function AnlagePicker({ value, onChange, initial }: AnlagePickerProps) {
         <div className="flex items-start gap-2 rounded-md border bg-muted/30 px-3 py-2.5">
           <Building2 className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium leading-snug">
-              {selected.anlagen_nr ?? `Anlage #${selected.id}`}
-            </p>
-            {selected.info && (
+            <p className="text-sm font-medium leading-snug">{selected.label}</p>
+            {selected.sublabel && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                {selected.info}
+                {selected.sublabel}
               </p>
             )}
           </div>
@@ -147,7 +137,7 @@ export function AnlagePicker({ value, onChange, initial }: AnlagePickerProps) {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Anlagen-Nr. oder Ort suchen…"
+                placeholder="Anlagen-Nr., Typ oder Ort suchen…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-8"
@@ -167,35 +157,26 @@ export function AnlagePicker({ value, onChange, initial }: AnlagePickerProps) {
               </p>
             ) : (
               <ul>
-                {results.map((anlage) => {
-                  const cityParts = [anlage.plz, anlage.ort]
-                    .filter(Boolean)
-                    .join(" ");
-                  const streetParts = [anlage.strasse, anlage.hausnr]
-                    .filter(Boolean)
-                    .join(" ");
-                  const address = [streetParts, cityParts]
-                    .filter(Boolean)
-                    .join(", ");
-                  const isActive = anlage.id === value;
+                {results.map((a) => {
+                  const isActive = a.id === value;
+                  const parts = [a.anl_typ_bezeichnung, a.ort].filter(Boolean);
                   return (
-                    <li key={anlage.id}>
+                    <li key={a.id}>
                       <button
                         type="button"
                         className={`w-full text-left px-4 py-2.5 hover:bg-accent transition-colors ${
                           isActive ? "bg-accent" : ""
                         }`}
-                        onClick={() => handleSelect(anlage)}
+                        onClick={() => handleSelect(a)}
                       >
-                        <p className="text-sm font-medium truncate">
-                          {anlage.anlagen_nr ?? `Anlage #${anlage.id}`}
+                        <p className="text-sm font-medium truncate font-mono">
+                          {a.anlagen_nr ?? `Anlage #${a.id}`}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">
-                          {anlage.owner_name && (
-                            <span className="mr-2">{anlage.owner_name}</span>
-                          )}
-                          {address}
-                        </p>
+                        {parts.length > 0 && (
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {parts.join(" · ")}
+                          </p>
+                        )}
                       </button>
                     </li>
                   );
