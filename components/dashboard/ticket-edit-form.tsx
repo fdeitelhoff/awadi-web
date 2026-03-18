@@ -353,7 +353,7 @@ export function TicketEditForm({
         </Card>
 
         {/* ── Kontaktperson ────────────────────────────────────────── */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">Kontaktperson</CardTitle>
           </CardHeader>
@@ -439,6 +439,13 @@ export function TicketEditForm({
           </CardContent>
         </Card>
 
+        {/* ── Interne Anmerkungen ──────────────────────────────────── */}
+        <InternalComments
+          refTable="tickets"
+          refId={ticket.id}
+          initialComments={initialComments}
+        />
+
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
@@ -450,13 +457,6 @@ export function TicketEditForm({
           Speichern
         </Button>
       </div>
-
-      {/* ── Interne Anmerkungen ──────────────────────────────────── */}
-      <InternalComments
-        refTable="tickets"
-        refId={ticket.id}
-        initialComments={initialComments}
-      />
 
     </form>
   );

@@ -302,7 +302,7 @@ export function TicketCreateForm({ techniker }: TicketCreateFormProps) {
         </Card>
 
         {/* ── Kontaktperson ────────────────────────────────────────── */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base">Kontaktperson</CardTitle>
           </CardHeader>
