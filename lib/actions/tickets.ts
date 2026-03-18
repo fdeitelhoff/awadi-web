@@ -25,11 +25,14 @@ export interface CreateTicketInput {
   hausnr?: string;
   plz?: string;
   ort?: string;
-  user_id?: string | null;   // null = explicitly clear the assignment
-  user_name?: string | null; // null = explicitly clear the name
+  user_id?: string;   // undefined = not assigned
+  user_name?: string; // undefined = not assigned
 }
 
-export type UpdateTicketInput = Partial<CreateTicketInput>;
+export interface UpdateTicketInput extends Omit<Partial<CreateTicketInput>, "user_id" | "user_name"> {
+  user_id?: string | null;   // null = explicitly clear the technician assignment
+  user_name?: string | null; // null = explicitly clear the technician name
+}
 
 export interface KundeContactData {
   nachname?: string;
