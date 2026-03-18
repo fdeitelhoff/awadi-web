@@ -117,35 +117,18 @@ export function MaintenanceStatusIndicator({
 // Export config for use in filters
 export { maintenanceStatusConfig };
 
-interface PriorityBadgeProps {
-  priority: "low" | "medium" | "high" | "urgent";
-}
 
-const priorityConfig: Record<
-  "low" | "medium" | "high" | "urgent",
+const ticketPriorityConfig: Record<
+  "normal" | "hoch" | "dringend",
   { label: string; className: string }
 > = {
-  low: {
-    label: "Niedrig",
-    className: "bg-muted text-muted-foreground",
-  },
-  medium: {
-    label: "Mittel",
-    className: "bg-info/15 text-info",
-  },
-  high: {
-    label: "Hoch",
-    className: "bg-warning/15 text-warning",
-  },
-  urgent: {
-    label: "Dringend",
-    className: "bg-destructive/15 text-destructive",
-  },
+  normal: { label: "Normal", className: "bg-muted text-muted-foreground" },
+  hoch: { label: "Hoch", className: "bg-warning/15 text-warning" },
+  dringend: { label: "Dringend", className: "bg-destructive/15 text-destructive" },
 };
 
-export function PriorityBadge({ priority }: PriorityBadgeProps) {
-  const config = priorityConfig[priority];
-
+export function TicketPriorityBadge({ prioritaet }: { prioritaet: "normal" | "hoch" | "dringend" }) {
+  const config = ticketPriorityConfig[prioritaet];
   return (
     <Badge variant="secondary" className={`font-normal ${config.className}`}>
       {config.label}

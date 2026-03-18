@@ -1,141 +1,103 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ServiceTicket } from "@/lib/types/maintenance";
 import { Input } from "@/components/ui/input";
-import {
-  Calendar,
-  MapPin,
-  Phone,
-  Plus,
-  Search,
-  Ticket,
-  User,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { PriorityBadge } from "./status-badge";
+import { MapPin, Phone, Plus, Search, Ticket, User } from "lucide-react";
+import { useState } from "react";
+import { TicketPriorityBadge } from "./status-badge";
+import type { TicketListItem } from "@/lib/types/ticket";
 
 interface TicketsPanelProps {
-  tickets: ServiceTicket[];
-  onScheduleTicket?: (ticketId: string) => void;
+  tickets: TicketListItem[];
 }
 
-function formatRelativeDate(date: Date, now: Date): string {
-  const diffTime = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
+function formatRelativeDate(isoString: string): string {
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
   if (diffDays === 0) return "Heute";
   if (diffDays === 1) return "Gestern";
   if (diffDays < 7) return `Vor ${diffDays} Tagen`;
-  return date.toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-  });
+  return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
 }
 
-interface CompactTicketCardProps {
-  ticket: ServiceTicket;
-  now: Date;
-  onSchedule?: () => void;
+function contactName(ticket: TicketListItem): string {
+  const name = [ticket.vorname, ticket.nachname].filter(Boolean).join(" ");
+  return name || ticket.kunden_name || "—";
 }
 
-function CompactTicketCard({ ticket, now, onSchedule }: CompactTicketCardProps) {
+function formatLocation(ticket: TicketListItem): string {
+  const street = [ticket.strasse, ticket.hausnr].filter(Boolean).join(" ");
+  const city = [ticket.plz, ticket.ort].filter(Boolean).join(" ");
+  return [street, city].filter(Boolean).join(", ") || "—";
+}
+
+function CompactTicketCard({ ticket }: { ticket: TicketListItem }) {
   return (
-    <div className="w-64 shrink-0 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors space-y-2">
-      {/* Header with title and priority */}
+    <Link
+      href={`/tickets/${ticket.id}`}
+      className="w-64 shrink-0 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors space-y-2 block"
+    >
       <div className="flex items-start justify-between gap-2">
-        <h4 className="font-medium text-sm leading-tight line-clamp-1">
-          {ticket.title}
-        </h4>
-        <PriorityBadge priority={ticket.priority} />
+        <h4 className="font-medium text-sm leading-tight line-clamp-1">{ticket.titel}</h4>
+        <TicketPriorityBadge prioritaet={ticket.prioritaet} />
       </div>
 
-      {/* Contact info - compact */}
       <div className="space-y-1 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <User className="h-3 w-3 shrink-0" />
-          <span className="truncate">{ticket.contactPerson}</span>
+          <span className="truncate">{contactName(ticket)}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <MapPin className="h-3 w-3 shrink-0" />
-          <span className="truncate">{ticket.location}</span>
+          <span className="truncate">{formatLocation(ticket)}</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Phone className="h-3 w-3 shrink-0" />
-          <span>{ticket.phoneNumber}</span>
-        </div>
-      </div>
-
-      {/* Footer with date and action */}
-      <div className="flex items-center justify-between pt-1">
-        <span className="text-[10px] text-muted-foreground">
-          {formatRelativeDate(ticket.createdAt, now)}
-        </span>
-        {onSchedule && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-6 px-2 text-xs gap-1"
-            onClick={onSchedule}
-          >
-            <Calendar className="h-3 w-3" />
-            Einplanen
-          </Button>
+        {ticket.telefonnr && (
+          <div className="flex items-center gap-1.5">
+            <Phone className="h-3 w-3 shrink-0" />
+            <span>{ticket.telefonnr}</span>
+          </div>
         )}
       </div>
-    </div>
+
+      <div className="pt-1">
+        <span className="text-[10px] text-muted-foreground">
+          {formatRelativeDate(ticket.created_at)}
+        </span>
+      </div>
+    </Link>
   );
 }
 
-export function TicketsPanel({
-  tickets,
-  onScheduleTicket,
-}: TicketsPanelProps) {
-  const [now, setNow] = useState<Date | null>(null);
+export function TicketsPanel({ tickets }: TicketsPanelProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Initialize date on client side to avoid SSR/prerender issues
-  useEffect(() => {
-    setNow(new Date());
-  }, []);
-
-  // Filter tickets by search query
   const filteredTickets = tickets.filter((ticket) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
-      ticket.title.toLowerCase().includes(query) ||
-      ticket.contactPerson.toLowerCase().includes(query) ||
-      ticket.location.toLowerCase().includes(query) ||
-      ticket.phoneNumber.includes(query) ||
-      ticket.email.toLowerCase().includes(query) ||
-      ticket.description?.toLowerCase().includes(query)
+      ticket.titel.toLowerCase().includes(query) ||
+      contactName(ticket).toLowerCase().includes(query) ||
+      formatLocation(ticket).toLowerCase().includes(query) ||
+      (ticket.telefonnr?.includes(query) ?? false) ||
+      (ticket.email?.toLowerCase().includes(query) ?? false) ||
+      (ticket.beschreibung?.toLowerCase().includes(query) ?? false)
     );
   });
 
-  // Sort tickets by priority and date
   const sortedTickets = [...filteredTickets].sort((a, b) => {
-    const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-    const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
-    if (priorityDiff !== 0) return priorityDiff;
-    return b.createdAt.getTime() - a.createdAt.getTime();
+    const order: Record<string, number> = { dringend: 0, hoch: 1, normal: 2 };
+    const diff = order[a.prioritaet] - order[b.prioritaet];
+    if (diff !== 0) return diff;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
-  const urgentCount = tickets.filter((t) => t.priority === "urgent").length;
-  const highCount = tickets.filter((t) => t.priority === "high").length;
-
-  // Show loading state during SSR
-  if (now === null) {
-    return (
-      <Card className="shrink-0 h-44">
-        <div className="h-full flex items-center justify-center text-muted-foreground">
-          Laden...
-        </div>
-      </Card>
-    );
-  }
+  const dringendCount = tickets.filter((t) => t.prioritaet === "dringend").length;
+  const hochCount = tickets.filter((t) => t.prioritaet === "hoch").length;
+  const normalCount = tickets.filter((t) => t.prioritaet === "normal").length;
 
   return (
     <Card className="shrink-0">
@@ -150,24 +112,27 @@ export function TicketsPanel({
               </span>
             </div>
 
-            {/* Priority summary */}
-            {(urgentCount > 0 || highCount > 0) && (
+            {(dringendCount > 0 || hochCount > 0 || normalCount > 0) && (
               <div className="flex gap-2">
-                {urgentCount > 0 && (
+                {dringendCount > 0 && (
                   <span className="text-xs bg-destructive/15 text-destructive px-2 py-0.5 rounded">
-                    {urgentCount} dringend
+                    {dringendCount} dringend
                   </span>
                 )}
-                {highCount > 0 && (
+                {hochCount > 0 && (
                   <span className="text-xs bg-warning/15 text-warning px-2 py-0.5 rounded">
-                    {highCount} hoch
+                    {hochCount} hoch
+                  </span>
+                )}
+                {normalCount > 0 && (
+                  <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                    {normalCount} normal
                   </span>
                 )}
               </div>
             )}
           </div>
 
-          {/* Search bar */}
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -179,9 +144,11 @@ export function TicketsPanel({
             />
           </div>
 
-          <Button variant="outline" size="sm" className="gap-1.5 h-7">
-            <Plus className="h-3.5 w-3.5" />
-            Neues Ticket
+          <Button variant="outline" size="sm" className="gap-1.5 h-7" asChild>
+            <Link href="/tickets/new">
+              <Plus className="h-3.5 w-3.5" />
+              Neues Ticket
+            </Link>
           </Button>
         </div>
       </CardHeader>
@@ -191,16 +158,7 @@ export function TicketsPanel({
           <div className="flex gap-3 pb-3">
             {sortedTickets.length > 0 ? (
               sortedTickets.map((ticket) => (
-                <CompactTicketCard
-                  key={ticket.id}
-                  ticket={ticket}
-                  now={now}
-                  onSchedule={
-                    onScheduleTicket
-                      ? () => onScheduleTicket(ticket.id)
-                      : undefined
-                  }
-                />
+                <CompactTicketCard key={ticket.id} ticket={ticket} />
               ))
             ) : (
               <div className="w-full text-center py-4 text-muted-foreground">

@@ -19,19 +19,6 @@ export interface MaintenanceTask {
   notes?: string;
 }
 
-// Service ticket/order
-export interface ServiceTicket {
-  id: string;
-  title: string;
-  contactPerson: string;
-  location: string;
-  phoneNumber: string;
-  email: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  createdAt: Date;
-  description?: string;
-}
-
 // Technician
 export interface Technician {
   id: string;
