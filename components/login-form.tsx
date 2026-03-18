@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -50,7 +51,14 @@ export function LoginForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
+        <CardHeader className="items-center text-center">
+          <Image
+            src="/logo.png"
+            alt="AWADI"
+            width={96}
+            height={96}
+            className="rounded-2xl mb-2"
+          />
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
             Enter your email below to login to your account
