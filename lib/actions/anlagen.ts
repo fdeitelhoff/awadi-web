@@ -248,3 +248,48 @@ export async function fetchAnlagen(
 ): Promise<AnlageQueryResult> {
   return getAnlagen(params);
 }
+
+export interface AnlagePickerResult {
+  id: number;
+  anlagen_nr?: string;
+  anl_typ_bezeichnung?: string;
+  kunden_id?: number;
+  ort?: string;
+}
+
+export async function fetchAnlagenForPicker(
+  search: string
+): Promise<AnlagePickerResult[]> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("anlagen_details")
+    .select("id, anlagen_nr, anl_typ_bezeichnung, kunden_id, ort")
+    .order("anlagen_nr", { ascending: true })
+    .limit(20);
+
+  if (search.trim()) {
+    const pattern = `%${search.trim()}%`;
+    query = query.or(
+      [
+        `anlagen_nr.ilike.${pattern}`,
+        `anl_typ_bezeichnung.ilike.${pattern}`,
+        `ort.ilike.${pattern}`,
+      ].join(",")
+    );
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("Error fetching anlagen for picker:", error);
+    return [];
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id as number,
+    anlagen_nr: row.anlagen_nr as string | undefined,
+    anl_typ_bezeichnung: row.anl_typ_bezeichnung as string | undefined,
+    kunden_id: row.kunden_id as number | undefined,
+    ort: row.ort as string | undefined,
+  }));
+}
