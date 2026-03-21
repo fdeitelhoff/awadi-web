@@ -46,7 +46,6 @@ export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
     groesse_vk2: row.groesse_vk2 as number | undefined,
     groesse_vk3: row.groesse_vk3 as number | undefined,
     groesse_vk4: row.groesse_vk4 as number | undefined,
-    trace_mark: row.trace_mark as number | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,
     // View-computed fields

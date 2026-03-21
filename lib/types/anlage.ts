@@ -51,7 +51,6 @@ export interface Anlage {
   groesse_vk3?: number;
   groesse_vk4?: number;
 
-  trace_mark?: number;
   last_update?: string;
   created_at: string;
 }
