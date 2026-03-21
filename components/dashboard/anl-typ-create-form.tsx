@@ -62,8 +62,8 @@ export function AnlTypCreateForm() {
     }
 
     // Persist any pending bio fields
-    for (const feld of pendingBioFelder) {
-      await createBioFeld(result.id, feld.bio_key, feld.bio_name ?? undefined);
+    for (let i = 0; i < pendingBioFelder.length; i++) {
+      await createBioFeld(result.id, i + 1, pendingBioFelder[i].bio_key, pendingBioFelder[i].bio_name ?? undefined);
     }
 
     router.push(`/settings/facility-types/${result.id}`);

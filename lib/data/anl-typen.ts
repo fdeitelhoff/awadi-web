@@ -18,7 +18,6 @@ function mapRowToAnlTyp(row: Record<string, unknown>): AnlTypFull {
     id: row.id as number,
     sortiernr: row.sortiernr as number | undefined,
     bezeichnung: row.bezeichnung as string,
-    bio_felder: row.bio_felder as string | undefined,
     preis_je_wartung: row.preis_je_wartung as number,
     preis_je_kontrolle: row.preis_je_kontrolle as number,
     wartungsintervall_monate: row.wartungsintervall_monate as number,
@@ -95,9 +94,9 @@ export async function getBioFelder(anl_typ_id: number): Promise<AnlTypBioFeld[]>
 
   const { data, error } = await supabase
     .from("anl_typ_bio_felder")
-    .select("id, anl_typ_id, bio_key, bio_name")
+    .select("id, anl_typ_id, sortiernr, bio_key, bio_name")
     .eq("anl_typ_id", anl_typ_id)
-    .order("id");
+    .order("sortiernr");
 
   if (error) {
     console.error("Error fetching bio_felder:", error);
@@ -107,6 +106,7 @@ export async function getBioFelder(anl_typ_id: number): Promise<AnlTypBioFeld[]>
   return (data ?? []).map((r) => ({
     id: r.id as number,
     anl_typ_id: r.anl_typ_id as number,
+    sortiernr: r.sortiernr as number,
     bio_key: r.bio_key as string,
     bio_name: r.bio_name as string | null,
   }));

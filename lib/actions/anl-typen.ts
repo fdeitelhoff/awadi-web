@@ -118,6 +118,7 @@ export async function fetchAnlTypen(
 
 export async function createBioFeld(
   anl_typ_id: number,
+  sortiernr: number,
   bio_key: string,
   bio_name?: string
 ): Promise<{ success: boolean; id?: number; error?: string }> {
@@ -125,7 +126,7 @@ export async function createBioFeld(
 
   const { data, error } = await supabase
     .from("anl_typ_bio_felder")
-    .insert({ anl_typ_id, bio_key: bio_key.trim(), bio_name: bio_name?.trim() || null })
+    .insert({ anl_typ_id, sortiernr, bio_key: bio_key.trim(), bio_name: bio_name?.trim() || null })
     .select("id")
     .single();
 
@@ -170,6 +171,25 @@ export async function deleteBioFeld(
   if (error) {
     console.error("Error deleting bio_feld:", error);
     return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function reorderBioFelder(
+  updates: { id: number; sortiernr: number }[]
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  for (const { id, sortiernr } of updates) {
+    const { error } = await supabase
+      .from("anl_typ_bio_felder")
+      .update({ sortiernr })
+      .eq("id", id);
+    if (error) {
+      console.error("Error reordering bio_felder:", error);
+      return { success: false, error: error.message };
+    }
   }
 
   return { success: true };

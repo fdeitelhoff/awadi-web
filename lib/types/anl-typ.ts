@@ -2,6 +2,7 @@
 export interface AnlTypBioFeld {
   id: number;
   anl_typ_id: number;
+  sortiernr: number;
   bio_key: string;
   bio_name: string | null;
 }
@@ -12,7 +13,6 @@ export interface AnlTypFull {
   id: number;
   sortiernr?: number;
   bezeichnung: string;
-  bio_felder?: string;
   preis_je_wartung: number;
   preis_je_kontrolle: number;
   wartungsintervall_monate: number;
