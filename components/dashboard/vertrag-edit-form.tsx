@@ -68,6 +68,7 @@ export function VertragEditForm({
     intervall_monate: vertrag.intervall_monate ?? undefined,
     aktiv: vertrag.aktiv,
     datum_naechste_wartung: vertrag.datum_naechste_wartung ?? "",
+    datum_letzte_wartung: vertrag.datum_letzte_wartung ?? "",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -219,7 +220,7 @@ export function VertragEditForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="intervall_monate">Intervall (Monate)</Label>
                 <Input
@@ -235,6 +236,15 @@ export function VertragEditForm({
                         : parseInt(e.target.value, 10)
                     )
                   }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="datum_letzte_wartung">Letzte Wartung</Label>
+                <Input
+                  id="datum_letzte_wartung"
+                  type="date"
+                  value={form.datum_letzte_wartung}
+                  onChange={(e) => set("datum_letzte_wartung", e.target.value)}
                 />
               </div>
               <div className="space-y-1.5">

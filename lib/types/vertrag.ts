@@ -10,6 +10,7 @@ export interface Vertrag {
   intervall_monate?: number;
   aktiv: boolean;
   datum_naechste_wartung?: string;
+  datum_letzte_wartung?: string;
   last_update?: string;
   created_at: string;
 

@@ -14,6 +14,7 @@ export interface CreateVertragInput {
   intervall_monate?: number;
   aktiv?: boolean;
   datum_naechste_wartung?: string;
+  datum_letzte_wartung?: string;
 }
 
 export interface UpdateVertragInput {
@@ -26,6 +27,7 @@ export interface UpdateVertragInput {
   intervall_monate?: number | null;
   aktiv?: boolean;
   datum_naechste_wartung?: string;
+  datum_letzte_wartung?: string;
 }
 
 export async function createVertrag(
@@ -46,6 +48,7 @@ export async function createVertrag(
     "gueltig_ab",
     "gueltig_bis",
     "datum_naechste_wartung",
+    "datum_letzte_wartung",
   ];
   for (const field of textFields) {
     const value = input[field];

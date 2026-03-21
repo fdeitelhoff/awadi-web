@@ -37,6 +37,7 @@ const EMPTY_FORM: CreateVertragInput = {
 
   aktiv: true,
   datum_naechste_wartung: "",
+  datum_letzte_wartung: "",
 };
 
 interface VertragCreateFormProps {
@@ -181,7 +182,7 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="intervall_monate">Intervall (Monate)</Label>
                 <Input
@@ -197,6 +198,15 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
                         : parseInt(e.target.value, 10)
                     )
                   }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="datum_letzte_wartung">Letzte Wartung</Label>
+                <Input
+                  id="datum_letzte_wartung"
+                  type="date"
+                  value={form.datum_letzte_wartung}
+                  onChange={(e) => set("datum_letzte_wartung", e.target.value)}
                 />
               </div>
               <div className="space-y-1.5">

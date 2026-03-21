@@ -36,6 +36,7 @@ export function mapRowToVertrag(row: Record<string, unknown>): Vertrag {
     intervall_monate: row.intervall_monate as number | undefined,
     aktiv: row.aktiv as boolean,
     datum_naechste_wartung: row.datum_naechste_wartung as string | undefined,
+    datum_letzte_wartung: row.datum_letzte_wartung as string | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,
     anlagen_nr: anlagen?.anlagen_nr ?? undefined,
