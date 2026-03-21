@@ -14,7 +14,10 @@ import {
   Database,
   Factory,
   FileText,
+  Landmark,
+  Map,
   MapPin,
+  Network,
   Route,
   Settings,
   Ticket,
@@ -35,7 +38,10 @@ const masterDataItems = [
 const settingsItems = [
   { label: "Anlagentypen", href: "/settings/facility-types", icon: Building2 },
   { label: "Benutzer", href: "/settings/users", icon: Users },
+  { label: "Bundesländer", href: "/settings/federal-states", icon: Map },
   { label: "Gemeinden", href: "/settings/communities", icon: MapPin },
+  { label: "UWB", href: "/settings/water-authorities", icon: Landmark },
+  { label: "Verbände", href: "/settings/associations", icon: Network },
 ];
 
 export function NavItems() {
