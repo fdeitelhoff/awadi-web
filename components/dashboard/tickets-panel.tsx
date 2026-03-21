@@ -74,8 +74,16 @@ function CompactTicketCard({ ticket }: { ticket: TicketListItem }) {
 
 export function TicketsPanel({ tickets }: TicketsPanelProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState<Set<string>>(new Set());
 
-  const filteredTickets = tickets.filter((ticket) => {
+  const togglePriority = (p: string) =>
+    setPriorityFilter((prev) => {
+      const next = new Set(prev);
+      next.has(p) ? next.delete(p) : next.add(p);
+      return next;
+    });
+
+  const searchFilteredTickets = tickets.filter((ticket) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -87,6 +95,11 @@ export function TicketsPanel({ tickets }: TicketsPanelProps) {
       (ticket.beschreibung?.toLowerCase().includes(query) ?? false)
     );
   });
+
+  const filteredTickets =
+    priorityFilter.size > 0
+      ? searchFilteredTickets.filter((t) => priorityFilter.has(t.prioritaet))
+      : searchFilteredTickets;
 
   const sortedTickets = [...filteredTickets].sort((a, b) => {
     const order: Record<string, number> = { dringend: 0, hoch: 1, normal: 2 };
@@ -108,26 +121,57 @@ export function TicketsPanel({ tickets }: TicketsPanelProps) {
               <Ticket className="h-4 w-4 text-muted-foreground" />
               <CardTitle className="text-base">Offene Tickets</CardTitle>
               <span className="text-sm text-muted-foreground">
-                ({searchQuery ? `${filteredTickets.length}/${tickets.length}` : tickets.length})
+                ({(searchQuery || priorityFilter.size > 0) ? `${filteredTickets.length}/${tickets.length}` : tickets.length})
               </span>
             </div>
 
             {(dringendCount > 0 || hochCount > 0 || normalCount > 0) && (
               <div className="flex gap-2">
+                <button
+                  onClick={() => setPriorityFilter(new Set())}
+                  className={`text-xs px-2 py-0.5 rounded transition-all cursor-pointer ${
+                    priorityFilter.size === 0
+                      ? "bg-foreground/10 text-foreground ring-1 ring-inset ring-foreground/25 font-medium"
+                      : "bg-muted text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  alle
+                </button>
                 {dringendCount > 0 && (
-                  <span className="text-xs bg-destructive/15 text-destructive px-2 py-0.5 rounded">
+                  <button
+                    onClick={() => togglePriority("dringend")}
+                    className={`text-xs px-2 py-0.5 rounded transition-all cursor-pointer ${
+                      priorityFilter.has("dringend")
+                        ? "bg-destructive/30 text-destructive ring-1 ring-inset ring-destructive/50 font-medium"
+                        : "bg-destructive/15 text-destructive hover:bg-destructive/25"
+                    }`}
+                  >
                     {dringendCount} dringend
-                  </span>
+                  </button>
                 )}
                 {hochCount > 0 && (
-                  <span className="text-xs bg-warning/15 text-warning px-2 py-0.5 rounded">
+                  <button
+                    onClick={() => togglePriority("hoch")}
+                    className={`text-xs px-2 py-0.5 rounded transition-all cursor-pointer ${
+                      priorityFilter.has("hoch")
+                        ? "bg-warning/30 text-warning ring-1 ring-inset ring-warning/50 font-medium"
+                        : "bg-warning/15 text-warning hover:bg-warning/25"
+                    }`}
+                  >
                     {hochCount} hoch
-                  </span>
+                  </button>
                 )}
                 {normalCount > 0 && (
-                  <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                  <button
+                    onClick={() => togglePriority("normal")}
+                    className={`text-xs px-2 py-0.5 rounded transition-all cursor-pointer ${
+                      priorityFilter.has("normal")
+                        ? "bg-muted text-foreground ring-1 ring-inset ring-border font-medium"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
                     {normalCount} normal
-                  </span>
+                  </button>
                 )}
               </div>
             )}
