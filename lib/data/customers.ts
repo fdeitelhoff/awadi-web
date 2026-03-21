@@ -15,6 +15,7 @@ export function mapRowToKunde(row: Record<string, unknown>): Kunde {
   return {
     id: row.id as number,
     kundennr: row.kundennr as string | undefined,
+    ist_kunde: row.ist_kunde as boolean | undefined,
     hat_aktiven_vertrag: row.hat_aktiven_vertrag as boolean | undefined,
     firma: row.firma as string | undefined,
     nachname: row.nachname as string | undefined,
@@ -34,7 +35,6 @@ export function mapRowToKunde(row: Record<string, unknown>): Kunde {
     email: row.email as string | undefined,
     email_secondary: row.email_secondary as string | undefined,
     homepage: row.homepage as string | undefined,
-    trace_mark: row.trace_mark as number | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,
   };
@@ -89,9 +89,9 @@ export async function getCustomers(
   }
 
   if (filterAktiv === "aktiv") {
-    query = query.eq("hat_aktiven_vertrag", true);
+    query = query.eq("ist_kunde", true);
   } else if (filterAktiv === "inaktiv") {
-    query = query.eq("hat_aktiven_vertrag", false);
+    query = query.eq("ist_kunde", false);
   }
 
   const dbColumn = SORT_FIELD_TO_COLUMN[sortField] ?? "nachname";

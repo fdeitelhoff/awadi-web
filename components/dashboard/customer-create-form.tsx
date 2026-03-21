@@ -16,10 +16,12 @@ import {
 } from "@/components/ui/select";
 import { createKunde, type CreateKundeInput } from "@/lib/actions/customers";
 import { UnsavedChangesDialog } from "@/components/dashboard/unsaved-changes-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: CreateKundeInput = {
   kundennr: "",
+  ist_kunde: true,
   anrede: "",
   titel: "",
   vorname: "",
@@ -160,14 +162,26 @@ export function CustomerCreateForm() {
             </CardHeader>
             <CardContent className="space-y-4">
 
-              <div className="space-y-1.5">
-                <Label htmlFor="kundennr">Kunden-Nr.</Label>
-                <Input
-                  id="kundennr"
-                  value={form.kundennr}
-                  onChange={(e) => set("kundennr", e.target.value)}
-                  placeholder="z. B. AS-001"
-                />
+              <div className="grid grid-cols-[auto_1fr] gap-4 items-end">
+                <div className="space-y-1.5">
+                  <Label htmlFor="ist_kunde">Ist Kunde</Label>
+                  <div className="h-9 flex items-center">
+                    <Checkbox
+                      id="ist_kunde"
+                      checked={form.ist_kunde ?? true}
+                      onCheckedChange={(v) => set("ist_kunde", !!v)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="kundennr">Kunden-Nr.</Label>
+                  <Input
+                    id="kundennr"
+                    value={form.kundennr}
+                    onChange={(e) => set("kundennr", e.target.value)}
+                    placeholder="z. B. AS-001"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -264,9 +264,9 @@ export function CustomerTable({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle Kunden</SelectItem>
-              <SelectItem value="aktiv">Aktive</SelectItem>
-              <SelectItem value="inaktiv">Inaktive</SelectItem>
+              <SelectItem value="all">Alle</SelectItem>
+              <SelectItem value="aktiv">Ist Kunde</SelectItem>
+              <SelectItem value="inaktiv">Kein Kunde</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filterOrt} onValueChange={handleFilterChange}>
@@ -429,13 +429,13 @@ export function CustomerTable({
                     onClick={() => router.push(`/master-data/customers/${kunde.id}`)}
                   >
                     <TableCell>
-                      {kunde.hat_aktiven_vertrag ? (
+                      {kunde.ist_kunde ? (
                         <span className="text-success text-sm font-medium">
-                          Aktiv
+                          Kunde
                         </span>
                       ) : (
                         <span className="text-muted-foreground text-sm">
-                          Inaktiv
+                          Kein Kunde
                         </span>
                       )}
                     </TableCell>

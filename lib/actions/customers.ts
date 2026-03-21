@@ -6,6 +6,7 @@ import type { KundeQueryParams, KundeQueryResult } from "@/lib/types/customer";
 
 export interface CreateKundeInput {
   kundennr?: string;
+  ist_kunde?: boolean;
   anrede?: string;
   titel?: string;
   vorname?: string;
@@ -55,6 +56,7 @@ export async function createKunde(
 
 export interface UpdateKundeInput {
   kundennr?: string;
+  ist_kunde?: boolean;
   anrede?: string;
   titel?: string;
   vorname?: string;

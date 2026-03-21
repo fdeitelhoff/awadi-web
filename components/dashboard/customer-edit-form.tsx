@@ -19,6 +19,7 @@ import type { Kunde } from "@/lib/types/customer";
 import type { InternalComment } from "@/lib/types/kommentar";
 import { InternalComments } from "@/components/dashboard/internal-comments";
 import { UnsavedChangesDialog } from "@/components/dashboard/unsaved-changes-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { VertragPicker } from "@/components/dashboard/vertrag-picker";
 
@@ -41,6 +42,7 @@ function formatDateTime(value?: string | null) {
 function makeSnapshot(kunde: Kunde): UpdateKundeInput {
   return {
     kundennr: kunde.kundennr ?? "",
+    ist_kunde: kunde.ist_kunde ?? false,
     anrede: kunde.anrede ?? "",
     titel: kunde.titel ?? "",
     vorname: kunde.vorname ?? "",
@@ -193,8 +195,18 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
             </CardHeader>
             <CardContent className="space-y-4">
 
-              {/* Kunden-Nr. + Wartungsdaten */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Ist Kunde + Kunden-Nr. + Wartungsdaten */}
+              <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-end">
+                <div className="space-y-1.5">
+                  <Label htmlFor="ist_kunde">Ist Kunde</Label>
+                  <div className="h-9 flex items-center">
+                    <Checkbox
+                      id="ist_kunde"
+                      checked={form.ist_kunde ?? false}
+                      onCheckedChange={(v) => set("ist_kunde", !!v)}
+                    />
+                  </div>
+                </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="kundennr">Kunden-Nr.</Label>
                   <Input

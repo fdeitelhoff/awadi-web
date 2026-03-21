@@ -2,6 +2,7 @@
 export interface Kunde {
   id: number;
   kundennr?: string;
+  ist_kunde?: boolean;
   hat_aktiven_vertrag?: boolean;
 
   firma?: string;
@@ -25,7 +26,6 @@ export interface Kunde {
   email_secondary?: string;
   homepage?: string;
 
-  trace_mark?: number;
   last_update?: string;
   created_at: string;
 }
