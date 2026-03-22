@@ -49,7 +49,7 @@ export function VertragPicker({ kundenId, anlageId }: VertragPickerProps) {
     }).then((r) => {
       if (cancelled) return;
       setVertraege(r.data);
-      const first = r.data.find((v) => v.aktiv) ?? r.data[0] ?? null;
+      const first = r.data[0] ?? null;
       setSelected(first);
       setIsLoading(false);
     });
@@ -82,11 +82,6 @@ export function VertragPicker({ kundenId, anlageId }: VertragPickerProps) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium leading-snug">
             {selected.anlagen_nr ? `Anlage ${selected.anlagen_nr}` : `Vertrag #${selected.id}`}
-            {selected.aktiv && (
-              <span className="ml-2 text-xs font-normal text-green-700 dark:text-green-400">
-                Aktiv
-              </span>
-            )}
           </p>
           {dateRange && (
             <p className="text-xs text-muted-foreground mt-0.5">{dateRange}</p>
@@ -129,11 +124,6 @@ export function VertragPicker({ kundenId, anlageId }: VertragPickerProps) {
                     >
                       <p className="text-sm font-medium truncate">
                         {v.anlagen_nr ? `Anlage ${v.anlagen_nr}` : `Vertrag #${v.id}`}
-                        {v.aktiv && (
-                          <span className="ml-2 text-xs font-normal text-green-700 dark:text-green-400">
-                            Aktiv
-                          </span>
-                        )}
                       </p>
                       {dr && (
                         <p className="text-xs text-muted-foreground truncate mt-0.5">

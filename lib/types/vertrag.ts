@@ -3,12 +3,10 @@ export interface Vertrag {
   id: number;
   anlage_id: number;
   kunden_id?: number;
-  vertragsdatum?: string;
   gueltig_ab?: string;
   gueltig_bis?: string;
   anl_typ_id?: number;
   intervall_monate?: number;
-  aktiv: boolean;
   datum_naechste_wartung?: string;
   datum_letzte_wartung?: string;
   last_update?: string;
@@ -27,11 +25,8 @@ export type VertragSortField =
 
 export type SortDirection = "asc" | "desc";
 
-export type VertragFilterAktiv = "all" | "aktiv" | "inaktiv";
-
 export interface VertragQueryParams {
   search?: string;
-  filterAktiv?: VertragFilterAktiv;
   kundenId?: number;
   anlageId?: number;
   sortField?: VertragSortField;

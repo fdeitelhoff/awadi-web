@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -61,12 +60,10 @@ export function VertragEditForm({
   const [form, setForm] = useState<UpdateVertragInput>({
     anlage_id: vertrag.anlage_id,
     kunden_id: vertrag.kunden_id ?? null,
-    vertragsdatum: vertrag.vertragsdatum ?? "",
     gueltig_ab: vertrag.gueltig_ab ?? "",
     gueltig_bis: vertrag.gueltig_bis ?? "",
     anl_typ_id: vertrag.anl_typ_id ?? null,
     intervall_monate: vertrag.intervall_monate ?? undefined,
-    aktiv: vertrag.aktiv,
     datum_naechste_wartung: vertrag.datum_naechste_wartung ?? "",
     datum_letzte_wartung: vertrag.datum_letzte_wartung ?? "",
   });
@@ -182,24 +179,7 @@ export function VertragEditForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 items-end">
-              <div className="flex items-center gap-2 h-9">
-                <Checkbox
-                  id="aktiv"
-                  checked={form.aktiv}
-                  onCheckedChange={(checked) => set("aktiv", !!checked)}
-                />
-                <Label htmlFor="aktiv">Aktiv</Label>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="vertragsdatum">Vertragsdatum</Label>
-                <Input
-                  id="vertragsdatum"
-                  type="date"
-                  value={form.vertragsdatum}
-                  onChange={(e) => set("vertragsdatum", e.target.value)}
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="gueltig_ab">Gültig ab</Label>
                 <Input

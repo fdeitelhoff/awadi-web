@@ -3,7 +3,6 @@ import type {
   Vertrag,
   VertragQueryResult,
   VertragSortField,
-  VertragFilterAktiv,
 } from "@/lib/types/vertrag";
 
 const SORT_FIELD_TO_COLUMN: Record<VertragSortField, string> = {
@@ -29,12 +28,10 @@ export function mapRowToVertrag(row: Record<string, unknown>): Vertrag {
     id: row.id as number,
     anlage_id: row.anlage_id as number,
     kunden_id: row.kunden_id as number | undefined,
-    vertragsdatum: row.vertragsdatum as string | undefined,
     gueltig_ab: row.gueltig_ab as string | undefined,
     gueltig_bis: row.gueltig_bis as string | undefined,
     anl_typ_id: row.anl_typ_id as number | undefined,
     intervall_monate: row.intervall_monate as number | undefined,
-    aktiv: row.aktiv as boolean,
     datum_naechste_wartung: row.datum_naechste_wartung as string | undefined,
     datum_letzte_wartung: row.datum_letzte_wartung as string | undefined,
     last_update: row.last_update as string | undefined,
@@ -47,7 +44,6 @@ export function mapRowToVertrag(row: Record<string, unknown>): Vertrag {
 export async function getVertraege(
   params: {
     search?: string;
-    filterAktiv?: VertragFilterAktiv;
     kundenId?: number;
     anlageId?: number;
     sortField?: VertragSortField;
@@ -58,7 +54,6 @@ export async function getVertraege(
 ): Promise<VertragQueryResult> {
   const {
     search = "",
-    filterAktiv = "all",
     kundenId,
     anlageId,
     sortField = "gueltig_ab",
@@ -81,12 +76,6 @@ export async function getVertraege(
 
   if (anlageId != null) {
     query = query.eq("anlage_id", anlageId);
-  }
-
-  if (filterAktiv === "aktiv") {
-    query = query.eq("aktiv", true);
-  } else if (filterAktiv === "inaktiv") {
-    query = query.eq("aktiv", false);
   }
 
   const dbColumn = SORT_FIELD_TO_COLUMN[sortField] ?? "gueltig_ab";
