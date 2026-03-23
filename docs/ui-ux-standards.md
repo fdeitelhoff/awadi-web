@@ -49,7 +49,7 @@ Any field validated as required gets an asterisk in its `Label`, rendered in `te
 **Timing:** Validation runs on submit only. Error states clear **per-field** the moment the user makes any change to that field (`onChange`) — regardless of whether the new value is valid. Re-running field-level validation on `onChange` is not required.
 
 **On a failing field:**
-- The input receives `aria-required="true"` (always on required fields) and `aria-invalid={true}` (only when the field currently has an error)
+- The input receives `aria-required={true}` (always on required fields) and `aria-invalid={true}` (only when the field currently has an error)
 - `className` conditionally adds `border-destructive`
 - A `<p className="text-sm text-destructive mt-1">` error message appears directly below the input
 - No toast fires for this error
@@ -82,8 +82,6 @@ import { toast } from "sonner";
 - Never pass a `description` prop.
 - Never call `toast` inside a validation path — that path uses inline field errors.
 - `toast.error` is the exclusive mechanism for action-layer failures. `AlertDialog` is used only for pre-action confirmation, never to report errors. This applies to table-level errors (e.g. delete failure) too.
-
-> **Known deviation:** `components/dashboard/customer-table.tsx` currently reports delete failure via a second `AlertDialog` (`deleteError` state). This contradicts the rule above and is a known remediation item. New tables must use `toast.error` for delete failures.
 
 ---
 
