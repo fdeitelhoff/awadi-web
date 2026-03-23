@@ -128,11 +128,17 @@
     --chart-4: 199 45% 52%;
     --chart-5: 250 40% 58%;
     --radius: 0.5rem;
+    /* Nav tokens — dark shell */
+    --nav-background: 217 22% 20%;
+    --nav-foreground: 220 17% 90%;
+    --nav-border: 218 22% 30%;
+    --nav-item-hover: 218 22% 30%;
+    --nav-item-active: 217 23% 40%;
     /* AWADI Brand Colors */
-    --awadi-navy: 217 33% 34%;
-    --awadi-blue: 225 25% 46%;
-    --awadi-indigo: 229 35% 55%;
-    --awadi-slate: 220 18% 76%;
+    --awadi-navy: 217 22% 20%;
+    --awadi-blue: 222 29% 40%;
+    --awadi-indigo: 223 30% 50%;
+    --awadi-slate: 217 20% 70%;
     /* Status colors */
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
