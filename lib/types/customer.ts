@@ -34,6 +34,7 @@ export interface Kunde {
 export type Customer = Kunde;
 
 export type SortField =
+  | "ist_kunde"
   | "kundennr"
   | "nachname"
   | "vorname"

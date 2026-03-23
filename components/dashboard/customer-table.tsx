@@ -311,7 +311,15 @@ export function CustomerTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[70px]">Status</TableHead>
+              <TableHead className="w-[70px]">
+                <button
+                  onClick={() => handleSort("ist_kunde")}
+                  className="flex items-center font-medium hover:text-foreground"
+                >
+                  Status
+                  <SortIcon field="ist_kunde" />
+                </button>
+              </TableHead>
               <TableHead className="w-[100px]">
                 <button
                   onClick={() => handleSort("kundennr")}

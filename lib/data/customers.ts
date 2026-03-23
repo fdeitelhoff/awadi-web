@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Kunde, KundeQueryResult, KundeFilterAktiv, SortField } from "@/lib/types/customer";
 
 const SORT_FIELD_TO_COLUMN: Record<SortField, string> = {
+  ist_kunde: "ist_kunde",
   kundennr: "kundennr",
   nachname: "nachname",
   vorname: "vorname",

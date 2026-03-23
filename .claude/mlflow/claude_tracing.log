@@ -1,0 +1,3 @@
+2026-03-23 20:49:18,431 - mlflow.claude_code.tracing - CLAUDE_TRACING - Stop hook: session=fef8883f-03e5-4f64-b62d-d90da1883951, transcript=C:\Users\Fabia\.claude\projects\D--git-awadi-web\fef8883f-03e5-4f64-b62d-d90da1883951.jsonl
+2026-03-23 20:49:18,456 - mlflow.claude_code.tracing - CLAUDE_TRACING - Creating MLflow trace for session: fef8883f-03e5-4f64-b62d-d90da1883951
+2026-03-23 20:49:27,401 - mlflow.claude_code.tracing - CLAUDE_TRACING - Created MLflow trace: tr-5acfd8d4cf6772e0a8d30e761045c5fb
