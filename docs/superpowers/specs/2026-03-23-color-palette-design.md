@@ -160,14 +160,15 @@ The full color families are registered in `@theme inline` for Tailwind utility a
 
 **`components/dashboard/dashboard-nav.tsx`**
 - Replace `bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b`
-  with `bg-[var(--nav-background)] border-b border-[var(--nav-border)]`
-- Add `text-[var(--nav-foreground)]` to the `<header>` element
+  with `bg-[hsl(var(--nav-background))] border-b border-[hsl(var(--nav-border))]`
+- Add `text-[hsl(var(--nav-foreground))]` to the `<header>` element
 - Remove `backdrop-blur` (no longer needed on opaque dark surface)
-- Wrap `<ThemeSwitcher />` with `<div className="text-[var(--nav-foreground)]">` to override the hardcoded `text-muted-foreground` on its icons. Without this, the icons render at `charcoal-blue-600` on `charcoal-blue-800` background — a contrast ratio of ~2.1:1, failing WCAG AA. Note: `components/theme-switcher.tsx` itself is NOT modified; the override is applied at the call site in the nav.
+- Wrap `<ThemeSwitcher />` with `<div className="text-[hsl(var(--nav-foreground))]">` to override the hardcoded `text-muted-foreground` on its icons. Without this, the icons render at `charcoal-blue-600` on `charcoal-blue-800` background — a contrast ratio of ~2.1:1, failing WCAG AA. Note: `components/theme-switcher.tsx` itself is NOT modified; the override is applied at the call site in the nav.
+- Note on syntax: the `--nav-*` tokens are bare HSL triplets (e.g. `217 22% 20%`), so they must be wrapped in `hsl()` when used in Tailwind arbitrary values — `hsl(var(--nav-background))` not `var(--nav-background)` alone.
 
 **`components/dashboard/nav-items.tsx`**
-- Ghost button variant inherits text color from context — add explicit `text-[var(--nav-foreground)]` to inactive button variants so they render light text against the dark nav background
-- Active `variant="secondary"` button: override with `bg-[var(--nav-item-active)] text-[var(--nav-foreground)]`
+- Ghost button variant inherits text color from context via CSS cascade from the `<header>`'s `text-[hsl(var(--nav-foreground))]` — this is sufficient since the shadcn ghost variant sets no explicit text color
+- Active `variant="secondary"` button: override with `bg-[hsl(var(--nav-item-active))] text-[hsl(var(--nav-foreground))] hover:bg-[hsl(var(--nav-item-active))]/80`
 
 ### Files that do NOT change
 All other components inherit the updated semantic tokens automatically. No business logic, no status colors, no form components, no tables. Note: `components/dashboard/user-menu.tsx` uses `bg-awadi-blue` for the avatar fallback — this will shift from medium slate to `powder-blue-600` (`#4a5c82`), which remains readable (white text on it = 7.2:1 contrast) but is darker. Accepted as-is; can be fine-tuned in a follow-up.
