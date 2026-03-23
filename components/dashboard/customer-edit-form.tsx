@@ -70,6 +70,14 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
   const [initialValues, setInitialValues] = useState<UpdateKundeInput>(() => makeSnapshot(kunde));
   const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof UpdateKundeInput, string>>>({});
+
+  const clearError = (field: keyof UpdateKundeInput) =>
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
 
   const isDirty = JSON.stringify(form) !== JSON.stringify(initialValues);
 
@@ -80,13 +88,25 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
     if (!isDirty) return;
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
+      e.returnValue = "";
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
+  const validate = (): boolean => {
+    const next: Partial<Record<keyof UpdateKundeInput, string>> = {};
+    if (!form.nachname?.trim() && !form.firma?.trim()) {
+      next.nachname = "Nachname oder Firma ist erforderlich.";
+      next.firma = "Nachname oder Firma ist erforderlich.";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
   const performSave = async (): Promise<boolean> => {
     if (isSaving) return false;
+    if (!validate()) return false;
     setIsSaving(true);
     const result = await updateKunde(kunde.id, form);
     setIsSaving(false);
@@ -262,23 +282,44 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="nachname">Nachname</Label>
+                  <Label htmlFor="nachname">
+                    Nachname <span className="text-destructive" aria-hidden="true">*</span>
+                  </Label>
                   <Input
                     id="nachname"
                     value={form.nachname}
-                    onChange={(e) => set("nachname", e.target.value)}
+                    aria-required={true}
+                    aria-invalid={!!errors.nachname}
+                    onChange={(e) => {
+                      set("nachname", e.target.value);
+                      if (errors.nachname) clearError("nachname");
+                    }}
+                    className={errors.nachname ? "border-destructive" : ""}
                   />
+                  {errors.nachname && (
+                    <p className="text-sm text-destructive mt-1">{errors.nachname}</p>
+                  )}
                 </div>
               </div>
 
               {/* Firma */}
               <div className="space-y-1.5">
-                <Label htmlFor="firma">Firma</Label>
+                <Label htmlFor="firma">
+                  Firma <span className="text-destructive" aria-hidden="true">*</span>
+                </Label>
                 <Input
                   id="firma"
                   value={form.firma}
-                  onChange={(e) => set("firma", e.target.value)}
+                  aria-invalid={!!errors.firma}
+                  onChange={(e) => {
+                    set("firma", e.target.value);
+                    if (errors.firma) clearError("firma");
+                  }}
+                  className={errors.firma ? "border-destructive" : ""}
                 />
+                {errors.firma && (
+                  <p className="text-sm text-destructive mt-1">{errors.firma}</p>
+                )}
               </div>
 
             </CardContent>
