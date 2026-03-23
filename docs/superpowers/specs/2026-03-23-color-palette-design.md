@@ -32,22 +32,22 @@ All values expressed as HSL triplets for the existing `hsl(var(--token))` system
 | Token | Current HSL | New Color | Hex | New HSL (approx) |
 |---|---|---|---|---|
 | `--background` | 220 20% 97% | charcoal-blue-100 | #e0e4eb | 220 17% 90% |
-| `--foreground` | 217 33% 17% | charcoal-blue-900 | #14181f | 218 21% 10% |
-| `--card` | 220 25% 100% | charcoal-blue-50 | #eff2f5 | 210 18% 95% |
-| `--card-foreground` | 217 33% 17% | charcoal-blue-900 | #14181f | 218 21% 10% |
-| `--popover` | 220 25% 100% | charcoal-blue-50 | #eff2f5 | 210 18% 95% |
-| `--popover-foreground` | 217 33% 17% | charcoal-blue-900 | #14181f | 218 21% 10% |
-| `--primary` | 217 33% 34% | powder-blue-600 | #495c83 | 222 29% 40% |
-| `--primary-foreground` | 220 20% 98% | charcoal-blue-50 | #eff2f5 | 210 18% 95% |
-| `--secondary` | 220 18% 93% | charcoal-blue-200 | #c1c9d7 | 217 18% 80% |
+| `--foreground` | 217 33% 17% | charcoal-blue-900 | #14181f | 218 11% 10% |
+| `--card` | 220 25% 100% | charcoal-blue-50 | #eff2f5 | 210 23% 95% |
+| `--card-foreground` | 217 33% 17% | charcoal-blue-900 | #14181f | 218 11% 10% |
+| `--popover` | 220 25% 100% | charcoal-blue-50 | #eff2f5 | 210 23% 95% |
+| `--popover-foreground` | 217 33% 17% | charcoal-blue-900 | #14181f | 218 11% 10% |
+| `--primary` | 217 33% 34% | powder-blue-600 | #4a5c82 | 222 29% 40% |
+| `--primary-foreground` | 220 20% 98% | charcoal-blue-50 | #eff2f5 | 210 23% 95% |
+| `--secondary` | 220 18% 93% | charcoal-blue-200 | #c1c9d7 | 217 5% 80% |
 | `--secondary-foreground` | 217 33% 25% | charcoal-blue-800 | #28303e | 217 22% 20% |
-| `--muted` | 220 15% 94% | charcoal-blue-200 | #c1c9d7 | 217 18% 80% |
+| `--muted` | 220 15% 94% | charcoal-blue-200 | #c1c9d7 | 217 5% 80% |
 | `--muted-foreground` | 217 15% 46% | charcoal-blue-600 | #50617c | 217 23% 40% |
-| `--accent` | 229 35% 55% | powder-blue-500 | #5c72a3 | 223 30% 50% |
-| `--accent-foreground` | 220 20% 98% | charcoal-blue-50 | #eff2f5 | 210 18% 95% |
+| `--accent` | 229 35% 55% | powder-blue-500 | #5d73a2 | 223 30% 50% |
+| `--accent-foreground` | 220 20% 98% | charcoal-blue-50 | #eff2f5 | 210 23% 95% |
 | `--border` | 220 18% 88% | charcoal-blue-300 | #a2afc3 | 217 20% 70% |
 | `--input` | 220 18% 88% | charcoal-blue-300 | #a2afc3 | 217 20% 70% |
-| `--ring` | 217 33% 34% | powder-blue-500 | #5c72a3 | 223 30% 50% |
+| `--ring` | 217 33% 34% | powder-blue-500 | #5d73a2 | 223 30% 50% |
 
 **Destructive, chart tokens:** unchanged.
 
@@ -77,7 +77,7 @@ New tokens added to `:root` in `globals.css`:
 
 **Nav contrast:** nav-foreground on nav-background = 12.4:1 (AAA).
 
-**Dark mode nav:** `--nav-background` falls back to matching `--background` (already dark), so no dark mode override needed.
+**Dark mode nav:** `--nav-background` is only defined in `:root`. In dark mode it inherits the `:root` value (`charcoal-blue-800`) and will appear slightly lighter than the dark page background — a subtle raised-nav effect, acceptable for now. A proper dark mode override can be added in a future palette iteration.
 
 ---
 
@@ -141,7 +141,7 @@ The full color families are registered in `@theme inline` for Tailwind utility a
 | Token | Old | New |
 |---|---|---|
 | `--awadi-navy` | 217 33% 34% | charcoal-blue-800 → 217 22% 20% |
-| `--awadi-blue` | 225 25% 46% | powder-blue-600 → 222 29% 40% |
+| `--awadi-blue` | 225 25% 46% | powder-blue-600 (#4a5c82) → 222 29% 40% |
 | `--awadi-indigo` | 229 35% 55% | powder-blue-500 → 223 30% 50% |
 | `--awadi-slate` | 220 18% 76% | charcoal-blue-300 → 217 20% 70% |
 
@@ -163,13 +163,14 @@ The full color families are registered in `@theme inline` for Tailwind utility a
   with `bg-[var(--nav-background)] border-b border-[var(--nav-border)]`
 - Add `text-[var(--nav-foreground)]` to the `<header>` element
 - Remove `backdrop-blur` (no longer needed on opaque dark surface)
+- Wrap `<ThemeSwitcher />` with `<div className="text-[var(--nav-foreground)]">` to override the hardcoded `text-muted-foreground` on its icons. Without this, the icons render at `charcoal-blue-600` on `charcoal-blue-800` background — a contrast ratio of ~2.1:1, failing WCAG AA. Note: `components/theme-switcher.tsx` itself is NOT modified; the override is applied at the call site in the nav.
 
 **`components/dashboard/nav-items.tsx`**
 - Ghost button variant inherits text color from context — add explicit `text-[var(--nav-foreground)]` to inactive button variants so they render light text against the dark nav background
 - Active `variant="secondary"` button: override with `bg-[var(--nav-item-active)] text-[var(--nav-foreground)]`
 
 ### Files that do NOT change
-Everything else. All other components inherit the updated semantic tokens automatically. No business logic, no status colors, no form components, no tables.
+All other components inherit the updated semantic tokens automatically. No business logic, no status colors, no form components, no tables. Note: `components/dashboard/user-menu.tsx` uses `bg-awadi-blue` for the avatar fallback — this will shift from medium slate to `powder-blue-600` (`#4a5c82`), which remains readable (white text on it = 7.2:1 contrast) but is darker. Accepted as-is; can be fine-tuned in a follow-up.
 
 ---
 
