@@ -105,20 +105,20 @@ export function GlobalSearch() {
     <div ref={containerRef} className="relative w-full">
       <form onSubmit={handleSubmit}>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--nav-foreground))]/60 pointer-events-none" />
           <Input
             type="text"
             placeholder="Suchen… (Enter)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="pl-9 pr-8 h-9 w-full bg-muted/50"
+            className="pl-9 pr-8 h-9 w-full bg-white/15 text-[hsl(var(--nav-foreground))] placeholder:text-[hsl(var(--nav-foreground))]/60 border-[hsl(var(--nav-border))] focus-visible:ring-[hsl(var(--nav-foreground))]/30"
           />
           {query && (
             <button
               type="button"
               onClick={handleClear}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[hsl(var(--nav-foreground))]/60 hover:text-[hsl(var(--nav-foreground))] transition-colors"
               aria-label="Suche leeren"
             >
               <X className="h-4 w-4" />
