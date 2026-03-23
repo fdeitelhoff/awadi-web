@@ -239,7 +239,7 @@ export function CustomerCreateForm() {
                   <Input
                     id="nachname"
                     value={form.nachname}
-                    aria-required="true"
+                    aria-required={true}
                     aria-invalid={!!errors.nachname}
                     onChange={(e) => {
                       set("nachname", e.target.value);
