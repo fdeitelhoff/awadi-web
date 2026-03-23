@@ -99,28 +99,28 @@
   :root {
     /* AWADI Light Theme - Based on logo colors */
     /* Slate blue and indigo tones */
-    --background: 220 20% 97%;
-    --foreground: 217 33% 17%;
-    --card: 220 25% 100%;
-    --card-foreground: 217 33% 17%;
-    --popover: 220 25% 100%;
-    --popover-foreground: 217 33% 17%;
-    /* Primary: Dark slate blue from logo text */
-    --primary: 217 33% 34%;
-    --primary-foreground: 220 20% 98%;
-    /* Secondary: Muted blue-gray */
-    --secondary: 220 18% 93%;
-    --secondary-foreground: 217 33% 25%;
-    --muted: 220 15% 94%;
-    --muted-foreground: 217 15% 46%;
-    /* Accent: Medium indigo from logo circles */
-    --accent: 229 35% 55%;
-    --accent-foreground: 220 20% 98%;
+    --background: 220 17% 90%;
+    --foreground: 218 11% 10%;
+    --card: 210 23% 95%;
+    --card-foreground: 218 11% 10%;
+    --popover: 210 23% 95%;
+    --popover-foreground: 218 11% 10%;
+    /* Primary: powder-blue-600 */
+    --primary: 222 29% 40%;
+    --primary-foreground: 210 23% 95%;
+    /* Secondary: charcoal-blue-200 */
+    --secondary: 217 5% 80%;
+    --secondary-foreground: 217 22% 20%;
+    --muted: 217 5% 80%;
+    --muted-foreground: 217 23% 40%;
+    /* Accent: powder-blue-500 */
+    --accent: 223 30% 50%;
+    --accent-foreground: 210 23% 95%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 18% 88%;
-    --input: 220 18% 88%;
-    --ring: 217 33% 34%;
+    --border: 217 20% 70%;
+    --input: 217 20% 70%;
+    --ring: 223 30% 50%;
     /* Chart colors - AWADI brand spectrum */
     --chart-1: 217 33% 34%;
     --chart-2: 229 35% 55%;
