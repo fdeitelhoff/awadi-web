@@ -9,7 +9,7 @@ import { GlobalSearch } from "./global-search";
 
 export function DashboardNav() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-[hsl(var(--nav-background))] border-[hsl(var(--nav-border))] text-[hsl(var(--nav-foreground))]">
       <div className="flex h-14 items-center px-4 gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -59,7 +59,9 @@ export function DashboardNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 shrink-0">
-          <ThemeSwitcher />
+          <div className="text-[hsl(var(--nav-foreground))]">
+            <ThemeSwitcher />
+          </div>
           <Suspense
             fallback={
               <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
