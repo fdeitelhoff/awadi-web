@@ -59,7 +59,7 @@ export function NavItems() {
         variant={isMaintenance ? "secondary" : "ghost"}
         size="sm"
         asChild
-        className="gap-2 cursor-pointer"
+        className={`gap-2 cursor-pointer text-[hsl(var(--nav-foreground))] hover:text-[hsl(var(--nav-foreground))] ${isMaintenance ? "bg-[hsl(var(--nav-item-active))] hover:bg-[hsl(var(--nav-item-active))]/80" : ""}`}
       >
         <Link href="/">
           <Wrench className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function NavItems() {
         variant={isTickets ? "secondary" : "ghost"}
         size="sm"
         asChild
-        className="gap-2 cursor-pointer"
+        className={`gap-2 cursor-pointer text-[hsl(var(--nav-foreground))] hover:text-[hsl(var(--nav-foreground))] ${isTickets ? "bg-[hsl(var(--nav-item-active))] hover:bg-[hsl(var(--nav-item-active))]/80" : ""}`}
       >
         <Link href="/tickets">
           <Ticket className="h-4 w-4" />
@@ -86,7 +86,7 @@ export function NavItems() {
           <Button
             variant={isMasterData ? "secondary" : "ghost"}
             size="sm"
-            className="gap-2 cursor-pointer"
+            className={`gap-2 cursor-pointer text-[hsl(var(--nav-foreground))] hover:text-[hsl(var(--nav-foreground))] ${isMasterData ? "bg-[hsl(var(--nav-item-active))] hover:bg-[hsl(var(--nav-item-active))]/80" : ""}`}
           >
             <Database className="h-4 w-4" />
             <span className="hidden md:inline">Stammdaten</span>
@@ -118,7 +118,7 @@ export function NavItems() {
           <Button
             variant={isSettings ? "secondary" : "ghost"}
             size="sm"
-            className="gap-2 cursor-pointer"
+            className={`gap-2 cursor-pointer text-[hsl(var(--nav-foreground))] hover:text-[hsl(var(--nav-foreground))] ${isSettings ? "bg-[hsl(var(--nav-item-active))] hover:bg-[hsl(var(--nav-item-active))]/80" : ""}`}
           >
             <Settings className="h-4 w-4" />
             <span className="hidden md:inline">Einstellungen</span>
