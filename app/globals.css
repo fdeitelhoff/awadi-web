@@ -45,6 +45,54 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+  /* AWADI Logo Palette — charcoal-blue family */
+  --color-charcoal-blue-50: #eff2f5;
+  --color-charcoal-blue-100: #e0e4eb;
+  --color-charcoal-blue-200: #c1c9d7;
+  --color-charcoal-blue-300: #a2afc3;
+  --color-charcoal-blue-400: #8394af;
+  --color-charcoal-blue-500: #63799c;
+  --color-charcoal-blue-600: #50617c;
+  --color-charcoal-blue-700: #3c495d;
+  --color-charcoal-blue-800: #28303e;
+  --color-charcoal-blue-900: #14181f;
+  --color-charcoal-blue-950: #0e1116;
+  /* glaucous family */
+  --color-glaucous-50: #f0f1f5;
+  --color-glaucous-100: #e1e3ea;
+  --color-glaucous-200: #c2c7d6;
+  --color-glaucous-300: #a4acc1;
+  --color-glaucous-400: #8690ac;
+  --color-glaucous-500: #677498;
+  --color-glaucous-600: #535d79;
+  --color-glaucous-700: #3e465b;
+  --color-glaucous-800: #292e3d;
+  --color-glaucous-900: #15171e;
+  --color-glaucous-950: #0e1015;
+  /* powder-blue family */
+  --color-powder-blue-50: #eff1f6;
+  --color-powder-blue-100: #dfe3ec;
+  --color-powder-blue-200: #bec7da;
+  --color-powder-blue-300: #9eabc7;
+  --color-powder-blue-400: #7d8fb5;
+  --color-powder-blue-500: #5d73a2;
+  --color-powder-blue-600: #4a5c82;
+  --color-powder-blue-700: #384561;
+  --color-powder-blue-800: #252e41;
+  --color-powder-blue-900: #131720;
+  --color-powder-blue-950: #0d1017;
+  /* pale-slate family */
+  --color-pale-slate-50: #eff1f6;
+  --color-pale-slate-100: #dfe3ec;
+  --color-pale-slate-200: #bfc7d9;
+  --color-pale-slate-300: #9fabc6;
+  --color-pale-slate-400: #7e8fb4;
+  --color-pale-slate-500: #5e73a1;
+  --color-pale-slate-600: #4b5c81;
+  --color-pale-slate-700: #394560;
+  --color-pale-slate-800: #262e40;
+  --color-pale-slate-900: #131720;
+  --color-pale-slate-950: #0d1016;
 }
 
 @layer base {
