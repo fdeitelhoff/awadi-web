@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -72,7 +73,6 @@ export function CustomerTable({
   const [isLoading, setIsLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const router = useRouter();
   const isInitialRender = useRef(true);
@@ -90,7 +90,6 @@ export function CustomerTable({
 
   const handleDeleteClick = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    setDeleteError(null);
     setPendingDeleteId(id);
   };
 
@@ -103,8 +102,9 @@ export function CustomerTable({
     if (result.success) {
       setKunden((prev) => prev.filter((k) => k.id !== id));
       setTotalCount((c) => c - 1);
+      toast.success("Kunde gelöscht");
     } else {
-      setDeleteError(result.error ?? "Löschen fehlgeschlagen.");
+      toast.error(result.error ?? "Löschen fehlgeschlagen.");
     }
     setDeletingId(null);
   };
@@ -288,23 +288,6 @@ export function CustomerTable({
           </Button>
         </div>
       </div>
-
-      <AlertDialog
-        open={deleteError !== null}
-        onOpenChange={(open) => { if (!open) setDeleteError(null); }}
-      >
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Löschen fehlgeschlagen</AlertDialogTitle>
-            <AlertDialogDescription>{deleteError}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setDeleteError(null)}>
-              OK
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Table — flex-1 min-h-0 fills the space between toolbar and pagination */}
       <div className="rounded-md border overflow-auto flex-1 min-h-0">
