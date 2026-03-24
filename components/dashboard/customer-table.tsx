@@ -42,6 +42,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
+  Loader2,
 } from "lucide-react";
 
 const PAGE_SIZE = 14;
@@ -458,6 +459,9 @@ export function CustomerTable({
                         disabled={deletingId === kunde.id}
                         onClick={(e) => handleDeleteClick(e, kunde.id)}
                       >
+                        {deletingId === kunde.id && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
                         Löschen
                       </Button>
                     </TableCell>

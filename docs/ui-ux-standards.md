@@ -96,6 +96,26 @@ import { toast } from "sonner";
 
 The `Loader2` import comes from `lucide-react`. The button must be `disabled` while the spinner is visible to prevent double-submission.
 
+**Per-row delete button pattern** (controlled by `deletingId: number | null`):
+
+```tsx
+const [deletingId, setDeletingId] = useState<number | null>(null);
+
+<Button
+  variant="destructive"
+  size="sm"
+  disabled={deletingId === item.id}
+  onClick={(e) => handleDeleteClick(e, item.id)}
+>
+  {deletingId === item.id && (
+    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+  )}
+  Löschen
+</Button>
+```
+
+Only the row currently being deleted shows a spinner; all other rows' delete buttons remain fully interactive.
+
 ---
 
 ### 2.5 Destructive actions
