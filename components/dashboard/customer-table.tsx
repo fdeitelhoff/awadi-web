@@ -41,6 +41,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Plus,
   Loader2,
 } from "lucide-react";
@@ -232,6 +234,16 @@ export function CustomerTable({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Erste Seite"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1 || isLoading}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Vorherige Seite"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1 || isLoading}
               >
@@ -243,10 +255,20 @@ export function CustomerTable({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Nächste Seite"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages || isLoading}
               >
                 <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Letzte Seite"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages || isLoading}
+              >
+                <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>
           )}

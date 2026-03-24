@@ -344,6 +344,52 @@ See `components/dashboard/customer-table.tsx` (the loading branch inside `TableB
 
 ---
 
+### 3.9 Pagination — data tables
+
+Every paginated data table must render four navigation buttons in this order: **first · prev · [page indicator] · next · last**.
+
+```tsx
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+
+{totalPages > 1 && (
+  <div className="flex items-center gap-1 ml-2">
+    <Button variant="outline" size="sm" aria-label="Erste Seite"
+      onClick={() => setCurrentPage(1)}
+      disabled={currentPage === 1 || isLoading}>
+      <ChevronsLeft className="h-4 w-4" />
+    </Button>
+    <Button variant="outline" size="sm" aria-label="Vorherige Seite"
+      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+      disabled={currentPage === 1 || isLoading}>
+      <ChevronLeft className="h-4 w-4" />
+    </Button>
+    <span className="text-sm text-muted-foreground tabular-nums px-1">
+      Seite <b>{currentPage}</b> von <b>{totalPages}</b>
+    </span>
+    <Button variant="outline" size="sm" aria-label="Nächste Seite"
+      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+      disabled={currentPage === totalPages || isLoading}>
+      <ChevronRight className="h-4 w-4" />
+    </Button>
+    <Button variant="outline" size="sm" aria-label="Letzte Seite"
+      onClick={() => setCurrentPage(totalPages)}
+      disabled={currentPage === totalPages || isLoading}>
+      <ChevronsRight className="h-4 w-4" />
+    </Button>
+  </div>
+)}
+```
+
+**Rules:**
+- All four buttons are always rendered together — never omit first/last.
+- Each button carries an `aria-label` (German) for screen readers since it is icon-only.
+- First and prev are `disabled` when `currentPage === 1`; next and last when `currentPage === totalPages`. Both also disable during a loading fetch.
+- Page indicator wording: `Seite <b>{currentPage}</b> von <b>{totalPages}</b>` with `tabular-nums` to prevent the label from shifting width.
+- The entire pagination block is only rendered when `totalPages > 1`.
+- `currentPage` resets to `1` on any filter, sort, or search change.
+
+---
+
 ## 4. Scope note
 
 This document covers desktop viewport usage. Responsive / mobile behavior is not currently specified — AWADI is a desktop-first application. Any future mobile work requires a separate addendum to this document before implementation begins.
