@@ -413,6 +413,78 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-r
 
 ---
 
+### 3.10 Skeleton — form page Suspense fallback
+
+Form pages that load data server-side (edit forms) use a `Suspense` fallback skeleton defined inline in the page file. The skeleton must structurally mirror the form it replaces.
+
+**Header area** — matches the form's page header exactly:
+
+```tsx
+<div>
+  {/* Ghost sm back button — h-8 matches Button size="sm" */}
+  <Skeleton className="h-8 w-16 mb-2" />
+  <div className="flex items-center justify-between gap-4">
+    <div className="space-y-1.5">
+      <Skeleton className="h-8 w-56" />  {/* h1 text-2xl */}
+      <Skeleton className="h-4 w-80" />  {/* meta subtitle */}
+    </div>
+    <Skeleton className="h-9 w-24" />    {/* save button */}
+  </div>
+</div>
+```
+
+**Cards grid** — use the same `grid-cols-2 gap-6` as the form, one `<Skeleton>` per card:
+
+```tsx
+<div className="grid grid-cols-2 gap-6">
+  <Skeleton className="h-96 rounded-lg" />       {/* Stammdaten  — 4 field rows */}
+  <Skeleton className="h-[300px] rounded-lg" />  {/* Adresse     — 3 field rows */}
+  <Skeleton className="h-96 rounded-lg" />       {/* Kontakt     — 4 field rows */}
+  <Skeleton className="h-56 rounded-lg" />       {/* Anmerkungen — empty state  */}
+</div>
+```
+
+**Card height formula** (for new cards):
+```
+CardHeader (~56px) + (rows × 62px) + ((rows − 1) × 16px) + 24px bottom padding
+```
+Where each field row = Label (20px) + space-y-1.5 (6px) + Input h-9 (36px) = **62px**, and `space-y-4` gaps = **16px** each.
+
+| Row count | Approximate height | Tailwind class |
+|---|---|---|
+| 3 rows | ~298px | `h-[300px]` |
+| 4 rows | ~376px | `h-96` (384px) |
+| Empty-state card (icon + text) | ~208px | `h-56` (224px) |
+
+**Rules:**
+- Always use `rounded-lg` — matches the shadcn `Card` default radius (`rounded-xl` is wrong).
+- The back button skeleton is always `h-8` — it mirrors a `Button` with `size="sm"` (32px).
+- Client-only create forms (no async data loading) do not need a Suspense skeleton.
+- The `Loading()` default export uses the same flex container as the page (`flex flex-col flex-1 min-h-0 p-6 gap-4`) so the skeleton occupies identical space.
+
+---
+
+### 3.11 Skeleton — list page (`MasterDataSkeleton`)
+
+All master-data list pages use `MasterDataSkeleton` as their `Suspense` fallback. It mirrors the exact layout of a list page: page header + table toolbar + 14 skeleton rows.
+
+```
+Fragment:
+  ├── shrink-0 div: h1 skeleton + subtitle skeleton
+  └── flex flex-col min-h-0 flex-1:
+        ├── toolbar div (pb-4): search (w-64) + Suchen btn | filter selects + action btn
+        └── rounded-md border overflow-hidden flex-1:
+              14 × h-[46px] rows with varied-width skeleton cells
+```
+
+**Rules:**
+- Row count must equal `PAGE_SIZE` (14) and row height must equal `ROW_HEIGHT` (`h-[46px]`). Update if either constant changes.
+- Toolbar skeleton must approximate the actual toolbar: left group (search + primary action) and right group (filter selects + new-record button).
+- Do not render skeleton stat cards or other UI elements that do not exist in the actual page.
+- `Loading()` uses `<div className="flex flex-col flex-1 min-h-0 p-6 gap-4">` — identical to `CustomersPage` — so the skeleton occupies the same space.
+
+---
+
 ## 4. Scope note
 
 This document covers desktop viewport usage. Responsive / mobile behavior is not currently specified — AWADI is a desktop-first application. Any future mobile work requires a separate addendum to this document before implementation begins.

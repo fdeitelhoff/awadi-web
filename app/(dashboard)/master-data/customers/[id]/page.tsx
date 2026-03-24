@@ -17,9 +17,10 @@ async function CustomerDetail({ id }: { id: number }) {
 function CustomerDetailSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-24" />
-        <div className="flex items-center justify-between">
+      {/* Header: back button + title/meta + save button */}
+      <div>
+        <Skeleton className="h-8 w-16 mb-2" />
+        <div className="flex items-center justify-between gap-4">
           <div className="space-y-1.5">
             <Skeleton className="h-8 w-56" />
             <Skeleton className="h-4 w-80" />
@@ -27,11 +28,15 @@ function CustomerDetailSkeleton() {
           <Skeleton className="h-9 w-24" />
         </div>
       </div>
+      {/* Cards grid — heights derived from actual card content:
+           CardHeader (~56px) + rows×62px + gaps×16px + 24px bottom padding
+           Stammdaten: 4 rows → ~376px  Adresse: 3 rows → ~298px
+           Kontakt:    4 rows → ~376px  Anmerkungen: empty state → ~208px  */}
       <div className="grid grid-cols-2 gap-6">
-        <Skeleton className="h-72 rounded-xl" />
-        <Skeleton className="h-72 rounded-xl" />
-        <Skeleton className="h-64 rounded-xl" />
-        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-96 rounded-lg" />
+        <Skeleton className="h-[300px] rounded-lg" />
+        <Skeleton className="h-96 rounded-lg" />
+        <Skeleton className="h-56 rounded-lg" />
       </div>
     </div>
   );
