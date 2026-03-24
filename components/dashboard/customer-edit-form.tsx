@@ -100,6 +100,15 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
       next.nachname = "Nachname oder Firma ist erforderlich.";
       next.firma = "Nachname oder Firma ist erforderlich.";
     }
+    if (form.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      next.email = "Bitte eine gültige E-Mail-Adresse eingeben.";
+    }
+    if (form.email_secondary?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email_secondary.trim())) {
+      next.email_secondary = "Bitte eine gültige E-Mail-Adresse eingeben.";
+    }
+    if (form.homepage?.trim() && !/^https?:\/\/.+\..+/.test(form.homepage.trim())) {
+      next.homepage = "Bitte eine gültige URL eingeben (z. B. https://example.de).";
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -176,7 +185,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
         onLeave={handleLeave}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
 
         {/* ── Page header ──────────────────────────────────────────── */}
         <div>
@@ -445,8 +454,16 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                     id="email"
                     type="email"
                     value={form.email}
-                    onChange={(e) => set("email", e.target.value)}
+                    aria-invalid={!!errors.email}
+                    onChange={(e) => {
+                      set("email", e.target.value);
+                      if (errors.email) clearError("email");
+                    }}
+                    className={errors.email ? "border-destructive" : ""}
                   />
+                  {errors.email && (
+                    <p className="text-sm text-destructive mt-1">{errors.email}</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="email_secondary">E-Mail (geschäftlich)</Label>
@@ -454,8 +471,16 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                     id="email_secondary"
                     type="email"
                     value={form.email_secondary}
-                    onChange={(e) => set("email_secondary", e.target.value)}
+                    aria-invalid={!!errors.email_secondary}
+                    onChange={(e) => {
+                      set("email_secondary", e.target.value);
+                      if (errors.email_secondary) clearError("email_secondary");
+                    }}
+                    className={errors.email_secondary ? "border-destructive" : ""}
                   />
+                  {errors.email_secondary && (
+                    <p className="text-sm text-destructive mt-1">{errors.email_secondary}</p>
+                  )}
                 </div>
               </div>
 
@@ -465,9 +490,17 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                   id="homepage"
                   type="url"
                   value={form.homepage}
-                  onChange={(e) => set("homepage", e.target.value)}
+                  aria-invalid={!!errors.homepage}
+                  onChange={(e) => {
+                    set("homepage", e.target.value);
+                    if (errors.homepage) clearError("homepage");
+                  }}
+                  className={errors.homepage ? "border-destructive" : ""}
                   placeholder="https://"
                 />
+                {errors.homepage && (
+                  <p className="text-sm text-destructive mt-1">{errors.homepage}</p>
+                )}
               </div>
             </CardContent>
           </Card>

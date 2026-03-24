@@ -167,6 +167,29 @@ Every create and edit form must implement the full dirty-state guard:
 
 ---
 
+### 2.8 Browser-native validation suppression
+
+All `<form>` elements must carry the `noValidate` attribute. This disables the browser's built-in constraint validation popups (triggered by `type="email"`, `type="url"`, and the `required` attribute), so that every validation signal is handled by our inline-error and toast system instead.
+
+```tsx
+<form onSubmit={handleSubmit} className="…" noValidate>
+```
+
+**Preserve semantic input types** — keep `type="email"`, `type="url"`, `type="tel"` etc. They provide autofill hints, accessibility semantics, and mobile keyboard optimisation. Only the browser's enforcement is suppressed; our `validate()` function takes over.
+
+**Note on `type="tel"`:** browsers never show a popup for telephone fields regardless of `noValidate`, so no custom validation is needed for format — only require-field checks if applicable.
+
+**Format validation for optional fields** (validate only when the field is non-empty):
+
+| Field type | Regex | Error message |
+|---|---|---|
+| E-Mail | `/^[^\s@]+@[^\s@]+\.[^\s@]+$/` | `"Bitte eine gültige E-Mail-Adresse eingeben."` |
+| URL / Homepage | `/^https?:\/\/.+\..+/` | `"Bitte eine gültige URL eingeben (z. B. https://example.de)."` |
+
+These format checks follow the same inline-error pattern as required-field checks (§2.2): `aria-invalid`, `border-destructive`, `clearError` on `onChange`, error paragraph below the input. No toast fires for format errors.
+
+---
+
 ## 3. Component Notes
 
 ### 3.1 Input — error variant
