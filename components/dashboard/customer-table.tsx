@@ -212,7 +212,10 @@ export function CustomerTable({
               placeholder="Kunden suchen…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+                if (e.key === "Escape") handleClear();
+              }}
               className="pl-8 pr-8 w-full"
             />
             {searchQuery && (

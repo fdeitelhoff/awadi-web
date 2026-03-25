@@ -190,6 +190,39 @@ These format checks follow the same inline-error pattern as required-field check
 
 ---
 
+### 2.9 Search input keyboard shortcuts
+
+All search inputs in data tables must support two keyboard shortcuts:
+
+| Key | Action |
+|---|---|
+| `Enter` | Triggers the search (same as clicking the "Suchen" button) |
+| `Escape` | Clears both the input value and the active search, resets to page 1 |
+
+```tsx
+<Input
+  placeholder="Suchen…"
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") handleSearch();
+    if (e.key === "Escape") handleClear();
+  }}
+/>
+```
+
+`handleClear` must reset both `searchQuery` (the input value) and `activeSearch` (the committed search term that drives the data fetch), and reset `currentPage` to `1`.
+
+```tsx
+const handleClear = () => {
+  setSearchQuery("");
+  setActiveSearch("");
+  setCurrentPage(1);
+};
+```
+
+---
+
 ## 3. Component Notes
 
 ### 3.1 Input — error variant
