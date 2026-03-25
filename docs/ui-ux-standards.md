@@ -1229,6 +1229,126 @@ All confirmation and destructive dialogs:
 
 ---
 
-## 5. Scope note
+## 5. E2E Testing with Playwright
+
+Every data table and form page that introduces a new UI/UX pattern must be accompanied by Playwright tests. Tests are the living proof that the standards in §2 and §3 are actually implemented — they are not optional.
+
+---
+
+### 5.1 Setup
+
+**Test directory structure:**
+```
+tests/
+└── e2e/
+    ├── setup/
+    │   └── auth.setup.ts      # logs in once, saves session to .auth/user.json
+    ├── .auth/
+    │   └── .gitkeep           # directory tracked; user.json is gitignored
+    ├── customer-table.spec.ts
+    └── [entity]-table.spec.ts  # one spec file per entity / page
+```
+
+**Run tests:**
+```bash
+pnpm test       # headless (requires dev server running)
+pnpm test:ui    # Playwright UI explorer
+```
+
+**Required env vars** (add to `.env.local`):
+```
+TEST_USER_EMAIL=your-test-user@example.com
+TEST_USER_PASSWORD=your-test-user-password
+```
+
+The Playwright config loads `.env.local` via `dotenv` automatically — no separate `.env.test` file needed.
+
+---
+
+### 5.2 Auth pattern
+
+Auth is handled once in the global setup project. Every test in the `chromium` project automatically receives the saved session via `storageState`. No individual test needs to log in.
+
+```ts
+// tests/e2e/setup/auth.setup.ts
+import { test as setup } from "@playwright/test";
+import path from "path";
+
+const authFile = path.join(__dirname, "../.auth/user.json");
+
+setup("authenticate", async ({ page }) => {
+  await page.goto("/auth/login");
+  await page.getByLabel("Email").fill(process.env.TEST_USER_EMAIL!);
+  await page.getByLabel("Password").fill(process.env.TEST_USER_PASSWORD!);
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/auth/"), { timeout: 15_000 });
+  await page.context().storageState({ path: authFile });
+});
+```
+
+---
+
+### 5.3 What to test per entity
+
+Every entity with a list page and edit/create form must cover the following standards:
+
+| Standard | What to assert |
+|---|---|
+| §3.17 Record count heading | `h1` text matches `/^EntityName \(\d[\d.]*\)$/` |
+| §2.5 Button intent colors | "Neuer …" button class contains `success`; clicking navigates to `/new` |
+| §2.10 Search keyboard shortcuts | Enter triggers search; Escape clears the input |
+| §2.7 Empty state | Searching for a non-existent term shows `"Keine … gefunden."` |
+| §2.6 Destructive delete | "Löschen" opens AlertDialog; "Abbrechen" closes it without mutating data |
+| §3.9 Pagination aria-labels | 4 buttons visible with correct German `aria-label`s; first/prev disabled on page 1 |
+| §3.15 Clickable rows | Clicking a row navigates to `/entity/{id}` |
+
+Tests for §3.9, §3.15, and the delete tests are data-dependent (they need at least one row). Use a conditional guard:
+
+```ts
+const firstRow = page.locator("tbody tr[class*='cursor-pointer']").first();
+if (!(await firstRow.isVisible())) { test.skip(); return; }
+```
+
+---
+
+### 5.4 Naming convention
+
+Test names must reference the standard section they verify, making failures immediately traceable:
+
+```ts
+test("§3.17 heading shows total count in 'Kunden (N)' format", ...)
+test("§2.5 'Neuer Kunde' button has success variant styling", ...)
+test("§2.6 'Abbrechen' in the delete dialog closes it without deleting", ...)
+```
+
+---
+
+### 5.5 What NOT to test via Playwright
+
+- **Server Action success paths** (save, create, delete confirmation) — these hit the real database. Test the cancel / error path instead; trust the server action unit test or manual verification for the success path.
+- **Toast content** — Sonner toasts render in a portal; they are not reliably selectable across browsers in CI. The standard that a toast fires on success/failure is enforced by code review, not automation.
+- **Exact pixel values or computed colors** — fragile. Assert CSS class names (`bg-success`, `text-destructive`) rather than computed styles.
+- **Skeleton loading state timing** — skeletons are transitional and race-prone. `beforeEach` waits for the skeleton to resolve before any test assertion runs.
+
+---
+
+### 5.6 beforeEach pattern for data tables
+
+Every table spec waits for the loading skeleton to resolve before running any assertion. Use the `or()` locator to cover both the empty-state and the data-state:
+
+```ts
+test.beforeEach(async ({ page }) => {
+  await page.goto("/master-data/customers");
+  await expect(
+    page.getByRole("cell", { name: "Keine … gefunden." }).or(
+      page.locator("tbody tr[class*='cursor-pointer']").first()
+    )
+  ).toBeVisible({ timeout: 10_000 });
+});
+```
+
+---
+
+## 6. Scope note
 
 This document covers desktop viewport usage. Responsive / mobile behavior is not currently specified — AWADI is a desktop-first application. Any future mobile work requires a separate addendum to this document before implementation begins.
