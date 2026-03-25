@@ -270,6 +270,260 @@ const performSave = async (): Promise<boolean> => {
 
 ---
 
+### 2.12 Form library: React Hook Form + Zod
+
+All forms in this project use **React Hook Form** (RHF) with **Zod** validation and the shadcn **`Form`** component layer. This stack replaces the previous hand-rolled `useState` + manual `validate()` approach.
+
+**Installed packages:**
+```bash
+pnpm add react-hook-form zod @hookform/resolvers
+# shadcn Form component — already present at components/ui/form.tsx
+```
+
+> **Import note:** Use `import { z } from "zod/v3"` in schema files. `zod/v3` is a sub-path export
+> *inside* the installed Zod v4 package — not a downgrade or separate install. It avoids a
+> TypeScript type-level mismatch between `@hookform/resolvers` (compiled against Zod 4.0.x) and
+> Zod 4.3.x, which changed an internal version literal type.
+
+---
+
+#### Schema (one file per entity)
+
+Every entity schema lives in `lib/schemas/[entity].ts` and exports three things:
+
+```ts
+// lib/schemas/customer.ts
+import { z } from "zod/v3";          // see import note above
+import type { EntityType } from "@/lib/types/entity";
+
+export const entitySchema = z.object({
+  name:  z.string(),
+  email: z.string().refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), {
+    message: "Bitte eine gültige E-Mail-Adresse eingeben.",
+  }),
+  // ...
+}).superRefine((data, ctx) => {
+  // mutual-exclusion or cross-field rules
+  if (!data.field1.trim() && !data.field2.trim()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "…", path: ["field1"] });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "…", path: ["field2"] });
+  }
+});
+
+export type EntityFormValues = z.infer<typeof entitySchema>;
+
+// All fields present, all strings as "", booleans as false
+export const ENTITY_EMPTY_FORM: EntityFormValues = { name: "", email: "", ... };
+
+// Normalize a DB record → form values (null → "" / false)
+export function makeEntitySnapshot(entity: EntityType): EntityFormValues {
+  return { name: entity.name ?? "", ... };
+}
+```
+
+**Rules:**
+- All string fields: `z.string()` (not `.optional()`) — empty string represents "blank".
+- Optional format-validated fields: `.refine((v) => !v || regex.test(v), { message })` — skips validation when empty.
+- Cross-field rules: `.superRefine()` on the object.
+- `ENTITY_EMPTY_FORM` is the `defaultValues` for create forms.
+- `makeEntitySnapshot` is the `defaultValues` factory for edit forms — replaces all `null` with `""` or `false` so key order is stable.
+
+---
+
+#### Form setup
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { entitySchema, ENTITY_EMPTY_FORM, type EntityFormValues } from "@/lib/schemas/entity";
+
+// Create form
+const form = useForm<EntityFormValues>({
+  resolver: zodResolver(entitySchema),
+  defaultValues: ENTITY_EMPTY_FORM,
+});
+
+// Edit form
+const form = useForm<EntityFormValues>({
+  resolver: zodResolver(entitySchema),
+  defaultValues: makeEntitySnapshot(entity),
+});
+```
+
+**Rules:**
+- Always use `zodResolver(entitySchema)` — never write a manual `validate()` function.
+- Default `mode` (`"onSubmit"`) + default `reValidateMode` (`"onChange"`) gives the correct UX: validate on first submit, then re-validate each field as it changes (error clears when the field becomes valid).
+
+---
+
+#### Field rendering
+
+```tsx
+<Form {...form}>
+  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+
+    {/* Text input */}
+    <FormField
+      control={form.control}
+      name="fieldName"
+      render={({ field }) => (
+        <FormItem className="space-y-1.5">
+          <FormLabel>
+            Label{" "}
+            <span className="text-destructive" aria-hidden="true">*</span>{/* required only */}
+          </FormLabel>
+          <FormControl>
+            <Input {...field} aria-required={true} {/* required only */} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    {/* Select */}
+    <FormField
+      control={form.control}
+      name="anrede"
+      render={({ field }) => (
+        <FormItem className="space-y-1.5">
+          <FormLabel>Anrede</FormLabel>
+          <Select value={field.value} onValueChange={field.onChange}>
+            <FormControl>
+              <SelectTrigger><SelectValue placeholder="Auswählen…" /></SelectTrigger>
+            </FormControl>
+            <SelectContent>…</SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    {/* Checkbox */}
+    <FormField
+      control={form.control}
+      name="ist_aktiv"
+      render={({ field }) => (
+        <FormItem className="space-y-1.5">
+          <FormLabel>Ist aktiv</FormLabel>
+          <div className="h-9 flex items-center">
+            <FormControl>
+              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+            </FormControl>
+          </div>
+        </FormItem>
+      )}
+    />
+
+  </form>
+</Form>
+```
+
+**Rules:**
+- `<Form {...form}>` wraps the entire component return — it is the `FormProvider`.
+- `<form>` is the actual HTML form inside — `onSubmit={form.handleSubmit(onSubmit)}` + `noValidate`.
+- Every `FormItem` gets `className="space-y-1.5"` to match the label-to-input spacing standard (§4.7).
+- `FormMessage` renders the Zod error automatically — never add a manual error paragraph alongside it.
+- `FormControl` sets `aria-invalid` automatically when the field has an error — never set it manually.
+- For `Select`: wrap only `SelectTrigger` in `FormControl`, not the entire `Select`.
+
+---
+
+#### `performSave` pattern with RHF
+
+```tsx
+const [isSaving, setIsSaving] = useState(false);
+
+// Create form
+const performSave = async (values: EntityFormValues): Promise<{ success: boolean; id?: number }> => {
+  if (isSaving) return { success: false };
+  setIsSaving(true);
+  const result = await createEntity(values);
+  setIsSaving(false);
+  if (!result.success) { toast.error(result.error ?? "Unbekannter Fehler."); return { success: false }; }
+  return { success: true, id: result.id };
+};
+
+const onSubmit = async (values: EntityFormValues) => {
+  const result = await performSave(values);
+  if (result.success && result.id) {
+    toast.success("Entity angelegt");
+    router.push(`/path/${result.id}`);
+  }
+};
+
+// Edit form — call form.reset(values) after a successful save
+const performSave = async (values: EntityFormValues): Promise<boolean> => {
+  if (isSaving) return false;
+  setIsSaving(true);
+  const result = await updateEntity(entity.id, values);
+  setIsSaving(false);
+  if (!result.success) { toast.error(result.error ?? "Unbekannter Fehler."); return false; }
+  form.reset(values); // ← updates the dirty baseline to the newly saved state
+  return true;
+};
+```
+
+**`form.reset(values)` on edit forms** is mandatory after a successful save — it updates RHF's internal `defaultValues` baseline so `formState.isDirty` becomes `false` immediately and `handleLeave` / `form.reset()` later reverts to the correct last-saved state.
+
+---
+
+#### `isDirty`, `beforeunload`, and `UnsavedChangesDialog`
+
+```tsx
+const { isDirty } = form.formState;
+
+// beforeunload guard
+useEffect(() => {
+  if (!isDirty) return;
+  const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+  window.addEventListener("beforeunload", handler);
+  return () => window.removeEventListener("beforeunload", handler);
+}, [isDirty]);
+
+// Back button
+const handleBackClick = () => {
+  if (isDirty) setIsDialogOpen(true);
+  else router.push("/path");
+};
+
+// Dialog: leave without saving
+const handleLeave = () => {
+  form.reset(); // reverts to current defaultValues baseline (last saved state)
+  setIsDialogOpen(false);
+  router.push("/path");
+};
+
+// Dialog: save and leave
+const handleSaveAndLeave = async () => {
+  const valid = await form.trigger(); // run validation without submitting
+  if (!valid) { setIsDialogOpen(false); return; }
+  const ok = await performSave(form.getValues());
+  if (ok) { toast.success("…"); setIsDialogOpen(false); router.push("/path"); }
+  else setIsDialogOpen(false);
+};
+```
+
+`form.trigger()` runs the full Zod validation and populates `formState.errors` without submitting — use it in `handleSaveAndLeave` to surface errors before attempting the server call.
+
+---
+
+#### What RHF + Zod replaces (migration reference)
+
+| Old pattern | RHF + Zod equivalent |
+|---|---|
+| `const [errors, setErrors] = useState({})` | `form.formState.errors` (automatic) |
+| `const clearError = (field) => ...` | automatic — errors clear when field becomes valid |
+| `const validate = (): boolean => { ... }` | Zod schema + `zodResolver` |
+| `const [isSaving, setIsSaving]` | keep — used for `UnsavedChangesDialog` |
+| `makeSnapshot()` + `JSON.stringify` dirty check | `form.formState.isDirty` |
+| `if (isSaving) return false` guard | keep — still needed, same pattern (§2.11) |
+| `aria-invalid={!!errors.field}` on inputs | set automatically by `FormControl` |
+| `<p className="text-sm text-destructive mt-1">{errors.field}</p>` | `<FormMessage />` |
+| `border-destructive` on error input | set automatically by shadcn `Input` via `aria-invalid` |
+
+---
+
 ## 3. Component Notes
 
 ### 3.1 Input — error variant

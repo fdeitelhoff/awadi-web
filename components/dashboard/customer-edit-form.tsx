@@ -2,11 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,21 +24,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateKunde, type UpdateKundeInput } from "@/lib/actions/customers";
+import { UnsavedChangesDialog } from "@/components/dashboard/unsaved-changes-dialog";
+import { InternalComments } from "@/components/dashboard/internal-comments";
+import { VertragPicker } from "@/components/dashboard/vertrag-picker";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { updateKunde } from "@/lib/actions/customers";
 import type { Kunde } from "@/lib/types/customer";
 import type { InternalComment } from "@/lib/types/kommentar";
-import { InternalComments } from "@/components/dashboard/internal-comments";
-import { UnsavedChangesDialog } from "@/components/dashboard/unsaved-changes-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ArrowLeft } from "lucide-react";
-import { VertragPicker } from "@/components/dashboard/vertrag-picker";
+import {
+  customerSchema,
+  makeCustomerSnapshot,
+  type CustomerFormValues,
+} from "@/lib/schemas/customer";
 
 interface CustomerEditFormProps {
   kunde: Kunde;
   initialKommentare: InternalComment[];
 }
 
-function formatDateTime(value?: string | null) {
+function formatDateTime(value?: string | null): string {
   if (!value) return "—";
   return new Date(value).toLocaleString("de-DE", {
     day: "2-digit",
@@ -39,50 +53,17 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-function makeSnapshot(kunde: Kunde): UpdateKundeInput {
-  return {
-    kundennr: kunde.kundennr ?? "",
-    ist_kunde: kunde.ist_kunde ?? false,
-    anrede: kunde.anrede ?? "",
-    titel: kunde.titel ?? "",
-    vorname: kunde.vorname ?? "",
-    nachname: kunde.nachname ?? "",
-    firma: kunde.firma ?? "",
-    strasse: kunde.strasse ?? "",
-    hausnr: kunde.hausnr ?? "",
-    laenderkennung: kunde.laenderkennung ?? "",
-    plz: kunde.plz ?? "",
-    ort: kunde.ort ?? "",
-    ortsteil: kunde.ortsteil ?? "",
-    telefonnr: kunde.telefonnr ?? "",
-    telefonnr_geschaeft: kunde.telefonnr_geschaeft ?? "",
-    mobilnr: kunde.mobilnr ?? "",
-    mobilnr2: kunde.mobilnr2 ?? "",
-    email: kunde.email ?? "",
-    email_secondary: kunde.email_secondary ?? "",
-    homepage: kunde.homepage ?? "",
-  };
-}
-
 export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormProps) {
   const router = useRouter();
-  const [form, setForm] = useState<UpdateKundeInput>(() => makeSnapshot(kunde));
-  const [initialValues, setInitialValues] = useState<UpdateKundeInput>(() => makeSnapshot(kunde));
   const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof UpdateKundeInput, string>>>({});
 
-  const clearError = (field: keyof UpdateKundeInput) =>
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerSchema),
+    defaultValues: makeCustomerSnapshot(kunde),
+  });
 
-  const isDirty = JSON.stringify(form) !== JSON.stringify(initialValues);
-
-  const set = (field: keyof UpdateKundeInput, value: string | boolean) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const { isDirty } = form.formState;
 
   useEffect(() => {
     if (!isDirty) return;
@@ -94,51 +75,22 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
     return () => window.removeEventListener("beforeunload", handler);
   }, [isDirty]);
 
-  const validate = (): boolean => {
-    const next: Partial<Record<keyof UpdateKundeInput, string>> = {};
-    if (!form.nachname?.trim() && !form.firma?.trim()) {
-      next.nachname = "Nachname oder Firma ist erforderlich.";
-      next.firma = "Nachname oder Firma ist erforderlich.";
-    }
-    if (form.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      next.email = "Bitte eine gültige E-Mail-Adresse eingeben.";
-    }
-    if (form.email_secondary?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email_secondary.trim())) {
-      next.email_secondary = "Bitte eine gültige E-Mail-Adresse eingeben.";
-    }
-    if (form.homepage?.trim() && !/^https?:\/\/.+\..+/.test(form.homepage.trim())) {
-      next.homepage = "Bitte eine gültige URL eingeben (z. B. https://example.de).";
-    }
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
-  const performSave = async (): Promise<boolean> => {
+  const performSave = async (values: CustomerFormValues): Promise<boolean> => {
     if (isSaving) return false;
-    if (!validate()) return false;
     setIsSaving(true);
-    const result = await updateKunde(kunde.id, form);
+    const result = await updateKunde(kunde.id, values);
     setIsSaving(false);
     if (!result.success) {
       toast.error(result.error ?? "Unbekannter Fehler.");
       return false;
     }
-    setInitialValues({ ...form });
+    form.reset(values); // update dirty baseline to the saved state
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const ok = await performSave();
+  const onSubmit = async (values: CustomerFormValues) => {
+    const ok = await performSave(values);
     if (ok) toast.success("Gespeichert");
-  };
-
-  const handleLeave = () => {
-    const snapshot = makeSnapshot(kunde);
-    setForm(snapshot);
-    setInitialValues(snapshot);
-    setIsDialogOpen(false);
-    router.push("/master-data/customers");
   };
 
   const handleBackClick = () => {
@@ -149,8 +101,16 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
     }
   };
 
+  const handleLeave = () => {
+    form.reset(); // revert to last saved baseline
+    setIsDialogOpen(false);
+    router.push("/master-data/customers");
+  };
+
   const handleSaveAndLeave = async () => {
-    const ok = await performSave();
+    const valid = await form.trigger();
+    if (!valid) { setIsDialogOpen(false); return; }
+    const ok = await performSave(form.getValues());
     if (ok) {
       toast.success("Gespeichert");
       setIsDialogOpen(false);
@@ -165,10 +125,8 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
     [kunde.vorname, kunde.nachname].filter(Boolean).join(" ") ||
     "Kunde";
 
-  const displayName = `Kunde: ${namePart}`;
-
   const metaInfo = [
-    kunde.kundennr && `Kunden-Nr.: ${kunde.kundennr}`,
+    kunde.kundennr   && `Kunden-Nr.: ${kunde.kundennr}`,
     kunde.created_at && `Erstellt: ${formatDateTime(kunde.created_at)}`,
     kunde.last_update && `Geändert: ${formatDateTime(kunde.last_update)}`,
   ]
@@ -185,344 +143,397 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
         onLeave={handleLeave}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
 
-        {/* ── Page header ──────────────────────────────────────────── */}
-        <div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="-ml-2 mb-2"
-            onClick={handleBackClick}
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Zurück
-          </Button>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold">{displayName}</h1>
-              {metaInfo && (
-                <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>
-              )}
+          {/* ── Page header ──────────────────────────────────────────── */}
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="-ml-2 mb-2"
+              onClick={handleBackClick}
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Zurück
+            </Button>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold">Kunde: {namePart}</h1>
+                {metaInfo && (
+                  <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>
+                )}
+              </div>
+              <Button type="submit" disabled={isSaving} className="shrink-0">
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Speichern
+              </Button>
             </div>
-            <Button type="submit" disabled={isSaving} className="shrink-0">
+          </div>
+
+          {/* ── Cards ────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* ── Stammdaten ───────────────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Stammdaten</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-end">
+                  <FormField
+                    control={form.control}
+                    name="ist_kunde"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Ist Kunde</FormLabel>
+                        <div className="h-9 flex items-center">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="kundennr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Kunden-Nr.</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="z. B. AS-001" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="space-y-1.5">
+                    <FormLabel>Wartungsdaten</FormLabel>
+                    <VertragPicker kundenId={kunde.id} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="anrede"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Anrede</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Auswählen…" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Herr">Herr</SelectItem>
+                            <SelectItem value="Frau">Frau</SelectItem>
+                            <SelectItem value="Divers">Divers</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="titel"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Titel</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="z. B. Dr." />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="vorname"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Vorname</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="nachname"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>
+                          Nachname{" "}
+                          <span className="text-destructive" aria-hidden="true">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} aria-required={true} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="firma"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel>
+                        Firma{" "}
+                        <span className="text-destructive" aria-hidden="true">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} aria-required={true} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+              </CardContent>
+            </Card>
+
+            {/* ── Adresse ──────────────────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Adresse</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                <div className="grid grid-cols-[1fr_100px] gap-4">
+                  <FormField
+                    control={form.control}
+                    name="strasse"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Straße</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="hausnr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Nr.</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-[64px_90px_1fr] gap-4">
+                  <FormField
+                    control={form.control}
+                    name="laenderkennung"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Land</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="DE" maxLength={5} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="plz"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>PLZ</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="ort"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Ort</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="ortsteil"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel>Ortsteil</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+              </CardContent>
+            </Card>
+
+            {/* ── Kontakt ──────────────────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Kontakt</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="telefonnr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Telefon</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="tel" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="telefonnr_geschaeft"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Telefon (geschäftlich)</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="tel" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="mobilnr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Mobil</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="tel" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="mobilnr2"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Mobil (geschäftlich)</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="tel" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>E-Mail</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email_secondary"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>E-Mail (geschäftlich)</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="homepage"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel>Homepage</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="url" placeholder="https://" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+              </CardContent>
+            </Card>
+
+            {/* ── Anmerkungen ──────────────────────────────────────── */}
+            <InternalComments
+              refTable="kunden"
+              refId={kunde.id}
+              initialComments={initialKommentare}
+            />
+
+          </div>
+
+          {/* ── Footer save ──────────────────────────────────────── */}
+          <div className="flex justify-end pb-8">
+            <Button type="submit" disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Speichern
             </Button>
           </div>
-        </div>
 
-        {/* ── 2-column grid: row 1 = Stammdaten | Adresse
-                            row 2 = Kontakt    | Anmerkungen ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* ── Stammdaten ───────────────────────────────────────────── */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Stammdaten</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-
-              {/* Ist Kunde + Kunden-Nr. + Wartungsdaten */}
-              <div className="grid grid-cols-[auto_1fr_1fr] gap-4 items-end">
-                <div className="space-y-1.5">
-                  <Label htmlFor="ist_kunde">Ist Kunde</Label>
-                  <div className="h-9 flex items-center">
-                    <Checkbox
-                      id="ist_kunde"
-                      checked={form.ist_kunde ?? false}
-                      onCheckedChange={(v) => set("ist_kunde", !!v)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="kundennr">Kunden-Nr.</Label>
-                  <Input
-                    id="kundennr"
-                    value={form.kundennr}
-                    onChange={(e) => set("kundennr", e.target.value)}
-                    placeholder="z. B. AS-001"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Wartungsdaten</Label>
-                  <VertragPicker kundenId={kunde.id} />
-                </div>
-              </div>
-
-              {/* Anrede + Titel */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="anrede">Anrede</Label>
-                  <Select
-                    value={form.anrede}
-                    onValueChange={(v) => set("anrede", v)}
-                  >
-                    <SelectTrigger id="anrede">
-                      <SelectValue placeholder="Auswählen…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Herr">Herr</SelectItem>
-                      <SelectItem value="Frau">Frau</SelectItem>
-                      <SelectItem value="Divers">Divers</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="titel">Titel</Label>
-                  <Input
-                    id="titel"
-                    value={form.titel}
-                    onChange={(e) => set("titel", e.target.value)}
-                    placeholder="z. B. Dr."
-                  />
-                </div>
-              </div>
-
-              {/* Vorname + Nachname */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="vorname">Vorname</Label>
-                  <Input
-                    id="vorname"
-                    value={form.vorname}
-                    onChange={(e) => set("vorname", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="nachname">
-                    Nachname <span className="text-destructive" aria-hidden="true">*</span>
-                  </Label>
-                  <Input
-                    id="nachname"
-                    value={form.nachname}
-                    aria-required={true}
-                    aria-invalid={!!errors.nachname}
-                    onChange={(e) => {
-                      set("nachname", e.target.value);
-                      if (errors.nachname) clearError("nachname");
-                    }}
-                    className={errors.nachname ? "border-destructive" : ""}
-                  />
-                  {errors.nachname && (
-                    <p className="text-sm text-destructive mt-1">{errors.nachname}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Firma */}
-              <div className="space-y-1.5">
-                <Label htmlFor="firma">
-                  Firma <span className="text-destructive" aria-hidden="true">*</span>
-                </Label>
-                <Input
-                  id="firma"
-                  value={form.firma}
-                  aria-required={true}
-                  aria-invalid={!!errors.firma}
-                  onChange={(e) => {
-                    set("firma", e.target.value);
-                    if (errors.firma) clearError("firma");
-                  }}
-                  className={errors.firma ? "border-destructive" : ""}
-                />
-                {errors.firma && (
-                  <p className="text-sm text-destructive mt-1">{errors.firma}</p>
-                )}
-              </div>
-
-            </CardContent>
-          </Card>
-
-          {/* ── Adresse ──────────────────────────────────────────────── */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Adresse</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-[1fr_100px] gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="strasse">Straße</Label>
-                  <Input
-                    id="strasse"
-                    value={form.strasse}
-                    onChange={(e) => set("strasse", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="hausnr">Nr.</Label>
-                  <Input
-                    id="hausnr"
-                    value={form.hausnr}
-                    onChange={(e) => set("hausnr", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-[64px_90px_1fr] gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="laenderkennung">Land</Label>
-                  <Input
-                    id="laenderkennung"
-                    value={form.laenderkennung}
-                    onChange={(e) => set("laenderkennung", e.target.value)}
-                    placeholder="DE"
-                    maxLength={5}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="plz">PLZ</Label>
-                  <Input
-                    id="plz"
-                    value={form.plz}
-                    onChange={(e) => set("plz", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="ort">Ort</Label>
-                  <Input
-                    id="ort"
-                    value={form.ort}
-                    onChange={(e) => set("ort", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="ortsteil">Ortsteil</Label>
-                <Input
-                  id="ortsteil"
-                  value={form.ortsteil}
-                  onChange={(e) => set("ortsteil", e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ── Kontakt ──────────────────────────────────────────────── */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Kontakt</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="telefonnr">Telefon</Label>
-                  <Input
-                    id="telefonnr"
-                    type="tel"
-                    value={form.telefonnr}
-                    onChange={(e) => set("telefonnr", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="telefonnr_geschaeft">Telefon (geschäftlich)</Label>
-                  <Input
-                    id="telefonnr_geschaeft"
-                    type="tel"
-                    value={form.telefonnr_geschaeft}
-                    onChange={(e) => set("telefonnr_geschaeft", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="mobilnr">Mobil</Label>
-                  <Input
-                    id="mobilnr"
-                    type="tel"
-                    value={form.mobilnr}
-                    onChange={(e) => set("mobilnr", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="mobilnr2">Mobil (geschäftlich)</Label>
-                  <Input
-                    id="mobilnr2"
-                    type="tel"
-                    value={form.mobilnr2}
-                    onChange={(e) => set("mobilnr2", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">E-Mail</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    aria-invalid={!!errors.email}
-                    onChange={(e) => {
-                      set("email", e.target.value);
-                      if (errors.email) clearError("email");
-                    }}
-                    className={errors.email ? "border-destructive" : ""}
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-destructive mt-1">{errors.email}</p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="email_secondary">E-Mail (geschäftlich)</Label>
-                  <Input
-                    id="email_secondary"
-                    type="email"
-                    value={form.email_secondary}
-                    aria-invalid={!!errors.email_secondary}
-                    onChange={(e) => {
-                      set("email_secondary", e.target.value);
-                      if (errors.email_secondary) clearError("email_secondary");
-                    }}
-                    className={errors.email_secondary ? "border-destructive" : ""}
-                  />
-                  {errors.email_secondary && (
-                    <p className="text-sm text-destructive mt-1">{errors.email_secondary}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="homepage">Homepage</Label>
-                <Input
-                  id="homepage"
-                  type="url"
-                  value={form.homepage}
-                  aria-invalid={!!errors.homepage}
-                  onChange={(e) => {
-                    set("homepage", e.target.value);
-                    if (errors.homepage) clearError("homepage");
-                  }}
-                  className={errors.homepage ? "border-destructive" : ""}
-                  placeholder="https://"
-                />
-                {errors.homepage && (
-                  <p className="text-sm text-destructive mt-1">{errors.homepage}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ── Anmerkungen ──────────────────────────────────────────── */}
-          <InternalComments
-            refTable="kunden"
-            refId={kunde.id}
-            initialComments={initialKommentare}
-          />
-
-        </div>
-
-        {/* ── Footer ───────────────────────────────────────────────── */}
-        <div className="flex justify-end pb-8">
-          <Button type="submit" disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Speichern
-          </Button>
-        </div>
-      </form>
+        </form>
+      </Form>
     </>
   );
 }
