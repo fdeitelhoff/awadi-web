@@ -1229,33 +1229,46 @@ All confirmation and destructive dialogs:
 
 ---
 
-## 5. E2E Testing with Playwright
+## 5. Testing
 
-Every data table and form page that introduces a new UI/UX pattern must be accompanied by Playwright tests. Tests are the living proof that the standards in §2 and §3 are actually implemented — they are not optional.
+The project has two complementary test layers. Use the right one for the job.
+
+| Layer | Framework | What it covers | Needs dev server? |
+|---|---|---|---|
+| Unit | Vitest | Zod schemas, pure utility functions | No |
+| E2E | Playwright | UI/UX standards, browser behaviour, navigation | Yes |
 
 ---
 
-### 5.1 Setup
+### 5.1 Commands
 
-**Test directory structure:**
+```bash
+pnpm test           # Vitest — unit tests (fast, no server)
+pnpm test:watch     # Vitest watch mode
+pnpm test:e2e       # Playwright — E2E tests (requires dev server)
+pnpm test:e2e:ui    # Playwright UI explorer
+```
+
+---
+
+### 5.2 Directory structure
+
 ```
 tests/
+├── unit/
+│   └── schemas/
+│       ├── anl-typ.test.ts
+│       └── customer.test.ts    # one file per schema
 └── e2e/
     ├── setup/
-    │   └── auth.setup.ts      # logs in once, saves session to .auth/user.json
+    │   └── auth.setup.ts       # logs in once, saves session to .auth/user.json
     ├── .auth/
-    │   └── .gitkeep           # directory tracked; user.json is gitignored
+    │   └── .gitkeep            # directory tracked; user.json is gitignored
     ├── customer-table.spec.ts
     └── [entity]-table.spec.ts  # one spec file per entity / page
 ```
 
-**Run tests:**
-```bash
-pnpm test       # headless (requires dev server running)
-pnpm test:ui    # Playwright UI explorer
-```
-
-**Required env vars** (add to `.env.local`):
+**Required env vars for E2E** (add to `.env.local`):
 ```
 TEST_USER_EMAIL=your-test-user@example.com
 TEST_USER_PASSWORD=your-test-user-password
@@ -1265,7 +1278,36 @@ The Playwright config loads `.env.local` via `dotenv` automatically — no separ
 
 ---
 
-### 5.2 Auth pattern
+### 5.3 Unit tests with Vitest
+
+Unit tests cover Zod schemas and pure utility functions. They run in under a second and require no running server.
+
+**What to test per schema file:**
+
+| Case | Assert |
+|---|---|
+| Valid minimal input | `safeParse(...).success === true` |
+| Each optional field omitted | `success === true` |
+| Each required field empty/missing | `success === false` + correct error message on correct path |
+| Each boundary value (min, max) | both sides of the boundary |
+| Cross-field rules (e.g. nachname OR firma) | both error paths fire with correct messages |
+| Empty form constant | documents whether it's submittable as-is |
+| `makeXxxSnapshot(entity)` | all fields mapped correctly; `null` → `""` conversions; non-form fields excluded; result passes schema |
+
+**Error message assertions** always check both that the field path is correct and that the message text matches the schema exactly:
+
+```ts
+const result = schema.safeParse(invalidInput);
+expect(result.success).toBe(false);
+if (!result.success) {
+  const issue = result.error.issues.find((i) => i.path[0] === "fieldName");
+  expect(issue?.message).toBe("Exact error message from schema.");
+}
+```
+
+---
+
+### 5.4 Auth pattern (E2E)
 
 Auth is handled once in the global setup project. Every test in the `chromium` project automatically receives the saved session via `storageState`. No individual test needs to log in.
 
@@ -1288,7 +1330,7 @@ setup("authenticate", async ({ page }) => {
 
 ---
 
-### 5.3 What to test per entity
+### 5.5 What to test per entity (E2E)
 
 Every entity with a list page and edit/create form must cover the following standards:
 
@@ -1311,7 +1353,7 @@ if (!(await firstRow.isVisible())) { test.skip(); return; }
 
 ---
 
-### 5.4 Naming convention
+### 5.6 Naming convention
 
 Test names must reference the standard section they verify, making failures immediately traceable:
 
@@ -1323,7 +1365,7 @@ test("§2.6 'Abbrechen' in the delete dialog closes it without deleting", ...)
 
 ---
 
-### 5.5 What NOT to test via Playwright
+### 5.7 What NOT to test via Playwright
 
 - **Server Action success paths** (save, create, delete confirmation) — these hit the real database. Test the cancel / error path instead; trust the server action unit test or manual verification for the success path.
 - **Toast content** — Sonner toasts render in a portal; they are not reliably selectable across browsers in CI. The standard that a toast fires on success/failure is enforced by code review, not automation.
@@ -1332,7 +1374,7 @@ test("§2.6 'Abbrechen' in the delete dialog closes it without deleting", ...)
 
 ---
 
-### 5.6 beforeEach pattern for data tables
+### 5.8 beforeEach pattern for data tables (E2E)
 
 Every table spec waits for the loading skeleton to resolve before running any assertion. Use the `or()` locator to cover both the empty-state and the data-state:
 
