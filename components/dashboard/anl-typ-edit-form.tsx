@@ -1,17 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { updateAnlTyp, type UpdateAnlTypInput } from "@/lib/actions/anl-typen";
-import type { AnlTypBioFeld, AnlTypFull } from "@/lib/types/anl-typ";
-import type { InternalComment } from "@/lib/types/kommentar";
+import { UnsavedChangesDialog } from "@/components/dashboard/unsaved-changes-dialog";
 import { InternalComments } from "@/components/dashboard/internal-comments";
 import { AnlTypBioFelderCard } from "@/components/dashboard/anl-typ-bio-felder-card";
-import { Loader2, Check, ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { updateAnlTyp } from "@/lib/actions/anl-typen";
+import type { AnlTypBioFeld, AnlTypFull } from "@/lib/types/anl-typ";
+import type { InternalComment } from "@/lib/types/kommentar";
+import {
+  anlTypSchema,
+  makeAnlTypSnapshot,
+  type AnlTypFormValues,
+} from "@/lib/schemas/anl-typ";
 
 interface AnlTypEditFormProps {
   typ: AnlTypFull;
@@ -19,7 +35,7 @@ interface AnlTypEditFormProps {
   initialBioFelder: AnlTypBioFeld[];
 }
 
-function formatDateTime(value?: string | null) {
+function formatDateTime(value?: string | null): string {
   if (!value) return "—";
   return new Date(value).toLocaleString("de-DE", {
     day: "2-digit",
@@ -31,49 +47,69 @@ function formatDateTime(value?: string | null) {
 }
 
 export function AnlTypEditForm({ typ, initialKommentare, initialBioFelder }: AnlTypEditFormProps) {
-  const [form, setForm] = useState<UpdateAnlTypInput>({
-    sortiernr: typ.sortiernr ?? undefined,
-    bezeichnung: typ.bezeichnung,
-    wartungsintervall_monate: typ.wartungsintervall_monate,
-    dauer_wartung_minuten: typ.dauer_wartung_minuten,
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const form = useForm<AnlTypFormValues>({
+    resolver: zodResolver(anlTypSchema),
+    defaultValues: makeAnlTypSnapshot(typ),
   });
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { isDirty } = form.formState;
 
-  const setNum = (field: keyof UpdateAnlTypInput, value: string, nullable = false) => {
-    if (value === "") {
-      setForm((prev) => ({ ...prev, [field]: nullable ? null : undefined }));
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
+  const performSave = async (values: AnlTypFormValues): Promise<boolean> => {
+    if (isSaving) return false;
+    setIsSaving(true);
+    const result = await updateAnlTyp(typ.id, values);
+    setIsSaving(false);
+    if (!result.success) {
+      toast.error(result.error ?? "Unbekannter Fehler.");
+      return false;
+    }
+    form.reset(values); // update dirty baseline to the saved state
+    return true;
+  };
+
+  const onSubmit = async (values: AnlTypFormValues) => {
+    const ok = await performSave(values);
+    if (ok) toast.success("Gespeichert");
+  };
+
+  const handleBackClick = () => {
+    if (isDirty) {
+      setIsDialogOpen(true);
     } else {
-      const parsed = parseFloat(value);
-      if (!isNaN(parsed)) {
-        setForm((prev) => ({ ...prev, [field]: parsed }));
-      }
+      router.push("/settings/facility-types");
     }
   };
 
-  const setStr = (field: keyof UpdateAnlTypInput, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const handleLeave = () => {
+    form.reset(); // revert to last saved baseline
+    setIsDialogOpen(false);
+    router.push("/settings/facility-types");
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.bezeichnung?.trim()) {
-      setError("Bitte eine Bezeichnung angeben.");
-      return;
-    }
-    setIsSaving(true);
-    setSaved(false);
-    setError(null);
-
-    const result = await updateAnlTyp(typ.id, form);
-
-    setIsSaving(false);
-    if (!result.success) {
-      setError(result.error ?? "Unbekannter Fehler.");
+  const handleSaveAndLeave = async () => {
+    const valid = await form.trigger();
+    if (!valid) { setIsDialogOpen(false); return; }
+    const ok = await performSave(form.getValues());
+    if (ok) {
+      toast.success("Gespeichert");
+      setIsDialogOpen(false);
+      router.push("/settings/facility-types");
     } else {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setIsDialogOpen(false);
     }
   };
 
@@ -86,135 +122,179 @@ export function AnlTypEditForm({ typ, initialKommentare, initialBioFelder }: Anl
     .join(" · ");
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      <UnsavedChangesDialog
+        open={isDialogOpen}
+        isSaving={isSaving}
+        onStay={() => setIsDialogOpen(false)}
+        onSaveAndLeave={handleSaveAndLeave}
+        onLeave={handleLeave}
+      />
 
-      {/* ── Page header ──────────────────────────────────────────── */}
-      <div>
-        <Button variant="ghost" size="sm" className="-ml-2 mb-2" asChild>
-          <Link href="/settings/facility-types">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Zurück
-          </Link>
-        </Button>
-        <div className="flex items-center justify-between gap-4">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+
+          {/* ── Page header ──────────────────────────────────────────── */}
           <div>
-            <h1 className="text-2xl font-semibold">{typ.bezeichnung}</h1>
-            {metaInfo && (
-              <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>
-            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="-ml-2 mb-2"
+              onClick={handleBackClick}
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Zurück
+            </Button>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold">Anlagentyp: {typ.bezeichnung}</h1>
+                {metaInfo && (
+                  <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>
+                )}
+              </div>
+              <Button type="submit" disabled={isSaving} className="shrink-0">
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Speichern
+              </Button>
+            </div>
           </div>
-          <Button type="submit" disabled={isSaving} className="shrink-0">
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Speichern
-          </Button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* ── Cards ────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* ── Stammdaten ─────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Stammdaten</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            {/* ── Stammdaten ───────────────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Stammdaten</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
 
-            <div className="grid grid-cols-[100px_1fr] gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="sortiernr">Sort-Nr.</Label>
-                <Input
-                  id="sortiernr"
-                  type="number"
-                  min={0}
-                  value={form.sortiernr ?? ""}
-                  onChange={(e) => setNum("sortiernr", e.target.value)}
+                <div className="grid grid-cols-[100px_1fr] gap-4">
+                  <FormField
+                    control={form.control}
+                    name="sortiernr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Sort-Nr.</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === "" ? undefined : Number(e.target.value),
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="bezeichnung"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>
+                          Bezeichnung{" "}
+                          <span className="text-destructive" aria-hidden="true">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} aria-required={true} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+              </CardContent>
+            </Card>
+
+            {/* ── Wartung ──────────────────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Wartung</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                <FormField
+                  control={form.control}
+                  name="wartungsintervall_monate"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel>Wartungsintervall (Monate)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="bezeichnung">
-                  Bezeichnung <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="bezeichnung"
-                  value={form.bezeichnung}
-                  onChange={(e) => setStr("bezeichnung", e.target.value)}
+
+                <FormField
+                  control={form.control}
+                  name="dauer_wartung_minuten"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel>Dauer Wartung (Min.)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </div>
 
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* ── Wartung & Preise ────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Wartung</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            {/* ── Bio-Felder ────────────────────────────────────────── */}
+            <AnlTypBioFelderCard
+              anl_typ_id={typ.id}
+              initialFelder={initialBioFelder}
+            />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="wartungsintervall_monate">
-                Wartungsintervall (Monate)
-              </Label>
-              <Input
-                id="wartungsintervall_monate"
-                type="number"
-                min={1}
-                value={form.wartungsintervall_monate ?? ""}
-                onChange={(e) =>
-                  setNum("wartungsintervall_monate", e.target.value)
-                }
-              />
-            </div>
+            {/* ── Anmerkungen ───────────────────────────────────────── */}
+            <InternalComments
+              refTable="anl_typen"
+              refId={typ.id}
+              initialComments={initialKommentare}
+            />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="dauer_wartung_minuten">
-                Dauer Wartung (Min.)
-              </Label>
-              <Input
-                id="dauer_wartung_minuten"
-                type="number"
-                min={0}
-                value={form.dauer_wartung_minuten ?? ""}
-                onChange={(e) =>
-                  setNum("dauer_wartung_minuten", e.target.value)
-                }
-              />
-            </div>
+          </div>
 
-          </CardContent>
-        </Card>
+          {/* ── Footer save ──────────────────────────────────────── */}
+          <div className="flex justify-end pb-8">
+            <Button type="submit" disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Speichern
+            </Button>
+          </div>
 
-        {/* ── Bio-Felder ────────────────────────────────────────── */}
-        <AnlTypBioFelderCard
-          anl_typ_id={typ.id}
-          initialFelder={initialBioFelder}
-        />
-
-        {/* ── Anmerkungen ───────────────────────────────────────── */}
-        <InternalComments
-          refTable="anl_typen"
-          refId={typ.id}
-          initialComments={initialKommentare}
-        />
-
-      </div>
-
-      {/* ── Footer ───────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between pb-8">
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        {!error && saved && (
-          <p className="text-sm text-green-600 flex items-center gap-1">
-            <Check className="h-4 w-4" /> Gespeichert
-          </p>
-        )}
-        {!error && !saved && <span />}
-        <Button type="submit" disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Speichern
-        </Button>
-      </div>
-
-    </form>
+        </form>
+      </Form>
+    </>
   );
 }

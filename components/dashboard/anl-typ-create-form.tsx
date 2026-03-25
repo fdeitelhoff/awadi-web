@@ -1,181 +1,277 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { createAnlTyp, createBioFeld, type CreateAnlTypInput } from "@/lib/actions/anl-typen";
-import type { DraftBioFeld } from "@/components/dashboard/anl-typ-bio-felder-card";
+import { UnsavedChangesDialog } from "@/components/dashboard/unsaved-changes-dialog";
 import { AnlTypBioFelderCard } from "@/components/dashboard/anl-typ-bio-felder-card";
 import { Loader2, ArrowLeft } from "lucide-react";
-
-const EMPTY_FORM: CreateAnlTypInput = {
-  sortiernr: undefined,
-  bezeichnung: "",
-  wartungsintervall_monate: 12,
-  dauer_wartung_minuten: 60,
-};
+import { createAnlTyp, createBioFeld } from "@/lib/actions/anl-typen";
+import type { DraftBioFeld } from "@/components/dashboard/anl-typ-bio-felder-card";
+import {
+  anlTypSchema,
+  ANL_TYP_EMPTY_FORM,
+  type AnlTypFormValues,
+} from "@/lib/schemas/anl-typ";
 
 export function AnlTypCreateForm() {
   const router = useRouter();
-  const [form, setForm] = useState<CreateAnlTypInput>(EMPTY_FORM);
-  const [pendingBioFelder, setPendingBioFelder] = useState<DraftBioFeld[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingBioFelder, setPendingBioFelder] = useState<DraftBioFeld[]>([]);
 
-  const setNum = (field: keyof CreateAnlTypInput, value: string) => {
-    if (value === "") {
-      setForm((prev) => ({ ...prev, [field]: undefined }));
-    } else {
-      const parsed = parseFloat(value);
-      if (!isNaN(parsed)) {
-        setForm((prev) => ({ ...prev, [field]: parsed }));
-      }
-    }
-  };
+  const form = useForm<AnlTypFormValues>({
+    resolver: zodResolver(anlTypSchema),
+    defaultValues: ANL_TYP_EMPTY_FORM,
+  });
 
-  const setStr = (field: keyof CreateAnlTypInput, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const { isDirty } = form.formState;
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   const handleDraftChange = useCallback((felder: DraftBioFeld[]) => {
     setPendingBioFelder(felder);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.bezeichnung?.trim()) {
-      setError("Bitte eine Bezeichnung angeben.");
-      return;
-    }
+  const performSave = async (
+    values: AnlTypFormValues,
+  ): Promise<{ success: boolean; id?: number }> => {
+    if (isSaving) return { success: false };
     setIsSaving(true);
-    setError(null);
-
-    const result = await createAnlTyp(form);
-
+    const result = await createAnlTyp(values);
     if (!result.success || !result.id) {
       setIsSaving(false);
-      setError(result.error ?? "Unbekannter Fehler.");
-      return;
+      toast.error(result.error ?? "Unbekannter Fehler.");
+      return { success: false };
     }
-
-    // Persist any pending bio fields
+    // Persist pending bio fields
     for (let i = 0; i < pendingBioFelder.length; i++) {
-      await createBioFeld(result.id, i + 1, pendingBioFelder[i].bio_key, pendingBioFelder[i].bio_name ?? undefined);
+      await createBioFeld(
+        result.id,
+        i + 1,
+        pendingBioFelder[i].bio_key,
+        pendingBioFelder[i].bio_name ?? undefined,
+      );
     }
+    setIsSaving(false);
+    return { success: true, id: result.id };
+  };
 
-    router.push(`/settings/facility-types/${result.id}`);
+  const onSubmit = async (values: AnlTypFormValues) => {
+    const result = await performSave(values);
+    if (result.success && result.id) {
+      toast.success("Anlagentyp angelegt");
+      router.push(`/settings/facility-types/${result.id}`);
+    }
+  };
+
+  const handleBackClick = () => {
+    if (isDirty) {
+      setIsDialogOpen(true);
+    } else {
+      router.push("/settings/facility-types");
+    }
+  };
+
+  const handleLeave = () => {
+    form.reset();
+    setIsDialogOpen(false);
+    router.push("/settings/facility-types");
+  };
+
+  const handleSaveAndLeave = async () => {
+    const valid = await form.trigger();
+    if (!valid) { setIsDialogOpen(false); return; }
+    const result = await performSave(form.getValues());
+    if (result.success) {
+      toast.success("Anlagentyp angelegt");
+      setIsDialogOpen(false);
+      router.push("/settings/facility-types");
+    } else {
+      setIsDialogOpen(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      <UnsavedChangesDialog
+        open={isDialogOpen}
+        isSaving={isSaving}
+        onStay={() => setIsDialogOpen(false)}
+        onSaveAndLeave={handleSaveAndLeave}
+        onLeave={handleLeave}
+      />
 
-      {/* ── Page header ──────────────────────────────────────────── */}
-      <div>
-        <Button variant="ghost" size="sm" className="-ml-2 mb-2" asChild>
-          <Link href="/settings/facility-types">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Zurück
-          </Link>
-        </Button>
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-semibold">Neuer Anlagentyp</h1>
-          <Button type="submit" disabled={isSaving} className="shrink-0">
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Speichern
-          </Button>
-        </div>
-      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* ── Page header ──────────────────────────────────────────── */}
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="-ml-2 mb-2"
+              onClick={handleBackClick}
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Zurück
+            </Button>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="text-2xl font-semibold">Neuer Anlagentyp</h1>
+              <Button type="submit" variant="success" disabled={isSaving} className="shrink-0">
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Speichern
+              </Button>
+            </div>
+          </div>
 
-        {/* ── Stammdaten ─────────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Stammdaten</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          {/* ── Cards ────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            <div className="grid grid-cols-[100px_1fr] gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="sortiernr">Sort-Nr.</Label>
-                <Input
-                  id="sortiernr"
-                  type="number"
-                  min={0}
-                  value={form.sortiernr ?? ""}
-                  onChange={(e) => setNum("sortiernr", e.target.value)}
+            {/* ── Stammdaten ───────────────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Stammdaten</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                <div className="grid grid-cols-[100px_1fr] gap-4">
+                  <FormField
+                    control={form.control}
+                    name="sortiernr"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>Sort-Nr.</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === "" ? undefined : Number(e.target.value),
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="bezeichnung"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel>
+                          Bezeichnung{" "}
+                          <span className="text-destructive" aria-hidden="true">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} aria-required={true} autoFocus />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+              </CardContent>
+            </Card>
+
+            {/* ── Wartung ──────────────────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Wartung</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                <FormField
+                  control={form.control}
+                  name="wartungsintervall_monate"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel>Wartungsintervall (Monate)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="bezeichnung">
-                  Bezeichnung <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="bezeichnung"
-                  value={form.bezeichnung}
-                  onChange={(e) => setStr("bezeichnung", e.target.value)}
-                  autoFocus
+
+                <FormField
+                  control={form.control}
+                  name="dauer_wartung_minuten"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel>Dauer Wartung (Min.)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === "" ? undefined : Number(e.target.value),
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </div>
 
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* ── Wartung & Preise ────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Wartung</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            {/* ── Bio-Felder ────────────────────────────────────────── */}
+            <AnlTypBioFelderCard draft onDraftChange={handleDraftChange} />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="wartungsintervall_monate">
-                Wartungsintervall (Monate)
-              </Label>
-              <Input
-                id="wartungsintervall_monate"
-                type="number"
-                min={1}
-                value={form.wartungsintervall_monate ?? ""}
-                onChange={(e) => setNum("wartungsintervall_monate", e.target.value)}
-              />
-            </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="dauer_wartung_minuten">
-                Dauer Wartung (Min.)
-              </Label>
-              <Input
-                id="dauer_wartung_minuten"
-                type="number"
-                min={0}
-                value={form.dauer_wartung_minuten ?? ""}
-                onChange={(e) => setNum("dauer_wartung_minuten", e.target.value)}
-              />
-            </div>
+          {/* ── Footer save ──────────────────────────────────────── */}
+          <div className="flex justify-end pb-8">
+            <Button type="submit" variant="success" disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Speichern
+            </Button>
+          </div>
 
-          </CardContent>
-        </Card>
-
-        {/* ── Bio-Felder ────────────────────────────────────────── */}
-        <AnlTypBioFelderCard draft onDraftChange={handleDraftChange} />
-
-      </div>
-
-      {/* ── Footer ───────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between pb-8">
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        {!error && <span />}
-        <Button type="submit" disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Speichern
-        </Button>
-      </div>
-
-    </form>
+        </form>
+      </Form>
+    </>
   );
 }

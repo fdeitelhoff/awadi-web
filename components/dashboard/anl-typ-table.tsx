@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -29,10 +30,13 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Loader2,
   Search,
   X,
+  ChevronsLeft,
   ChevronLeft,
   ChevronRight,
+  ChevronsRight,
   Plus,
 } from "lucide-react";
 
@@ -67,7 +71,6 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const isInitialRender = useRef(true);
 
@@ -84,7 +87,6 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
 
   const handleDeleteClick = (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
-    setDeleteError(null);
     setPendingDeleteId(id);
   };
 
@@ -97,8 +99,9 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
     if (result.success) {
       setTypen((prev) => prev.filter((t) => t.id !== id));
       setTotalCount((c) => c - 1);
+      toast.success("Anlagentyp gelöscht");
     } else {
-      setDeleteError(result.error ?? "Löschen fehlgeschlagen.");
+      toast.error(result.error ?? "Löschen fehlgeschlagen.");
     }
     setDeletingId(null);
   };
@@ -182,24 +185,6 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Error dialog ───────────────────────────────────────── */}
-      <AlertDialog
-        open={deleteError !== null}
-        onOpenChange={(open) => { if (!open) setDeleteError(null); }}
-      >
-        <AlertDialogContent className="max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Löschen fehlgeschlagen</AlertDialogTitle>
-            <AlertDialogDescription>{deleteError}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setDeleteError(null)}>
-              OK
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* ── Toolbar ────────────────────────────────────────────── */}
       <div className="flex items-center justify-between shrink-0 pb-4 gap-3">
 
@@ -211,7 +196,10 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
               placeholder="Typen suchen…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+                if (e.key === "Escape") handleClear();
+              }}
               className="pl-8 pr-8 w-full"
             />
             {searchQuery && (
@@ -232,6 +220,16 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Erste Seite"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1 || isLoading}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Vorherige Seite"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1 || isLoading}
               >
@@ -243,17 +241,27 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Nächste Seite"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages || isLoading}
               >
                 <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Letzte Seite"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages || isLoading}
+              >
+                <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>
           )}
         </div>
 
         {/* Right: new button */}
-        <Button onClick={() => router.push("/settings/facility-types/new")}>
+        <Button variant="success" onClick={() => router.push("/settings/facility-types/new")}>
           <Plus className="h-4 w-4 mr-2" />
           Neuer Typ
         </Button>
@@ -357,6 +365,9 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
                         disabled={deletingId === typ.id}
                         onClick={(e) => handleDeleteClick(e, typ.id)}
                       >
+                        {deletingId === typ.id && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
                         Löschen
                       </Button>
                     </TableCell>
