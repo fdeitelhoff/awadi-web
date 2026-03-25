@@ -319,6 +319,7 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                 <Input
                   id="firma"
                   value={form.firma}
+                  aria-required={true}
                   aria-invalid={!!errors.firma}
                   onChange={(e) => {
                     set("firma", e.target.value);

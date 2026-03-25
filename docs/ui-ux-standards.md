@@ -54,7 +54,7 @@ Any field validated as required gets an asterisk in its `Label`, rendered in `te
 - A `<p className="text-sm text-destructive mt-1">` error message appears directly below the input
 - No toast fires for this error
 
-**Mutual-exclusion rules** (e.g. "Nachname **or** Firma required"): both fields are highlighted and show the same inline message: `"Nachname oder Firma ist erforderlich."`
+**Mutual-exclusion rules** (e.g. "Nachname **or** Firma required"): both fields are highlighted and show the same inline message: `"Nachname oder Firma ist erforderlich."` Both fields carry `aria-required={true}` and the `*` marker — the asterisk conveys that the group is required, not that each field is independently mandatory.
 
 **Multiple errors:** all failing fields are highlighted simultaneously on submit. The form does not scroll to the first error — the inline highlighting on each field is the sole signal.
 
@@ -151,6 +151,7 @@ Every create and edit form must implement the full dirty-state guard:
 
 1. **Dirty detection:** `const isDirty = JSON.stringify(form) !== JSON.stringify(initialValues)`
    - This relies on `form` and `initialValues` being built from the same `makeSnapshot` function so that key order is always identical. Do not use `JSON.stringify` dirty detection on objects with inconsistent key ordering.
+   - **Edit forms must define `makeSnapshot(entity)`** — a function that maps the entity into a plain form object, replacing every `null` with `""` (strings) or `false` (booleans). Both `form` and `initialValues` are initialized via `makeSnapshot`. This guarantees key order is stable across calls. Never inline the field mapping at the `useState` call site — define it once and reuse it for the reset path too (§2.7 point 3).
 2. **Browser close protection:** attach a `beforeunload` handler via `useEffect` when `isDirty` is true:
    ```ts
    const handler = (e: BeforeUnloadEvent) => {
@@ -220,6 +221,32 @@ const handleClear = () => {
   setCurrentPage(1);
 };
 ```
+
+---
+
+### 2.10 Double-submission guard
+
+Any `performSave` function that can be triggered from multiple call sites (form submit, "Save and Leave" dialog, etc.) must guard against concurrent invocations:
+
+```tsx
+const performSave = async (): Promise<boolean> => {
+  if (isSaving) return false;   // ← guard: reject if already in flight
+  if (!validate()) return false;
+  setIsSaving(true);
+  const result = await serverAction(payload);
+  setIsSaving(false);
+  if (!result.success) {
+    toast.error(result.error ?? "Unbekannter Fehler.");
+    return false;
+  }
+  return true;
+};
+```
+
+**Rules:**
+- The guard is the first line — before validation, before any state changes.
+- `isSaving` is set to `true` before the async call and reset to `false` unconditionally after, regardless of success or failure.
+- All callers (`handleSubmit`, `handleSaveAndLeave`) delegate to `performSave` — they never call the server action directly.
 
 ---
 
@@ -518,6 +545,416 @@ Fragment:
 
 ---
 
-## 4. Scope note
+### 3.12 Form page header layout
+
+Every entity create/edit page uses this fixed header structure inside the `<form>`:
+
+```tsx
+<div>
+  <Button
+    type="button"
+    variant="ghost"
+    size="sm"
+    className="-ml-2 mb-2"
+    onClick={handleBackClick}
+  >
+    <ArrowLeft className="h-4 w-4 mr-1" />
+    Zurück
+  </Button>
+  <div className="flex items-center justify-between gap-4">
+    <h1 className="text-2xl font-semibold">{title}</h1>
+    <Button type="submit" disabled={isSaving} className="shrink-0">
+      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      Speichern
+    </Button>
+  </div>
+</div>
+```
+
+**Title wording:**
+- Create form: `"Neuer [Entity]"` — e.g. `"Neuer Kunde"`, `"Neue Anlage"`
+- Edit form: `"[Entity]: [Name]"` — e.g. `"Kunde: Max Mustermann"`, `"Anlage: Musterstraße 1"`
+- If no name is derivable yet, fall back to a generic label: `"[Entity]"`
+
+**Rules:**
+- `type="button"` on the back button is mandatory — without it the button submits the form.
+- `shrink-0` on the save button prevents text wrapping when the title is long.
+- The inline header save button is always present. On long forms (more than ~3 card sections), a second save button is added at the bottom of the form (see §3.13).
+- `handleBackClick` checks `isDirty` before navigating — never use `router.push` directly on the back button of a form.
+
+---
+
+### 3.13 Footer save button (long forms)
+
+Forms with more than ~3 card sections duplicate the save button in a footer row so the user can save without scrolling back to the top:
+
+```tsx
+<div className="flex justify-end pb-8">
+  <Button type="submit" disabled={isSaving}>
+    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+    Speichern
+  </Button>
+</div>
+```
+
+Both buttons share the same `isSaving` state and are disabled simultaneously. The footer button is `type="submit"` — it does not call `performSave` directly.
+
+---
+
+### 3.14 Edit form meta subtitle
+
+Edit forms display a dot-separated subtitle line under the `h1` with audit and identity information:
+
+```tsx
+function formatDateTime(value?: string | null): string {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const metaInfo = [
+  entity.nummer    && `Nr.: ${entity.nummer}`,
+  entity.created_at && `Erstellt: ${formatDateTime(entity.created_at)}`,
+  entity.last_update && `Geändert: ${formatDateTime(entity.last_update)}`,
+]
+  .filter(Boolean)
+  .join(" · ");
+
+// Rendered below the h1:
+{metaInfo && (
+  <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>
+)}
+```
+
+**Rules:**
+- Separator is ` · ` (space + middle dot + space) — never a comma or pipe.
+- Only non-null/non-empty fields appear — use `.filter(Boolean)`.
+- Timestamps always use `formatDateTime` — never raw ISO strings.
+- `formatDateTime` is defined as a module-level helper, not inline.
+- Create forms do not show this line (no server-generated timestamps exist yet).
+
+---
+
+### 3.15 Clickable table rows
+
+Rows that navigate to a detail/edit page on click:
+
+```tsx
+<TableRow
+  className={`${ROW_HEIGHT} cursor-pointer`}
+  onClick={() => router.push(`/master-data/entities/${entity.id}`)}
+>
+  {/* Regular cells — no special treatment */}
+  <TableCell>{entity.name}</TableCell>
+
+  {/* Cell with a nested interactive element — must stop propagation */}
+  <TableCell>
+    {entity.email && (
+      <a
+        href={`mailto:${entity.email}`}
+        onClick={(e) => e.stopPropagation()}
+        className="hover:underline"
+      >
+        {entity.email}
+      </a>
+    )}
+  </TableCell>
+
+  {/* Cell with an action button — must stop propagation */}
+  <TableCell className="text-right">
+    <Button
+      variant="destructive"
+      size="sm"
+      onClick={(e) => { e.stopPropagation(); handleDeleteClick(e, entity.id); }}
+    >
+      Löschen
+    </Button>
+  </TableCell>
+</TableRow>
+```
+
+**Rules:**
+- `cursor-pointer` on the `TableRow` is the sole visual affordance — no underline, no hover highlight beyond the default row hover.
+- Every interactive element inside a clickable row (`<a>`, `<Button>`, `<Checkbox>`, etc.) must call `e.stopPropagation()` to prevent the row's navigation from firing.
+- The delete button's `onClick` already receives the `e` from the handler — pass it through and call `e.stopPropagation()` there, not inside the handler itself.
+
+---
+
+### 3.16 Card title styling
+
+All cards used as form sections use `text-base` to reduce the title size:
+
+```tsx
+<Card>
+  <CardHeader>
+    <CardTitle className="text-base">Section Name</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    {/* fields */}
+  </CardContent>
+</Card>
+```
+
+**Rules:**
+- Always apply `className="text-base"` to `CardTitle` inside form cards. The default shadcn size is too large for form section headers.
+- `CardContent` uses `space-y-4` for vertical field spacing.
+- Never put anything other than `CardTitle` (and optionally `CardDescription`) inside `CardHeader` for form cards.
+
+---
+
+### 3.17 Record count in list page headings
+
+The server component wrapping a list page renders the total record count in the `h1`:
+
+```tsx
+// In the server component:
+const count = await getEntityCount();
+
+<h1 className="text-2xl font-semibold">
+  Entitäten ({count.toLocaleString("de-DE")})
+</h1>
+```
+
+**Rules:**
+- Always format with `toLocaleString("de-DE")` so numbers above 999 display with a `.` thousand separator.
+- The count is the **unfiltered total** — it reflects how many records exist, not how many the current filter/search returns.
+- The count is fetched server-side in the server wrapper component, not client-side in the table component.
+- Wording: the entity name is plural and in German — `Kunden`, `Anlagen`, `Kontakte`, etc.
+
+---
+
+## 4. Layout & Spacing
+
+All values in this section are derived from the live codebase and verified across every entity. Do not deviate from these numbers without updating this document.
+
+---
+
+### 4.1 Root layout structure
+
+The application shell is a full-viewport, non-scrolling column:
+
+```
+<div className="h-screen flex flex-col bg-background overflow-hidden">
+  <header>  {/* navigation bar — h-14, §4.2 */}
+  <main className="flex-1 flex flex-col min-h-0 relative">
+    {/* page content — §4.3 */}
+  </main>
+</div>
+```
+
+`overflow-hidden` on the root prevents the outer page from ever scrolling. Scrolling is always opt-in, scoped to the specific element that needs it (table wrapper or form page outer div).
+
+---
+
+### 4.2 Navigation bar
+
+| Property | Value |
+|---|---|
+| Height | `h-14` (56 px) |
+| Horizontal padding | `px-4` |
+| Gap between items | `gap-4` |
+| Separator height | `h-6` |
+| Position | `sticky top-0 z-50` |
+
+---
+
+### 4.3 Page container
+
+Two patterns — choose based on whether the page's primary content is fixed-height (table) or unbounded (form).
+
+**List page** — table fills all remaining viewport height:
+
+```tsx
+<div className="flex flex-col flex-1 min-h-0 p-6 gap-4">
+  {/* shrink-0: page header */}
+  {/* flex-1 min-h-0: table component */}
+</div>
+```
+
+**Form page** — scrollable, content can exceed viewport:
+
+```tsx
+<div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+  <div className="p-6 w-full">
+    {/* form component */}
+  </div>
+</div>
+```
+
+| Property | List page | Form page |
+|---|---|---|
+| Padding | `p-6` directly on outer div | `p-6` on inner `w-full` div |
+| Vertical gap | `gap-4` between header and table | `space-y-6` inside the `<form>` element |
+| Overflow | fixed — no scroll | `overflow-y-auto` on outer div |
+| `min-h-0` | required on outer div | required on outer div |
+
+> **Why `min-h-0`?** Flex children default to `min-height: auto`, which means they expand to fit content and ignore `overflow`. `min-h-0` overrides this, allowing the child to shrink below its content size and enabling `overflow` to work as expected.
+
+---
+
+### 4.4 Page header block
+
+The title block that appears above all primary content on list pages:
+
+```tsx
+<div className="shrink-0">
+  <h1 className="text-2xl font-semibold">{title}</h1>
+  {subtitle && (
+    <p className="text-sm text-muted-foreground mt-1.5">{subtitle}</p>
+  )}
+</div>
+```
+
+| Element | Class |
+|---|---|
+| Wrapper | `shrink-0` — prevents the header from being compressed by the flex table below it |
+| Title | `text-2xl font-semibold` |
+| Subtitle gap | `mt-1.5` (6 px) |
+| Subtitle style | `text-sm text-muted-foreground` |
+
+For form pages, the header includes a back button and inline save button — see §3.12. The title and subtitle rules above still apply.
+
+---
+
+### 4.5 Table toolbar
+
+Sits between the page header and the table border. Must carry `shrink-0` so the table absorbs all remaining vertical space.
+
+```tsx
+<div className="flex items-center justify-between shrink-0 pb-4 gap-3">
+  <div className="flex items-center gap-2">
+    {/* search input · Suchen button · pagination */}
+  </div>
+  <div className="flex items-center gap-2">
+    {/* filter selects · new-record button */}
+  </div>
+</div>
+```
+
+| Property | Value |
+|---|---|
+| Bottom padding | `pb-4` (16 px) — space between toolbar and top table border |
+| Left–right split | `justify-between` |
+| Gap between the two groups | `gap-3` (12 px) |
+| Gap within a group | `gap-2` (8 px) |
+| Search input width | `w-64` (256 px) |
+| Filter select widths | fixed per content — typically `w-[150px]` to `w-[180px]` |
+| All toolbar controls height | `h-9` (36 px) — matches default `Input` and `Button` |
+
+---
+
+### 4.6 Table dimensions
+
+```tsx
+<div className="rounded-md border overflow-auto flex-1 min-h-0">
+  <Table>…</Table>
+</div>
+```
+
+| Property | Value |
+|---|---|
+| Wrapper classes | `rounded-md border overflow-auto flex-1 min-h-0` |
+| Row height | `h-[46px]` — defined as the `ROW_HEIGHT` constant, applied to every `<TableRow>` |
+| Page size | `14` rows — defined as the `PAGE_SIZE` constant |
+
+`flex-1` makes the table wrapper fill all height not claimed by the toolbar. `overflow-auto` enables scrolling when column count overflows horizontally. Both constants (`ROW_HEIGHT`, `PAGE_SIZE`) must be updated together with the skeleton if they ever change.
+
+---
+
+### 4.7 Form layout
+
+```tsx
+<form className="space-y-6" noValidate>
+  {/* page header block (§3.12) */}
+
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <Card>…</Card>
+    <Card>…</Card>
+  </div>
+
+  {/* footer save row (§3.13) */}
+</form>
+```
+
+| Property | Value |
+|---|---|
+| Form vertical rhythm | `space-y-6` (24 px) between header, grid, and footer |
+| Card grid columns | `grid-cols-1` by default; `lg:grid-cols-2` at ≥ 1024 px |
+| Card grid gap | `gap-6` (24 px) |
+| `CardContent` field gap | `space-y-4` (16 px) between field rows |
+| Label-to-input gap | `space-y-1.5` (6 px) within each field row |
+
+---
+
+### 4.8 Control dimensions
+
+| Control | Height | Notes |
+|---|---|---|
+| `Input` | `h-9` (36 px) | shadcn default — never override |
+| `Select` trigger | `h-9` (36 px) | shadcn default |
+| `Textarea` | auto | grows with content |
+| `Button` (default) | `h-9` (36 px) | save buttons, toolbar primary actions |
+| `Button size="sm"` | `h-8` (32 px) | back button, pagination buttons |
+| `Checkbox` | `h-4 w-4` (16 px) | shadcn default |
+
+**Icons:**
+
+| Context | Size | Spacing |
+|---|---|---|
+| Button leading icon | `h-4 w-4` | `mr-2` before label text |
+| Button icon-only | `h-4 w-4` | no margin |
+| `Loader2` spinner | `h-4 w-4 animate-spin` | `mr-2` before label text |
+| Table sort arrows (`ArrowUp/Down/UpDown`) | `h-3 w-3` | `ml-1` after column label |
+| Search icon inside input | `h-4 w-4` | `absolute left-2.5 top-2.5` |
+| Clear (×) icon inside input | `h-4 w-4` | `absolute right-2.5 top-2.5` |
+
+---
+
+### 4.9 Dialog sizing
+
+All confirmation and destructive dialogs:
+
+```tsx
+<AlertDialogContent className="max-w-sm">
+```
+
+`max-w-sm` (384 px) is the fixed width for every `AlertDialog`. Never use a wider size — dialog body text must fit in one or two sentences. If more content is needed, rethink the dialog design rather than widening it.
+
+---
+
+### 4.10 Spacing reference
+
+| Token | px | Where used |
+|---|---|---|
+| `gap-2` / `space-x-2` | 8 px | Within a toolbar group; between icon and label text |
+| `gap-3` | 12 px | Between the two toolbar groups |
+| `gap-4` / `space-y-4` | 16 px | Between field rows inside a card; `gap-4` in page container |
+| `gap-6` | 24 px | Between cards in form grid; between field columns in a row |
+| `p-6` | 24 px | Page padding (all sides) |
+| `pb-4` | 16 px | Toolbar bottom padding |
+| `pb-8` | 32 px | Footer save row bottom padding |
+| `mt-0.5` | 2 px | Edit form subtitle directly below `h1` |
+| `mt-1` | 4 px | Inline field error paragraph below input |
+| `mt-1.5` | 6 px | Subtitle below `h1` on list pages |
+| `mb-2` | 8 px | Back button bottom margin before `h1` |
+| `-ml-2` | −8 px | Back button left offset (aligns ghost text with `h1`) |
+| `space-y-1.5` | 6 px | Label-to-input gap within a field row |
+| `space-y-4` | 16 px | Between field rows within a card |
+| `space-y-6` | 24 px | Between form sections (header → grid → footer) |
+| `h-[46px]` | 46 px | Table row height (`ROW_HEIGHT`) |
+| `h-14` | 56 px | Navigation bar height |
+| `h-9` | 36 px | Default input / button height |
+| `h-8` | 32 px | Small button height (`size="sm"`) |
+| `h-6` | 24 px | Nav separator height |
+| `w-64` | 256 px | Search input width in table toolbar |
+
+---
+
+## 5. Scope note
 
 This document covers desktop viewport usage. Responsive / mobile behavior is not currently specified — AWADI is a desktop-first application. Any future mobile work requires a separate addendum to this document before implementation begins.
