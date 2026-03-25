@@ -118,7 +118,27 @@ Only the row currently being deleted shows a spinner; all other rows' delete but
 
 ---
 
-### 2.5 Destructive actions
+### 2.5 Button intent colors
+
+Button color communicates the intent of an action. Three semantic roles apply:
+
+| Role | Variant | CSS tokens | When to use |
+|---|---|---|---|
+| **Create / Add** | `success` | `--success` / `--success-foreground` | Any button that creates a new record or opens a create form — e.g. "Neuer Kunde", "+ Anlage hinzufügen" |
+| **Save on create form** | `success` | same | The "Speichern" button on a **create** form (completing the creation) |
+| **Save on edit form** | `default` | `--primary` / `--primary-foreground` | The "Speichern" button on an **edit** form (updating an existing record) |
+| **Destructive / Delete** | `destructive` | `--destructive` / `--destructive-foreground` | Any button that permanently removes data — always paired with an `AlertDialog` (§2.6) |
+| **Neutral actions** | `default` / `outline` / `ghost` | — | Search, filter, navigation, cancel, back |
+
+**Rules:**
+- A "Neuer [Entity]" button in a toolbar is always `variant="success"`.
+- A "Speichern" button is `variant="success"` on create forms and `variant="default"` on edit forms.
+- Never use raw Tailwind color classes (`bg-green-500`, `bg-red-600`) on buttons — always use the semantic variants so both light and dark themes are handled automatically.
+- The `success` variant uses the `--success` / `--success-foreground` CSS variables already defined in `globals.css` and defined in `buttonVariants` in `components/ui/button.tsx`.
+
+---
+
+### 2.6 Destructive actions
 
 All deletes and irreversible operations are gated by `AlertDialog` before execution:
 
@@ -133,7 +153,7 @@ The dialog is controlled by a `pendingDeleteId` state (`number | null`): non-nul
 
 ---
 
-### 2.6 Empty & zero-result states
+### 2.7 Empty & zero-result states
 
 Tables maintain a fixed height equal to `PAGE_SIZE` rows at all times (prevents layout shift).
 
@@ -145,13 +165,13 @@ No "clear filters" CTA is embedded in the empty state — the toolbar controls h
 
 ---
 
-### 2.7 Unsaved changes guard
+### 2.8 Unsaved changes guard
 
 Every create and edit form must implement the full dirty-state guard:
 
 1. **Dirty detection:** `const isDirty = JSON.stringify(form) !== JSON.stringify(initialValues)`
    - This relies on `form` and `initialValues` being built from the same `makeSnapshot` function so that key order is always identical. Do not use `JSON.stringify` dirty detection on objects with inconsistent key ordering.
-   - **Edit forms must define `makeSnapshot(entity)`** — a function that maps the entity into a plain form object, replacing every `null` with `""` (strings) or `false` (booleans). Both `form` and `initialValues` are initialized via `makeSnapshot`. This guarantees key order is stable across calls. Never inline the field mapping at the `useState` call site — define it once and reuse it for the reset path too (§2.7 point 3).
+   - **Edit forms must define `makeSnapshot(entity)`** — a function that maps the entity into a plain form object, replacing every `null` with `""` (strings) or `false` (booleans). Both `form` and `initialValues` are initialized via `makeSnapshot`. This guarantees key order is stable across calls. Never inline the field mapping at the `useState` call site — define it once and reuse it for the reset path too (§2.8 point 3).
 2. **Browser close protection:** attach a `beforeunload` handler via `useEffect` when `isDirty` is true:
    ```ts
    const handler = (e: BeforeUnloadEvent) => {
@@ -168,7 +188,7 @@ Every create and edit form must implement the full dirty-state guard:
 
 ---
 
-### 2.8 Browser-native validation suppression
+### 2.9 Browser-native validation suppression
 
 All `<form>` elements must carry the `noValidate` attribute. This disables the browser's built-in constraint validation popups (triggered by `type="email"`, `type="url"`, and the `required` attribute), so that every validation signal is handled by our inline-error and toast system instead.
 
@@ -191,7 +211,7 @@ These format checks follow the same inline-error pattern as required-field check
 
 ---
 
-### 2.9 Search input keyboard shortcuts
+### 2.10 Search input keyboard shortcuts
 
 All search inputs in data tables must support two keyboard shortcuts:
 
@@ -224,7 +244,7 @@ const handleClear = () => {
 
 ---
 
-### 2.10 Double-submission guard
+### 2.11 Double-submission guard
 
 Any `performSave` function that can be triggered from multiple call sites (form submit, "Save and Leave" dialog, etc.) must guard against concurrent invocations:
 

@@ -308,7 +308,7 @@ export function CustomerTable({
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => router.push("/master-data/customers/new")}>
+          <Button variant="success" onClick={() => router.push("/master-data/customers/new")}>
             <Plus className="h-4 w-4 mr-2" />
             Neuer Kunde
           </Button>
