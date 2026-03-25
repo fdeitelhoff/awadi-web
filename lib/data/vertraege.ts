@@ -53,7 +53,7 @@ export async function getVertraege(
   } = {}
 ): Promise<VertragQueryResult> {
   const {
-    search = "",
+    search: _search = "",
     kundenId,
     anlageId,
     sortField = "gueltig_ab",

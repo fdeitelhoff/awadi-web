@@ -5,7 +5,6 @@ import { getKontaktById } from "@/lib/data/kontakte";
 import { getInternalComments } from "@/lib/data/kommentare";
 import { AnlageEditForm } from "@/components/dashboard/anlage-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { AnlTyp } from "@/lib/types/anlage";
 
 async function AnlageDetail({ id }: { id: number }) {
   const [anlTypen, techniker, anlage] = await Promise.all([

@@ -27,9 +27,6 @@ import {
 import type { AnlTypFull, AnlTypSortField } from "@/lib/types/anl-typ";
 import { fetchAnlTypen, deleteAnlTyp } from "@/lib/actions/anl-typen";
 import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Loader2,
   Search,
   X,
@@ -39,6 +36,7 @@ import {
   ChevronsRight,
   Plus,
 } from "lucide-react";
+import { SortIcon } from "@/components/ui/sort-icon";
 
 const PAGE_SIZE = 14;
 const ROW_HEIGHT = "h-[46px]";
@@ -47,14 +45,6 @@ const COLSPAN = 5;
 interface AnlTypTableProps {
   initialData: AnlTypFull[];
   initialCount: number;
-}
-
-function formatPrice(value: number): string {
-  return value.toLocaleString("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  });
 }
 
 export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
@@ -143,16 +133,6 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
       setSortDirection("asc");
     }
     setCurrentPage(1);
-  };
-
-  const SortIcon = ({ field }: { field: AnlTypSortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/50" />;
-    return sortDirection === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3" />
-    );
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - typen.length);
@@ -278,7 +258,7 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Sort-Nr.
-                  <SortIcon field="sortiernr" />
+                  <SortIcon field="sortiernr" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -287,7 +267,7 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Bezeichnung
-                  <SortIcon field="bezeichnung" />
+                  <SortIcon field="bezeichnung" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[140px]">
@@ -296,7 +276,7 @@ export function AnlTypTable({ initialData, initialCount }: AnlTypTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Intervall (Mon.)
-                  <SortIcon field="wartungsintervall_monate" />
+                  <SortIcon field="wartungsintervall_monate" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[140px]">

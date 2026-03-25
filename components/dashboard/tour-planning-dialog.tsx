@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MaintenanceTask } from "@/lib/types/maintenance";
-import { Calendar, MapPin, Route, Users } from "lucide-react";
+import { Calendar, MapPin, Route } from "lucide-react";
 import { useMemo, useState } from "react";
 
 interface TourPlanningDialogProps {

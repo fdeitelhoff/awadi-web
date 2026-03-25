@@ -34,9 +34,6 @@ import {
 import type { Kunde, SortField, SortDirection, KundeFilterAktiv } from "@/lib/types/customer";
 import { fetchCustomers, deleteKunde } from "@/lib/actions/customers";
 import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Search,
   X,
   ChevronLeft,
@@ -46,6 +43,7 @@ import {
   Plus,
   Loader2,
 } from "lucide-react";
+import { SortIcon } from "@/components/ui/sort-icon";
 
 const PAGE_SIZE = 14;
 // Fixed row height keeps the table stable while data loads
@@ -157,16 +155,6 @@ export function CustomerTable({
       setSortDirection("asc");
     }
     setCurrentPage(1);
-  };
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/50" />;
-    return sortDirection === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3" />
-    );
   };
 
   // ── Stable-height row rendering ──────────────────────────────────────────
@@ -326,7 +314,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Status
-                  <SortIcon field="ist_kunde" />
+                  <SortIcon field="ist_kunde" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[100px]">
@@ -335,7 +323,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Kd.-Nr.
-                  <SortIcon field="kundennr" />
+                  <SortIcon field="kundennr" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -344,7 +332,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Vorname
-                  <SortIcon field="vorname" />
+                  <SortIcon field="vorname" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -353,7 +341,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Nachname
-                  <SortIcon field="nachname" />
+                  <SortIcon field="nachname" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>Straße</TableHead>
@@ -364,7 +352,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   PLZ
-                  <SortIcon field="plz" />
+                  <SortIcon field="plz" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -373,7 +361,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Ort
-                  <SortIcon field="ort" />
+                  <SortIcon field="ort" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -382,7 +370,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Telefon
-                  <SortIcon field="telefonnr" />
+                  <SortIcon field="telefonnr" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -391,7 +379,7 @@ export function CustomerTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   E-Mail
-                  <SortIcon field="email" />
+                  <SortIcon field="email" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[90px]" />

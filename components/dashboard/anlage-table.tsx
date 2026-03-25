@@ -37,15 +37,13 @@ import type {
 } from "@/lib/types/anlage";
 import { fetchAnlagen, deleteAnlage } from "@/lib/actions/anlagen";
 import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Search,
   X,
   ChevronLeft,
   ChevronRight,
   Plus,
 } from "lucide-react";
+import { SortIcon } from "@/components/ui/sort-icon";
 
 const PAGE_SIZE = 14;
 const ROW_HEIGHT = "h-[46px]";
@@ -155,16 +153,6 @@ export function AnlageTable({
       setSortDirection("asc");
     }
     setCurrentPage(1);
-  };
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/50" />;
-    return sortDirection === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3" />
-    );
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - anlagen.length);
@@ -303,7 +291,7 @@ export function AnlageTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Anl.-Nr.
-                  <SortIcon field="anlagen_nr" />
+                  <SortIcon field="anlagen_nr" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>Typ</TableHead>
@@ -319,7 +307,7 @@ export function AnlageTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   PLZ
-                  <SortIcon field="plz" />
+                  <SortIcon field="plz" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -328,7 +316,7 @@ export function AnlageTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Ort
-                  <SortIcon field="ort" />
+                  <SortIcon field="ort" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[90px]" />

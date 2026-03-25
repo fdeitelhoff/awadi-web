@@ -30,15 +30,13 @@ import type {
 } from "@/lib/types/vertrag";
 import { fetchVertraege, deleteVertrag } from "@/lib/actions/vertraege";
 import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Search,
   X,
   ChevronLeft,
   ChevronRight,
   Plus,
 } from "lucide-react";
+import { SortIcon } from "@/components/ui/sort-icon";
 
 const PAGE_SIZE = 14;
 const ROW_HEIGHT = "h-[46px]";
@@ -141,16 +139,6 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
       setSortDirection("asc");
     }
     setCurrentPage(1);
-  };
-
-  const SortIcon = ({ field }: { field: VertragSortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/50" />;
-    return sortDirection === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3" />
-    );
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - vertraege.length);
@@ -272,7 +260,7 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Gültig ab
-                  <SortIcon field="gueltig_ab" />
+                  <SortIcon field="gueltig_ab" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[110px]">
@@ -281,7 +269,7 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Gültig bis
-                  <SortIcon field="gueltig_bis" />
+                  <SortIcon field="gueltig_bis" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[110px]">
@@ -290,7 +278,7 @@ export function VertragTable({ initialData, initialCount }: VertragTableProps) {
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Intervall
-                  <SortIcon field="intervall_monate" />
+                  <SortIcon field="intervall_monate" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[90px]" />

@@ -79,7 +79,7 @@ export function TicketsPanel({ tickets }: TicketsPanelProps) {
   const togglePriority = (p: string) =>
     setPriorityFilter((prev) => {
       const next = new Set(prev);
-      next.has(p) ? next.delete(p) : next.add(p);
+      if (next.has(p)) { next.delete(p); } else { next.add(p); }
       return next;
     });
 

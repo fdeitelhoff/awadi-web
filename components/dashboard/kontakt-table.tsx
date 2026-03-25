@@ -33,15 +33,13 @@ import {
 import type { Kontakt, KontaktSortField, SortDirection } from "@/lib/types/kontakt";
 import { fetchKontakte, deleteKontakt } from "@/lib/actions/kontakte";
 import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Search,
   X,
   ChevronLeft,
   ChevronRight,
   Plus,
 } from "lucide-react";
+import { SortIcon } from "@/components/ui/sort-icon";
 
 const PAGE_SIZE = 14;
 const ROW_HEIGHT = "h-[46px]";
@@ -152,16 +150,6 @@ export function KontaktTable({
       setSortDirection("asc");
     }
     setCurrentPage(1);
-  };
-
-  const SortIcon = ({ field }: { field: KontaktSortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground/50" />;
-    return sortDirection === "asc" ? (
-      <ArrowUp className="ml-1 h-3 w-3" />
-    ) : (
-      <ArrowDown className="ml-1 h-3 w-3" />
-    );
   };
 
   const fillerCount = Math.max(0, PAGE_SIZE - kontakte.length);
@@ -294,7 +282,7 @@ export function KontaktTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Vorname
-                  <SortIcon field="vorname" />
+                  <SortIcon field="vorname" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -303,7 +291,7 @@ export function KontaktTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Nachname
-                  <SortIcon field="nachname" />
+                  <SortIcon field="nachname" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>Firma</TableHead>
@@ -313,7 +301,7 @@ export function KontaktTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   PLZ
-                  <SortIcon field="plz" />
+                  <SortIcon field="plz" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -322,7 +310,7 @@ export function KontaktTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Ort
-                  <SortIcon field="ort" />
+                  <SortIcon field="ort" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -331,7 +319,7 @@ export function KontaktTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Telefon
-                  <SortIcon field="telefonnr" />
+                  <SortIcon field="telefonnr" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -340,7 +328,7 @@ export function KontaktTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   Mobil
-                  <SortIcon field="mobilnr" />
+                  <SortIcon field="mobilnr" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead>
@@ -349,7 +337,7 @@ export function KontaktTable({
                   className="flex items-center font-medium hover:text-foreground"
                 >
                   E-Mail
-                  <SortIcon field="email" />
+                  <SortIcon field="email" sortField={sortField} sortDirection={sortDirection} />
                 </button>
               </TableHead>
               <TableHead className="w-[90px]" />
