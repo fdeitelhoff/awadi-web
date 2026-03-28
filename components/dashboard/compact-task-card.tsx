@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MaintenanceTask, Technician } from "@/lib/types/maintenance";
+import type { TourEintrag } from "@/lib/types/tour";
 import { Mail, MapPin, Phone } from "lucide-react";
 import {
   MaintenanceStatusIndicator,
@@ -236,3 +237,24 @@ export function UnassignedTasks({ tasks }: UnassignedTasksProps) {
   );
 }
 
+// Geplant card - shows a scheduled tour stop in the calendar
+interface GeplantCardProps {
+  eintrag: TourEintrag;
+}
+
+export function GeplantCard({ eintrag }: GeplantCardProps) {
+  const title = eintrag.item_type === "ticket" ? eintrag.ticket_titel : eintrag.anlage_name;
+  const time = eintrag.geplante_startzeit?.slice(0, 5);
+  return (
+    <div className="rounded border border-green-700/30 bg-green-950/20 p-1.5 text-xs space-y-0.5">
+      <div className="flex items-center gap-1">
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
+        <span className="font-medium truncate">{title ?? "—"}</span>
+      </div>
+      <div className="text-muted-foreground flex gap-2">
+        {time && <span>▶ {time}</span>}
+        {eintrag.fahrtzeit_minuten != null && <span>🚗 {eintrag.fahrtzeit_minuten} min</span>}
+      </div>
+    </div>
+  );
+}

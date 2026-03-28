@@ -27,7 +27,8 @@ import {
 } from "@/lib/types/maintenance";
 import { ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { TechnicianTour, UnassignedTasks } from "./compact-task-card";
+import type { TourEintrag } from "@/lib/types/tour";
+import { GeplantCard, TechnicianTour, UnassignedTasks } from "./compact-task-card";
 import { maintenanceStatusConfig } from "./status-badge";
 import { TourPlanningDialogTrigger } from "@/components/dashboard/tour-planning-dialog-trigger";
 
@@ -35,6 +36,7 @@ interface MaintenanceCalendarProps {
   tasks: MaintenanceTask[];
   onConfirmTask?: (taskId: string) => void;
   onCancelTask?: (taskId: string) => void;
+  publishedEintraege?: TourEintrag[];
 }
 
 // Get week number
@@ -135,6 +137,7 @@ export function MaintenanceCalendar({
   tasks,
   onConfirmTask,
   onCancelTask,
+  publishedEintraege = [],
 }: MaintenanceCalendarProps) {
   const [viewRange, setViewRange] = useState<CalendarViewRange>("4weeks");
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -427,6 +430,7 @@ export function MaintenanceCalendar({
           selectedStatuses={selectedStatuses}
           onConfirmTask={onConfirmTask}
           onCancelTask={onCancelTask}
+          publishedEintraege={publishedEintraege}
         />
       </CardContent>
 
@@ -446,6 +450,7 @@ interface CalendarViewProps {
   selectedStatuses: Set<MaintenanceStatus>;
   onConfirmTask?: (taskId: string) => void;
   onCancelTask?: (taskId: string) => void;
+  publishedEintraege?: TourEintrag[];
 }
 
 // Rows View - Weeks as rows, days as columns
@@ -459,6 +464,7 @@ function RowsView({
   selectedStatuses,
   onConfirmTask,
   onCancelTask,
+  publishedEintraege = [],
 }: CalendarViewProps) {
   // Helper to count visible tasks for a specific date
   const countVisibleTasks = (date: Date): number => {
@@ -619,6 +625,19 @@ function RowsView({
                           —
                         </div>
                       )}
+                      {/* Published tour stops */}
+                      {(() => {
+                        const dateKey = date.getFullYear() + "-" +
+                          String(date.getMonth() + 1).padStart(2, "0") + "-" +
+                          String(date.getDate()).padStart(2, "0");
+                        const dayEntries = publishedEintraege.filter(e => e.datum === dateKey);
+                        if (dayEntries.length === 0) return null;
+                        return (
+                          <div className="mt-2 space-y-1">
+                            {dayEntries.map(e => <GeplantCard key={e.id} eintrag={e} />)}
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}

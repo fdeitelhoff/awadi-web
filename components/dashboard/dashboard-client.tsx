@@ -7,12 +7,14 @@ import { TicketsPanel } from "@/components/dashboard/tickets-panel";
 import { maintenanceTasks } from "@/lib/data/mock-data";
 import type { MaintenanceTask } from "@/lib/types/maintenance";
 import type { TicketListItem } from "@/lib/types/ticket";
+import type { TourEintrag } from "@/lib/types/tour";
 
 interface DashboardClientProps {
   openTickets: TicketListItem[];
+  publishedEintraege?: TourEintrag[];
 }
 
-export function DashboardClient({ openTickets }: DashboardClientProps) {
+export function DashboardClient({ openTickets, publishedEintraege = [] }: DashboardClientProps) {
   const [tasks, setTasks] = useState<MaintenanceTask[]>(maintenanceTasks);
 
   const handleConfirmTask = (taskId: string) => {
@@ -42,6 +44,7 @@ export function DashboardClient({ openTickets }: DashboardClientProps) {
           tasks={tasks}
           onConfirmTask={handleConfirmTask}
           onCancelTask={handleCancelTask}
+          publishedEintraege={publishedEintraege}
         />
         <TicketsPanel tickets={openTickets} />
       </div>
