@@ -38,7 +38,7 @@ function formatDateDE(date: string): string {
 export function TourGrid({ tour, initialEintraege, openTickets: initialOpenTickets }: Props) {
   const [eintraege, setEintraege] = useState<TourEintrag[]>(initialEintraege);
   const [tourStatus, setTourStatus] = useState(tour.status);
-  const [openTickets, setOpenTickets] = useState(initialOpenTickets);
+  const [openTickets] = useState(initialOpenTickets);
   const [isPending, startTransition] = useTransition();
 
   const [technikerIds] = useState(() => [...new Set(initialEintraege.map(e => e.techniker_id))]);

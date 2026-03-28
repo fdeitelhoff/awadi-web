@@ -18,7 +18,7 @@ const PRIORITY_COLORS: Record<TicketPriorität, "destructive" | "outline" | "sec
   normal: "secondary",
 };
 
-export function TourTicketSidebar({ tickets, onDismiss }: Props) {
+export function TourTicketSidebar({ tickets }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: "ticket-sidebar" });
 
   return (
