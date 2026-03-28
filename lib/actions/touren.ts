@@ -81,8 +81,10 @@ export async function moveTourEintrag(
     .eq("id", stopId);
   if (updateErr) return { success: false, error: updateErr.message };
 
-  // Repack positions for affected days
-  for (const [techId, datum] of [[oldTechId, oldDatum], [newTechnikerId, newDatum]]) {
+  // Repack positions for affected days (deduplicate by building a Set of unique "techId|datum" keys)
+  const repackKeys = new Set([`${oldTechId}|${oldDatum}`, `${newTechnikerId}|${newDatum}`]);
+  for (const key of repackKeys) {
+    const [techId, datum] = key.split("|") as [string, string];
     const { data: dayStops } = await supabase
       .from("tour_eintraege")
       .select("id")
@@ -120,6 +122,7 @@ export async function reoptimiseDay(
 ): Promise<{ success: boolean; eintraege?: TourEintrag[]; error?: string }> {
   const supabase = await createClient();
   const mapsApiKey = process.env.GOOGLE_MAPS_API_KEY ?? "";
+  if (!mapsApiKey) return { success: false, error: "GOOGLE_MAPS_API_KEY not configured" };
 
   // Load current stops for this day
   const { data: dayStops } = await supabase
@@ -157,7 +160,7 @@ export async function reoptimiseDay(
   const routableStops: StopWithCoords[] = [];
   for (const s of dayStops) {
     const anlage = s.anlagen as { breitengrad?: string; laengengrad?: string } | null;
-    if (!anlage?.breitengrad || !anlage?.laengengrad) continue;
+    if (!anlage?.breitengrad || !anlage?.laengengrad) continue; // ticket stops or ungeocoded plants keep their position
     routableStops.push({
       id: s.id as number,
       lat: normalizeCoord(anlage.breitengrad),
