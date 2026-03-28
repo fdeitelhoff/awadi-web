@@ -44,7 +44,7 @@ export async function runTourPlanning(
   // --- Step 1: Data Fetch ---
   const [wartungenRes, ticketsRes, profilesRes, absenceRes] = await Promise.all([
     supabase.from("wartungsvertraege")
-      .select("id, anlage_id, dauer_wartung_minuten, anlagen(id, breitengrad, laengengrad, techniker_id, name)")
+      .select("id, anlage_id, dauer_wartung_minuten, anlagen(id, breitengrad, laengengrad, techniker_id, anlagen_nr)")
       .gte("datum_naechste_wartung", von)
       .lte("datum_naechste_wartung", bis),
     supabase.from("tickets")
@@ -64,7 +64,7 @@ export async function runTourPlanning(
   const openTickets: Ticket[] = (ticketsRes.data ?? []) as Ticket[];
 
   // Group plants by technician
-  type PlantRow = { id: number; breitengrad: string | null; laengengrad: string | null; techniker_id: string | null; name: string | null };
+  type PlantRow = { id: number; breitengrad: number | null; laengengrad: number | null; techniker_id: string | null; anlagen_nr: string | null };
   const plantsByTech: Record<string, GeoPoint[]> = {};
   const anlageToTech: Record<number, string> = {};
   // Keep a coord cache for redistribution centroid calculations
@@ -74,7 +74,7 @@ export async function runTourPlanning(
     const anlage = wv.anlagen as unknown as PlantRow | null;
     if (!anlage) continue;
     if (!anlage.breitengrad || !anlage.laengengrad) {
-      warnings.push(`Anlage ${anlage.name ?? wv.anlage_id} hat keine GPS-Koordinaten und wurde übersprungen.`);
+      warnings.push(`Anlage ${anlage.anlagen_nr ?? wv.anlage_id} hat keine GPS-Koordinaten und wurde übersprungen.`);
       continue;
     }
     const techId = anlage.techniker_id ?? "unassigned";

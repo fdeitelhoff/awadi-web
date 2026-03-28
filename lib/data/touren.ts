@@ -72,9 +72,9 @@ export function mapRowToTourEintrag(row: Record<string, unknown>): TourEintrag {
     techniker_name: profile
       ? [profile.vorname, profile.nachname].filter(Boolean).join(" ") || undefined
       : undefined,
-    anlage_name: anlage?.name as string | undefined,
-    anlage_lat: anlage?.breitengrad ? parseFloat(anlage.breitengrad as string) : undefined,
-    anlage_lng: anlage?.laengengrad ? parseFloat(anlage.laengengrad as string) : undefined,
+    anlage_name: anlage?.anlagen_nr as string | undefined,
+    anlage_lat: anlage?.breitengrad != null ? Number(anlage.breitengrad) : undefined,
+    anlage_lng: anlage?.laengengrad != null ? Number(anlage.laengengrad) : undefined,
     anlage_adresse: anlage
       ? [anlage.strasse, anlage.hausnr, anlage.ort].filter(Boolean).join(" ") || undefined
       : undefined,
@@ -86,7 +86,7 @@ export async function getTourEintraege(tourId: number): Promise<TourEintrag[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(name, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel)")
+    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel)")
     .eq("tour_id", tourId)
     .order("datum", { ascending: true })
     .order("position", { ascending: true });
@@ -98,7 +98,7 @@ export async function getPublishedTourEintraegeForDateRange(von: string, bis: st
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(name, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel), touren!inner(status)")
+    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel), touren!inner(status)")
     .eq("touren.status", "veröffentlicht")
     .gte("datum", von)
     .lte("datum", bis);
