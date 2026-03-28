@@ -13,7 +13,11 @@ export async function POST(req: NextRequest) {
   const body = await req.json() as { name?: string; von?: string; bis?: string };
   const { name, von, bis } = body;
   if (!name || !von || !bis) {
-    return NextResponse.json({ error: "name, von, bis required" }, { status: 400 });
+    return NextResponse.json({ error: "name, von und bis sind erforderlich" }, { status: 400 });
+  }
+  const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+  if (!isoDate.test(von) || !isoDate.test(bis) || bis < von) {
+    return NextResponse.json({ error: "Ungültiges Datumsformat oder Zeitraum" }, { status: 400 });
   }
 
   const mapsApiKey = process.env.GOOGLE_MAPS_API_KEY ?? "";

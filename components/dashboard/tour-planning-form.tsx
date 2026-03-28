@@ -20,6 +20,7 @@ export function TourPlanningForm({ onSuccess }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !von || !bis) return;
+    if (bis < von) { toast.error("Das Enddatum darf nicht vor dem Startdatum liegen"); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/tours/plan", {
