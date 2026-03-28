@@ -32,6 +32,7 @@ export function mapRowToVertrag(row: Record<string, unknown>): Vertrag {
     gueltig_bis: row.gueltig_bis as string | undefined,
     anl_typ_id: row.anl_typ_id as number | undefined,
     intervall_monate: row.intervall_monate as number | undefined,
+    dauer_wartung_minuten: row.dauer_wartung_minuten as number | undefined,
     datum_naechste_wartung: row.datum_naechste_wartung as string | undefined,
     datum_letzte_wartung: row.datum_letzte_wartung as string | undefined,
     last_update: row.last_update as string | undefined,

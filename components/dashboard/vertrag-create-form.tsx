@@ -30,6 +30,7 @@ const EMPTY_FORM: CreateVertragInput = {
   gueltig_bis: "",
   anl_typ_id: null,
   intervall_monate: undefined,
+  dauer_wartung_minuten: undefined,
   datum_naechste_wartung: "",
   datum_letzte_wartung: "",
 };
@@ -159,7 +160,7 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="intervall_monate">Intervall (Monate)</Label>
                 <Input
@@ -170,6 +171,23 @@ export function VertragCreateForm({ anlTypen }: VertragCreateFormProps) {
                   onChange={(e) =>
                     set(
                       "intervall_monate",
+                      e.target.value === ""
+                        ? undefined
+                        : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="dauer_wartung_minuten">Dauer (Minuten)</Label>
+                <Input
+                  id="dauer_wartung_minuten"
+                  type="number"
+                  min={1}
+                  value={form.dauer_wartung_minuten ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "dauer_wartung_minuten",
                       e.target.value === ""
                         ? undefined
                         : parseInt(e.target.value, 10)

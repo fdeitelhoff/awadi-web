@@ -11,6 +11,7 @@ export interface CreateVertragInput {
   gueltig_bis?: string;
   anl_typ_id?: number | null;
   intervall_monate?: number;
+  dauer_wartung_minuten?: number;
   datum_naechste_wartung?: string;
   datum_letzte_wartung?: string;
 }
@@ -22,6 +23,7 @@ export interface UpdateVertragInput {
   gueltig_bis?: string;
   anl_typ_id?: number | null;
   intervall_monate?: number | null;
+  dauer_wartung_minuten?: number | null;
   datum_naechste_wartung?: string;
   datum_letzte_wartung?: string;
 }
@@ -53,6 +55,10 @@ export async function createVertrag(
 
   if (typeof input.intervall_monate === "number") {
     row.intervall_monate = input.intervall_monate;
+  }
+
+  if (typeof input.dauer_wartung_minuten === "number") {
+    row.dauer_wartung_minuten = input.dauer_wartung_minuten;
   }
 
   const { data, error } = await supabase

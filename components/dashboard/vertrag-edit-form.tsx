@@ -64,6 +64,7 @@ export function VertragEditForm({
     gueltig_bis: vertrag.gueltig_bis ?? "",
     anl_typ_id: vertrag.anl_typ_id ?? null,
     intervall_monate: vertrag.intervall_monate ?? undefined,
+    dauer_wartung_minuten: vertrag.dauer_wartung_minuten ?? undefined,
     datum_naechste_wartung: vertrag.datum_naechste_wartung ?? "",
     datum_letzte_wartung: vertrag.datum_letzte_wartung ?? "",
   });
@@ -200,7 +201,7 @@ export function VertragEditForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="intervall_monate">Intervall (Monate)</Label>
                 <Input
@@ -211,6 +212,23 @@ export function VertragEditForm({
                   onChange={(e) =>
                     set(
                       "intervall_monate",
+                      e.target.value === ""
+                        ? null
+                        : parseInt(e.target.value, 10)
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="dauer_wartung_minuten">Dauer (Minuten)</Label>
+                <Input
+                  id="dauer_wartung_minuten"
+                  type="number"
+                  min={1}
+                  value={form.dauer_wartung_minuten ?? ""}
+                  onChange={(e) =>
+                    set(
+                      "dauer_wartung_minuten",
                       e.target.value === ""
                         ? null
                         : parseInt(e.target.value, 10)

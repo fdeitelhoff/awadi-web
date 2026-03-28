@@ -7,6 +7,7 @@ export interface Vertrag {
   gueltig_bis?: string;
   anl_typ_id?: number;
   intervall_monate?: number;
+  dauer_wartung_minuten?: number;
   datum_naechste_wartung?: string;
   datum_letzte_wartung?: string;
   last_update?: string;
