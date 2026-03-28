@@ -1,7 +1,7 @@
 // components/dashboard/tour-grid.tsx
 "use client";
 
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,8 +41,9 @@ export function TourGrid({ tour, initialEintraege, openTickets: initialOpenTicke
   const [openTickets, setOpenTickets] = useState(initialOpenTickets);
   const [isPending, startTransition] = useTransition();
 
+  const [technikerIds] = useState(() => [...new Set(initialEintraege.map(e => e.techniker_id))]);
+
   const dates = getDatesInRange(tour.von, tour.bis);
-  const technikerIds = [...new Set(eintraege.map(e => e.techniker_id))];
 
   function getStopsForCell(techId: string, datum: string): TourEintrag[] {
     return eintraege
@@ -73,16 +74,20 @@ export function TourGrid({ tour, initialEintraege, openTickets: initialOpenTicke
     });
   }
 
-  async function handlePublish() {
-    const result = await publishTour(tour.id);
-    if (result.success) { setTourStatus("veröffentlicht"); toast.success("Tour veröffentlicht"); }
-    else toast.error(result.error ?? "Fehler");
+  function handlePublish() {
+    startTransition(async () => {
+      const result = await publishTour(tour.id);
+      if (result.success) { setTourStatus("veröffentlicht"); toast.success("Tour veröffentlicht"); }
+      else toast.error(result.error ?? "Fehler");
+    });
   }
 
-  async function handleRevert() {
-    const result = await revertToDraft(tour.id);
-    if (result.success) { setTourStatus("entwurf"); toast.success("Tour zurück zu Entwurf"); }
-    else toast.error(result.error ?? "Fehler");
+  function handleRevert() {
+    startTransition(async () => {
+      const result = await revertToDraft(tour.id);
+      if (result.success) { setTourStatus("entwurf"); toast.success("Tour zurück zu Entwurf"); }
+      else toast.error(result.error ?? "Fehler");
+    });
   }
 
   async function handleReoptimise(techId: string, datum: string) {
@@ -119,8 +124,8 @@ export function TourGrid({ tour, initialEintraege, openTickets: initialOpenTicke
               ))}
               {/* Technician rows */}
               {technikerIds.map(techId => (
-                <>
-                  <div key={`name-${techId}`} className="p-2 text-sm font-medium border-b self-start pt-3 truncate">
+                <Fragment key={techId}>
+                  <div className="p-2 text-sm font-medium border-b self-start pt-3 truncate">
                     {eintraege.find(e => e.techniker_id === techId)?.techniker_name ?? techId.slice(0, 8)}
                   </div>
                   {dates.map(datum => {
@@ -149,7 +154,7 @@ export function TourGrid({ tour, initialEintraege, openTickets: initialOpenTicke
                       </div>
                     );
                   })}
-                </>
+                </Fragment>
               ))}
             </div>
             <ScrollBar orientation="horizontal" />

@@ -5,14 +5,14 @@ import { useDroppable } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Ticket } from "@/lib/types/ticket";
+import type { Ticket, TicketPriorität } from "@/lib/types/ticket";
 
 interface Props {
   tickets: Ticket[];
   onDismiss?: (ticketId: number) => void;
 }
 
-const PRIORITY_COLORS: Record<string, string> = {
+const PRIORITY_COLORS: Record<TicketPriorität, "destructive" | "outline" | "secondary"> = {
   dringend: "destructive",
   hoch: "outline",
   normal: "secondary",
@@ -41,7 +41,7 @@ export function TourTicketSidebar({ tickets, onDismiss }: Props) {
                 <div className="flex items-center justify-between gap-1">
                   <span className="font-medium truncate">{ticket.titel}</span>
                   <Badge
-                    variant={PRIORITY_COLORS[ticket.prioritaet] as "destructive" | "outline" | "secondary"}
+                    variant={PRIORITY_COLORS[ticket.prioritaet]}
                     className="h-4 text-[10px] shrink-0"
                   >
                     {ticket.prioritaet}
