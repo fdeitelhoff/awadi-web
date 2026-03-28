@@ -94,14 +94,20 @@ export type SortDirection = "asc" | "desc";
 export interface AnlageQueryParams {
   search?: string;
   filterOrt?: string;
+  filterTechnikerIds?: string[]; // IDs of selected technicians; "none" = unassigned
   sortField?: SortField;
   sortDirection?: SortDirection;
   page?: number;
   pageSize?: number;
 }
 
+export interface AnlageFilterOptions {
+  orte: string[];
+  techniker: { id: string; name: string }[];
+}
+
 export interface AnlageQueryResult {
   data: AnlageListItem[];
   totalCount: number;
-  filterOptions: { orte: string[] };
+  filterOptions: AnlageFilterOptions;
 }

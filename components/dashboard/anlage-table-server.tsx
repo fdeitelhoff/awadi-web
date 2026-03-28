@@ -22,6 +22,7 @@ export async function AnlagePageContent() {
         initialData={anlageResult.data}
         initialCount={anlageResult.totalCount}
         initialFilterOrte={anlageResult.filterOptions.orte}
+        initialFilterTechniker={anlageResult.filterOptions.techniker}
       />
     </>
   );

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
   AnlTyp,
+  AnlageFilterOptions,
   AnlageListItem,
   AnlageQueryResult,
   SortField,
@@ -77,6 +78,7 @@ export async function getAnlagen(
   params: {
     search?: string;
     filterOrt?: string;
+    filterTechnikerIds?: string[];
     sortField?: SortField;
     sortDirection?: "asc" | "desc";
     page?: number;
@@ -86,6 +88,7 @@ export async function getAnlagen(
   const {
     search = "",
     filterOrt,
+    filterTechnikerIds,
     sortField = "anlagen_nr",
     sortDirection = "asc",
     page = 1,
@@ -117,6 +120,15 @@ export async function getAnlagen(
     query = query.eq("ort", filterOrt);
   }
 
+  if (filterTechnikerIds && filterTechnikerIds.length > 0) {
+    const realIds = filterTechnikerIds.filter((id) => id !== "none");
+    const includeNone = filterTechnikerIds.includes("none");
+    const conditions: string[] = [];
+    if (realIds.length > 0) conditions.push(`techniker_id.in.(${realIds.join(",")})`);
+    if (includeNone) conditions.push("techniker_id.is.null");
+    if (conditions.length > 0) query = query.or(conditions.join(","));
+  }
+
   const dbColumn = SORT_FIELD_TO_COLUMN[sortField] ?? "anlagen_nr";
   query = query.order(dbColumn, {
     ascending: sortDirection === "asc",
@@ -144,22 +156,21 @@ export async function getAnlagen(
   };
 }
 
-export async function getAnlageFilterOptions(): Promise<{ orte: string[] }> {
+export async function getAnlageFilterOptions(): Promise<AnlageFilterOptions> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("anlagen")
-    .select("ort")
-    .not("ort", "is", null)
-    .order("ort");
+  const [{ data: orteData, error: orteError }, techniker] = await Promise.all([
+    supabase.from("anlagen").select("ort").not("ort", "is", null).order("ort"),
+    getActiveTechniker(),
+  ]);
 
-  if (error) {
-    console.error("Error fetching anlage filter options:", error);
-    return { orte: [] };
+  if (orteError) {
+    console.error("Error fetching anlage filter options:", orteError);
+    return { orte: [], techniker };
   }
 
-  const orte = [...new Set((data ?? []).map((r) => r.ort as string))];
-  return { orte };
+  const orte = [...new Set((orteData ?? []).map((r) => r.ort as string))];
+  return { orte, techniker };
 }
 
 export async function getAnlageById(

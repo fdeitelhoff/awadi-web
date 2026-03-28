@@ -11,6 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -41,6 +49,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Plus,
 } from "lucide-react";
 import { SortIcon } from "@/components/ui/sort-icon";
@@ -52,23 +61,27 @@ interface AnlageTableProps {
   initialData: AnlageListItem[];
   initialCount: number;
   initialFilterOrte: string[];
+  initialFilterTechniker: { id: string; name: string }[];
 }
 
 export function AnlageTable({
   initialData,
   initialCount,
   initialFilterOrte,
+  initialFilterTechniker,
 }: AnlageTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [sortField, setSortField] = useState<SortField>("anlagen_nr");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [filterOrt, setFilterOrt] = useState<string>("all");
+  const [filterTechnikerIds, setFilterTechnikerIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
 
   const [anlagen, setAnlagen] = useState<AnlageListItem[]>(initialData);
   const [totalCount, setTotalCount] = useState(initialCount);
   const [filterOrte, setFilterOrte] = useState<string[]>(initialFilterOrte);
+  const [filterTechniker, setFilterTechniker] = useState<{ id: string; name: string }[]>(initialFilterTechniker);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -121,6 +134,7 @@ export function AnlageTable({
     fetchAnlagen({
       search: activeSearch,
       filterOrt,
+      filterTechnikerIds: filterTechnikerIds.size > 0 ? [...filterTechnikerIds] : undefined,
       sortField,
       sortDirection,
       page: currentPage,
@@ -130,19 +144,39 @@ export function AnlageTable({
       setAnlagen(result.data);
       setTotalCount(result.totalCount);
       setFilterOrte(result.filterOptions.orte);
+      setFilterTechniker(result.filterOptions.techniker);
       setIsLoading(false);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [activeSearch, filterOrt, sortField, sortDirection, currentPage]);
+  }, [activeSearch, filterOrt, filterTechnikerIds, sortField, sortDirection, currentPage]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   const handleFilterChange = (value: string) => {
     setFilterOrt(value);
     setCurrentPage(1);
+  };
+
+  const toggleTechniker = (id: string) => {
+    setFilterTechnikerIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+    setCurrentPage(1);
+  };
+
+  const technikerLabel = () => {
+    if (filterTechnikerIds.size === 0) return "Alle Techniker";
+    if (filterTechnikerIds.size === 1) {
+      const id = [...filterTechnikerIds][0];
+      if (id === "none") return "Nicht zugewiesen";
+      return filterTechniker.find((t) => t.id === id)?.name ?? "1 Techniker";
+    }
+    return `${filterTechnikerIds.size} Techniker`;
   };
 
   const handleSort = (field: SortField) => {
@@ -260,6 +294,47 @@ export function AnlageTable({
 
         {/* Right: filter + new */}
         <div className="flex items-center gap-2">
+          {/* Techniker multi-select */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-1.5">
+                <span className="text-sm">{technikerLabel()}</span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuLabel>Techniker</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {filterTechniker.map((tech) => (
+                <DropdownMenuCheckboxItem
+                  key={tech.id}
+                  checked={filterTechnikerIds.has(tech.id)}
+                  onCheckedChange={() => toggleTechniker(tech.id)}
+                >
+                  {tech.name}
+                </DropdownMenuCheckboxItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={filterTechnikerIds.has("none")}
+                onCheckedChange={() => toggleTechniker("none")}
+              >
+                Nicht zugewiesen
+              </DropdownMenuCheckboxItem>
+              {filterTechnikerIds.size > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuCheckboxItem
+                    checked={false}
+                    onCheckedChange={() => { setFilterTechnikerIds(new Set()); setCurrentPage(1); }}
+                  >
+                    Filter zurücksetzen
+                  </DropdownMenuCheckboxItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Select value={filterOrt} onValueChange={handleFilterChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Ort filtern" />
