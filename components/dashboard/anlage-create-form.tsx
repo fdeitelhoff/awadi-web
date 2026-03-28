@@ -177,9 +177,25 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
                 <Label htmlFor="anl_typ_id">Anlagentyp</Label>
                 <Select
                   value={form.anl_typ_id != null ? String(form.anl_typ_id) : "none"}
-                  onValueChange={(v) =>
-                    set("anl_typ_id", v === "none" ? undefined : parseInt(v, 10))
-                  }
+                  onValueChange={(v) => {
+                    if (v === "none") {
+                      setForm((prev) => ({
+                        ...prev,
+                        anl_typ_id: undefined,
+                        verfahren_br_anz_behaelter: undefined,
+                        number_of_biologies: undefined,
+                      }));
+                    } else {
+                      const id = parseInt(v, 10);
+                      const typ = anlTypen.find((t) => t.id === id);
+                      setForm((prev) => ({
+                        ...prev,
+                        anl_typ_id: id,
+                        verfahren_br_anz_behaelter: typ?.anzahl_vorklaerbehaelter ?? prev.verfahren_br_anz_behaelter,
+                        number_of_biologies: typ?.anzahl_biologien ?? prev.number_of_biologies,
+                      }));
+                    }
+                  }}
                 >
                   <SelectTrigger id="anl_typ_id">
                     <SelectValue placeholder="Typ auswählen…" />

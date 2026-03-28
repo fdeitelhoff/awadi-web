@@ -82,6 +82,8 @@ export interface AnlageListItem extends Anlage {
 export interface AnlTyp {
   id: number;
   bezeichnung: string;
+  anzahl_vorklaerbehaelter?: number;
+  anzahl_biologien?: number;
 }
 
 export type SortField =
