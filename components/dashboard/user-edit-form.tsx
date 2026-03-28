@@ -20,13 +20,16 @@ import {
 } from "@/lib/actions/profiles";
 import type { Profile, UserRolle } from "@/lib/types/profile";
 import type { InternalComment } from "@/lib/types/kommentar";
+import type { Abwesenheit } from "@/lib/types/abwesenheit";
 import { InternalComments } from "@/components/dashboard/internal-comments";
+import { AbwesenheitenCard } from "@/components/dashboard/abwesenheiten-card";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
 
 interface UserEditFormProps {
   profile: Profile;
   initialKommentare: InternalComment[];
+  initialAbwesenheiten: Abwesenheit[];
   rollen: UserRolle[];
 }
 
@@ -67,7 +70,7 @@ function toFormInput(profile: Profile): UpdateProfileInput {
   };
 }
 
-export function UserEditForm({ profile, initialKommentare, rollen }: UserEditFormProps) {
+export function UserEditForm({ profile, initialKommentare, initialAbwesenheiten, rollen }: UserEditFormProps) {
   const [form, setForm] = useState<UpdateProfileInput>(toFormInput(profile));
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -326,6 +329,12 @@ export function UserEditForm({ profile, initialKommentare, rollen }: UserEditFor
             </div>
           </CardContent>
         </Card>
+
+        {/* ── Abwesenheiten ─────────────────────────────────────── */}
+        <AbwesenheitenCard
+          userId={profile.id}
+          initialAbwesenheiten={initialAbwesenheiten}
+        />
 
         {/* ── Anmerkungen ───────────────────────────────────────── */}
         <InternalComments

@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { inviteUser, type UpdateProfileInput } from "@/lib/actions/profiles";
 import type { UserRolle } from "@/lib/types/profile";
+import { AbwesenheitenCard } from "@/components/dashboard/abwesenheiten-card";
 import { Loader2, ArrowLeft, Mail } from "lucide-react";
 
 type Day = "mo" | "di" | "mi" | "do" | "fr" | "sa" | "so";
@@ -241,6 +242,9 @@ export function UserCreateForm({ rollen }: UserCreateFormProps) {
 
           </CardContent>
         </Card>
+
+        {/* ── Abwesenheiten ─────────────────────────────────────── */}
+        <AbwesenheitenCard userId={null} initialAbwesenheiten={[]} />
 
         {/* ── Arbeitszeiten ─────────────────────────────────────── */}
         <Card className="lg:col-span-2">
