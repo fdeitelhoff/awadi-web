@@ -1,0 +1,98 @@
+<h2>Tour Planning — Algorithm Approaches</h2>
+<p class="subtitle">Three options for how the scheduling algorithm works. Pick the one that fits best.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Sequential Day Filling</h3>
+      <p><strong>How it works:</strong> Plants are sorted by location (nearby plants grouped together). Each available working day is filled with plants until the day's time capacity is full, then the next day begins. Within each day, stops are ordered using Nearest Neighbor from the technician's start point.</p>
+      <br>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Simplest to implement</li>
+            <li>Fast execution</li>
+            <li>Easy to debug and explain</li>
+            <li>Lowest API cost (fewer Maps calls)</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Can produce suboptimal routes</li>
+            <li>Geographic grouping is rough</li>
+            <li>May leave inefficient gaps on some days</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px"><span class="label">Effort</span> 2–3 days dev &nbsp;|&nbsp; <span class="label">Route quality</span> ★★☆☆</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Geographic Clustering + Nearest Neighbor <span style="color:var(--accent);font-size:0.75rem;font-weight:600;margin-left:8px">★ Recommended</span></h3>
+      <p><strong>How it works:</strong> Plants are first grouped geographically into clusters (one cluster per available working day) using k-means. Each cluster then becomes a day's work. Google Maps Distance Matrix is used to get real driving times between all plants, and Nearest Neighbor TSP orders the stops within each day starting from the technician's start address.</p>
+      <br>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Much better route quality than A</li>
+            <li>Geographic clustering minimizes daily travel</li>
+            <li>Real driving times from Google Maps</li>
+            <li>Reasonable implementation complexity</li>
+            <li>Travel time cache in DB (no repeated API calls)</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>k-means can produce uneven clusters</li>
+            <li>Not globally optimal (still heuristic)</li>
+            <li>More Maps API calls upfront</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px"><span class="label">Effort</span> 4–5 days dev &nbsp;|&nbsp; <span class="label">Route quality</span> ★★★☆</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Clarke-Wright Savings Algorithm</h3>
+      <p><strong>How it works:</strong> A classic operations research algorithm for VRP. Starts with every plant having its own dedicated round-trip, then repeatedly merges routes where the "saving" (reduced travel) is greatest. Naturally handles multi-day scheduling and produces near-optimal results for the scale of a maintenance company.</p>
+      <br>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Best route quality of the three</li>
+            <li>Industry standard for field service VRP</li>
+            <li>Handles capacity constraints well</li>
+            <li>Scales to larger plant counts</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Most complex to implement</li>
+            <li>Harder to explain to users</li>
+            <li>Overkill for small plant counts (&lt;30/technician)</li>
+            <li>Still needs Google Maps for travel times</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px"><span class="label">Effort</span> 6–8 days dev &nbsp;|&nbsp; <span class="label">Route quality</span> ★★★★</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px;padding:16px;background:var(--surface-2);border-radius:8px;border:1px solid var(--border)">
+  <p class="label">My recommendation</p>
+  <p>Start with <strong>B (Geographic Clustering)</strong>. It produces genuinely good routes, the implementation is manageable, and the dispatcher can fix the few cases where clusters aren't ideal via drag-and-drop anyway. Clarke-Wright is only worth the extra effort if you have technicians managing 50+ plants each and the dispatcher's corrections become too frequent.</p>
+</div>

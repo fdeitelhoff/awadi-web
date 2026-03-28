@@ -1,0 +1,11 @@
+Tour and Route Planning
+The project I am developing is a tool for managing small wastewater treatment plants and their maintenance. I can store information on plants, maintenance data (maintenance intervals, last maintenance, next maintenance, maintenance duration), technicians with their working hours and absence times, as well as customers/contact persons for the plants, including their addresses.
+I now want to implement an algorithm that schedules maintenance visits into routes for a specified number of weeks. Each system is assigned to a technician. A technician can handle a certain number of systems per day based on travel times, working hours/absence times, and maintenance durations per system.
+Current ideas for route planning:
+At the moment, I’m assuming that we have a “maintenance data” object for each system. This contains general maintenance data such as the interval, last maintenance, next maintenance, and maintenance duration. 
+The algorithm then proceeds as follows: for the period specified by the user—for example, three weeks, defined by start and end dates—it searches for all systems where the next maintenance falls within this route window.
+Once I have identified these systems, I also know the technicians assigned to them. So, I have a set of technicians, each of whom “groups” a set of systems under their responsibility.
+In the future, I will store another object named “Route.” Here, I will summarize the data per technician and day.
+For each Tour object, I store the “Tour Details” objects. Each detail object contains a piece of equipment, a day, and the specific maintenance window for that day.
+The algorithm can now use the set of technicians, each with a set of pieces of equipment, to schedule the tours so that the travel time and maintenance duration per piece of equipment per technician fit within the daily schedule.
+Please check whether my assumptions make sense. You have access to the next project and the Supabase instance. Please design the algorithm first so we can discuss what approaches make sense. Is there a term for such an algorithm? I need an algorithm that handles tour planning and calculates routes using services like Google Maps so that a technician knows on which days they need to drive and how to do so optimally.

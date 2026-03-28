@@ -1,0 +1,189 @@
+<h2>Section 3 of 3 — Dispatcher Planning View</h2>
+<p class="subtitle">Two layout approaches for the tour planning page. Which feels right?</p>
+
+<div class="options">
+
+  <!-- Option A: Timeline Grid -->
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Timeline Grid <span style="color:var(--accent);font-size:0.75rem;font-weight:600;margin-left:8px">★ Recommended</span></h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px">All technicians × all days visible at once. Dispatcher sees the full picture, capacity utilization per cell, and can drag stops horizontally (change day) or vertically (change technician).</p>
+
+      <div class="mockup">
+        <div class="mockup-header">Tour Planning — KW 14–16 · Draft</div>
+        <div class="mockup-body" style="padding:0;overflow:auto">
+          <!-- Toolbar -->
+          <div style="padding:8px 12px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--border);background:var(--surface)">
+            <div class="mock-button" style="font-size:0.75rem;padding:4px 10px">⚙ Generate</div>
+            <div style="font-size:0.75rem;color:var(--muted)">Mo 06.04 – Fr 24.04.2026</div>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <div class="mock-button" style="font-size:0.75rem;padding:4px 10px">KW 14</div>
+              <div class="mock-button" style="font-size:0.75rem;padding:4px 10px;opacity:0.5">KW 15</div>
+              <div class="mock-button" style="font-size:0.75rem;padding:4px 10px;opacity:0.5">KW 16</div>
+              <div class="mock-button" style="font-size:0.75rem;padding:4px 10px;background:var(--accent);color:#fff">Veröffentlichen</div>
+            </div>
+          </div>
+
+          <div style="display:flex">
+            <!-- Main grid -->
+            <div style="flex:1;overflow:auto">
+              <!-- Day headers -->
+              <div style="display:grid;grid-template-columns:100px repeat(5,1fr);border-bottom:1px solid var(--border)">
+                <div style="padding:6px 8px;font-size:0.7rem;color:var(--muted)"></div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Mo 06.04</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Di 07.04</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Mi 08.04</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Do 09.04</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Fr 10.04</div>
+              </div>
+              <!-- Technician rows -->
+              <div style="display:grid;grid-template-columns:100px repeat(5,1fr);border-bottom:1px solid var(--border)">
+                <div style="padding:8px;display:flex;align-items:center;gap:6px;border-right:1px solid var(--border)">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0"></div>
+                  <span style="font-size:0.75rem;font-weight:600">Mueller</span>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">Anlage #A-1042 · 8:00<br><span style="color:var(--muted)">90 min · 12 min Fahrt</span></div>
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">Anlage #A-1055 · 9:42<br><span style="color:var(--muted)">60 min · 8 min Fahrt</span></div>
+                  <div style="font-size:0.65rem;color:var(--muted);margin-top:4px">▓▓▓▓▓▓░░░░ 58%</div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">Anlage #A-1061 · 8:00<br><span style="color:var(--muted)">120 min · 18 min Fahrt</span></div>
+                  <div style="font-size:0.65rem;color:var(--muted);margin-top:4px">▓▓▓░░░░░░░ 28%</div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border);background:repeating-linear-gradient(45deg,transparent,transparent 4px,var(--surface-2) 4px,var(--surface-2) 8px)">
+                  <div style="font-size:0.68rem;color:var(--muted);text-align:center;padding-top:8px">Urlaub</div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#f59e0b20;border:1px solid #f59e0b60;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">
+                    <span style="background:#f59e0b;color:#fff;font-size:0.6rem;padding:1px 4px;border-radius:2px;margin-right:4px">Vertretung</span>
+                    Anlage #B-0023<br><span style="color:var(--muted)">90 min · 22 min Fahrt</span>
+                  </div>
+                  <div style="font-size:0.65rem;color:var(--muted);margin-top:4px">▓▓▓░░░░░░░ 26%</div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">Anlage #A-1078 · 8:00<br><span style="color:var(--muted)">60 min · 14 min Fahrt</span></div>
+                  <div style="font-size:0.65rem;color:var(--muted);margin-top:4px">▓▓░░░░░░░░ 19%</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:100px repeat(5,1fr);border-bottom:1px solid var(--border)">
+                <div style="padding:8px;display:flex;align-items:center;gap:6px;border-right:1px solid var(--border)">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0"></div>
+                  <span style="font-size:0.75rem;font-weight:600">Schmidt</span>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#22c55e20;border:1px solid #22c55e40;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">Anlage #C-0031 · 8:00<br><span style="color:var(--muted)">90 min · 9 min Fahrt</span></div>
+                  <div style="background:#ef444420;border:1px solid #ef444440;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">
+                    <span style="background:#ef4444;color:#fff;font-size:0.6rem;padding:1px 4px;border-radius:2px;margin-right:4px">Ticket</span>
+                    TK-0041 · 10:39<br><span style="color:var(--muted)">60 min · 11 min Fahrt</span>
+                  </div>
+                  <div style="font-size:0.65rem;color:var(--muted);margin-top:4px">▓▓▓▓░░░░░░ 42%</div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border);background:repeating-linear-gradient(45deg,transparent,transparent 4px,var(--surface-2) 4px,var(--surface-2) 8px)">
+                  <div style="font-size:0.68rem;color:var(--muted);text-align:center;padding-top:8px">Krank 08:00–12:00</div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#22c55e20;border:1px solid #22c55e40;border-radius:4px;padding:4px 6px;font-size:0.68rem;margin-bottom:3px">Anlage #C-0044 · 8:00<br><span style="color:var(--muted)">60 min · 7 min Fahrt</span></div>
+                  <div style="font-size:0.65rem;color:var(--muted);margin-top:4px">▓▓░░░░░░░░ 18%</div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)"></div>
+                <div style="padding:6px;border-left:1px solid var(--border)"></div>
+              </div>
+            </div>
+            <!-- Ticket sidebar -->
+            <div style="width:160px;border-left:1px solid var(--border);padding:8px;background:var(--surface)">
+              <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:8px">Offene Tickets</div>
+              <div style="background:#ef444420;border:1px solid #ef444460;border-radius:4px;padding:6px;font-size:0.68rem;margin-bottom:6px">
+                <span style="background:#ef4444;color:#fff;padding:1px 4px;border-radius:2px;font-size:0.6rem">dringend</span><br>
+                TK-0038 · Pumpe defekt<br>
+                <span style="color:var(--muted)">Oberau · kein Techn.</span>
+              </div>
+              <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:6px;font-size:0.68rem;margin-bottom:6px">
+                <span style="background:#f59e0b;color:#fff;padding:1px 4px;border-radius:2px;font-size:0.6rem">hoch</span><br>
+                TK-0039 · Alarm<br>
+                <span style="color:var(--muted)">Miesbach · Schmidt</span>
+              </div>
+              <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:6px;font-size:0.68rem">
+                <span style="background:var(--muted);color:#fff;padding:1px 4px;border-radius:2px;font-size:0.6rem">normal</span><br>
+                TK-0040 · Geruch<br>
+                <span style="color:var(--muted)">Holzkirchen · Mueller</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Full picture at a glance</li><li>Capacity bars per cell</li><li>Absences visible inline</li><li>Drag horizontally (day) or vertically (technician)</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Crowded with many technicians</li><li>Week navigation needed for long windows</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Technician-first -->
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Technician Board</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px">One technician selected at a time. Their week is shown as day-columns. Simpler layout, easier to focus on one person's route.</p>
+
+      <div class="mockup">
+        <div class="mockup-header">Tour Planning — KW 14–16 · Draft</div>
+        <div class="mockup-body" style="padding:0">
+          <div style="display:flex;height:260px">
+            <!-- Technician list -->
+            <div style="width:110px;border-right:1px solid var(--border);padding:8px;background:var(--surface)">
+              <div style="font-size:0.7rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">Techniker</div>
+              <div style="padding:6px 8px;border-radius:6px;background:var(--accent);color:#fff;font-size:0.78rem;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                <div style="width:8px;height:8px;border-radius:50%;background:#fff;flex-shrink:0"></div>Mueller
+              </div>
+              <div style="padding:6px 8px;border-radius:6px;font-size:0.78rem;margin-bottom:4px;display:flex;align-items:center;gap:6px;color:var(--muted)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0"></div>Schmidt
+              </div>
+              <div style="padding:6px 8px;border-radius:6px;font-size:0.78rem;display:flex;align-items:center;gap:6px;color:var(--muted)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#a855f7;flex-shrink:0"></div>Wagner
+              </div>
+            </div>
+            <!-- Day columns for selected technician -->
+            <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border);background:var(--surface)">
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center">Mo 06.04</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Di 07.04</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border);color:#ef4444">Mi 08.04 — Urlaub</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Do 09.04</div>
+                <div style="padding:6px 8px;font-size:0.72rem;font-weight:600;text-align:center;border-left:1px solid var(--border)">Fr 10.04</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);flex:1">
+                <div style="padding:6px">
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:5px 6px;font-size:0.7rem;margin-bottom:4px">A-1042 · 8:00<br><span style="color:var(--muted);font-size:0.65rem">90 min</span></div>
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:5px 6px;font-size:0.7rem">A-1055 · 9:42<br><span style="color:var(--muted);font-size:0.65rem">60 min</span></div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:5px 6px;font-size:0.7rem">A-1061 · 8:00<br><span style="color:var(--muted);font-size:0.65rem">120 min</span></div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border);background:repeating-linear-gradient(45deg,transparent,transparent 4px,var(--surface-2) 4px,var(--surface-2) 8px)"></div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#f59e0b20;border:1px solid #f59e0b60;border-radius:4px;padding:5px 6px;font-size:0.7rem">
+                    <span style="background:#f59e0b;color:#fff;font-size:0.6rem;padding:1px 3px;border-radius:2px">Vertr.</span> B-0023<br><span style="color:var(--muted);font-size:0.65rem">90 min</span>
+                  </div>
+                </div>
+                <div style="padding:6px;border-left:1px solid var(--border)">
+                  <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:4px;padding:5px 6px;font-size:0.7rem">A-1078 · 8:00<br><span style="color:var(--muted);font-size:0.65rem">60 min</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pros-cons" style="margin-top:12px">
+        <div class="pros"><h4>Pros</h4><ul><li>Cleaner, less overwhelming</li><li>Scales well with many technicians</li><li>Focused editing per person</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Can't see all technicians at once</li><li>Harder to spot cross-technician imbalances</li><li>Dragging between technicians requires switching views</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:20px">Both show: stop cards with estimated arrival times, travel/duration, capacity bars, absence hatching, Vertretung badges (reassigned), and Ticket badges. Which layout do you prefer?</p>

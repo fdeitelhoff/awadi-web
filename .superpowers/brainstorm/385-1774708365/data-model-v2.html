@@ -1,0 +1,103 @@
+<h2>Section 1 of 3 — Data Model (updated)</h2>
+<p class="subtitle">New tables and changes to existing ones. Does this look right?</p>
+
+<div class="section">
+  <h3>New tables</h3>
+  <div style="display:grid;gap:16px;margin-top:12px">
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="background:var(--accent);color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px">NEW</span>
+        <strong>touren</strong>
+        <span class="label" style="margin-left:auto">Tour header — one row per planning run</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 2fr;gap:4px 16px;font-size:0.85rem">
+        <span style="color:var(--muted)">id</span><span>serial PK</span><span></span>
+        <span style="color:var(--muted)">name</span><span>text</span><span style="color:var(--muted)">e.g. "KW 14–16 2026"</span>
+        <span style="color:var(--muted)">von</span><span>date</span><span style="color:var(--muted)">Start of planning window</span>
+        <span style="color:var(--muted)">bis</span><span>date</span><span style="color:var(--muted)">End of planning window</span>
+        <span style="color:var(--muted)">status</span><span>text</span><span style="color:var(--muted)">'entwurf' | 'veröffentlicht'</span>
+        <span style="color:var(--muted)">created_by</span><span>uuid FK → profiles</span><span style="color:var(--muted)">Dispatcher who created it</span>
+        <span style="color:var(--muted)">created_at, updated_at</span><span>timestamptz</span><span></span>
+      </div>
+    </div>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="background:var(--accent);color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px">NEW</span>
+        <strong>tour_eintraege</strong>
+        <span class="label" style="margin-left:auto">One row per stop — maintenance visit or ticket</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 2fr;gap:4px 16px;font-size:0.85rem">
+        <span style="color:var(--muted)">id</span><span>serial PK</span><span></span>
+        <span style="color:var(--muted)">tour_id</span><span>int FK → touren</span><span style="color:var(--muted)">CASCADE DELETE</span>
+        <span style="color:var(--muted)">techniker_id</span><span>uuid FK → profiles</span><span style="color:var(--muted)">Who does the visit</span>
+        <span style="color:var(--muted)">datum</span><span>date</span><span style="color:var(--muted)">Which day</span>
+        <span style="color:var(--muted)">position</span><span>integer</span><span style="color:var(--muted)">Stop order within the day (0, 1, 2…)</span>
+        <span style="color:var(--muted)">item_type</span><span>text</span><span style="color:var(--muted)">'wartung' | 'ticket'</span>
+        <span style="color:var(--muted)">anlage_id</span><span>int FK → anlagen</span><span style="color:var(--muted)">Set when item_type = 'wartung'</span>
+        <span style="color:var(--muted)">ticket_id</span><span>int FK → tickets</span><span style="color:var(--muted)">Set when item_type = 'ticket'</span>
+        <span style="color:var(--muted)">geplante_startzeit</span><span>time</span><span style="color:var(--muted)">Calculated arrival time at this stop</span>
+        <span style="color:var(--muted)">fahrtzeit_minuten</span><span>integer</span><span style="color:var(--muted)">Drive time from previous stop (Maps API)</span>
+        <span style="color:var(--muted)">dauer_minuten</span><span>integer</span><span style="color:var(--muted)">Maintenance or service duration</span>
+        <span style="color:var(--muted)">original_techniker_id</span><span>uuid FK → profiles</span><span style="color:var(--muted)">Set if reassigned due to absence cover</span>
+        <span style="color:var(--muted)">notizen</span><span>text</span><span></span>
+      </div>
+    </div>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="background:var(--accent);color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px">NEW</span>
+        <strong>reisezeiten_cache</strong>
+        <span class="label" style="margin-left:auto">Cached Google Maps travel times</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 2fr;gap:4px 16px;font-size:0.85rem">
+        <span style="color:var(--muted)">von_lat, von_lng</span><span>numeric(10,7)</span><span style="color:var(--muted)">Origin coordinates</span>
+        <span style="color:var(--muted)">nach_lat, nach_lng</span><span>numeric(10,7)</span><span style="color:var(--muted)">Destination coordinates</span>
+        <span style="color:var(--muted)">fahrtzeit_minuten</span><span>integer</span><span style="color:var(--muted)">Driving time</span>
+        <span style="color:var(--muted)">distanz_km</span><span>numeric(6,2)</span><span></span>
+        <span style="color:var(--muted)">cached_at</span><span>timestamptz</span><span style="color:var(--muted)">UNIQUE on all 4 coordinate columns</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>Changes to existing tables</h3>
+  <div style="display:grid;gap:12px;margin-top:12px">
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="background:#f59e0b;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px">EXTEND</span>
+        <strong>profiles</strong>
+        <span class="label" style="margin-left:auto">Add configurable daily start location per technician</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 2fr;gap:4px 16px;font-size:0.85rem">
+        <span style="color:var(--muted)">start_strasse, start_hausnr</span><span>text nullable</span><span style="color:var(--muted)">Home or office address</span>
+        <span style="color:var(--muted)">start_plz, start_ort</span><span>text nullable</span><span></span>
+        <span style="color:var(--muted)">start_lat, start_lng</span><span>numeric(10,7) nullable</span><span style="color:var(--muted)">Geocoded via Maps API on save</span>
+      </div>
+    </div>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="background:#22c55e;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px">NO CHANGE</span>
+        <strong>abwesenheiten</strong>
+        <span class="label" style="margin-left:auto">Already supports partial-day absences</span>
+      </div>
+      <p style="font-size:0.85rem;color:var(--muted)"><code>von</code> and <code>bis</code> are already <strong>timestamptz</strong> in the DB — storing e.g. <code>2026-03-15 08:00</code> → <code>2026-03-15 12:00</code> works today. The TypeScript comment just needs correcting from "ISO date string" to "ISO datetime string". The algorithm reads the time component to calculate how many minutes of working capacity remain on a partial-absence day.</p>
+    </div>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="background:#22c55e;color:#fff;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:4px">NO CHANGE</span>
+        <strong>tickets</strong>
+      </div>
+      <p style="font-size:0.85rem;color:var(--muted)">Status <code>'eingeplant'</code> already exists. Pulled into tour → <code>'eingeplant'</code>. Removed from tour → reverts to <code>'offen'</code>.</p>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px">Does this look right? Any fields missing before we move to Section 2 (Algorithm)?</p>

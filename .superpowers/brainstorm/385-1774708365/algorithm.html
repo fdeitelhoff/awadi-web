@@ -1,0 +1,94 @@
+<h2>Section 2 of 3 — Algorithm Design</h2>
+<p class="subtitle">Seven steps from raw data to a draft tour. Does this flow make sense?</p>
+
+<div style="display:grid;gap:12px;margin-top:16px">
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;display:grid;grid-template-columns:40px 1fr;gap:0 16px">
+    <div style="display:flex;align-items:flex-start;justify-content:center;padding-top:2px">
+      <span style="background:var(--accent);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">1</span>
+    </div>
+    <div>
+      <h3 style="margin:0 0 6px">Data fetch</h3>
+      <p style="font-size:0.875rem;color:var(--muted);margin:0">Load all <code>wartungsvertraege</code> where <code>datum_naechste_wartung</code> falls within the selected window. Join with <code>anlagen</code> to get GPS coordinates and <code>techniker_id</code>. Group plants by technician. Load all technician profiles (working hours, start coordinates) and their absences from <code>user_abwesenheiten</code>.</p>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;display:grid;grid-template-columns:40px 1fr;gap:0 16px">
+    <div style="display:flex;align-items:flex-start;justify-content:center;padding-top:2px">
+      <span style="background:var(--accent);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">2</span>
+    </div>
+    <div>
+      <h3 style="margin:0 0 6px">Capacity map</h3>
+      <p style="font-size:0.875rem;color:var(--muted);margin:0">For every technician × every calendar day in the window, calculate <strong>available minutes</strong>:</p>
+      <ul style="font-size:0.875rem;color:var(--muted);margin:6px 0 0 0;padding-left:20px">
+        <li>Start with working hours for that weekday (e.g. Mo 08:00–17:00 = 540 min)</li>
+        <li>Subtract any absence overlap for that day (full day → 0 min; partial e.g. 08:00–12:00 → 300 min remain, route starts at 12:00)</li>
+        <li>If technician doesn't work that weekday → 0 min</li>
+      </ul>
+      <p style="font-size:0.875rem;color:var(--muted);margin:6px 0 0 0">Result: a map of <code>available_minutes[technician][date]</code> and <code>route_start_time[technician][date]</code>.</p>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;display:grid;grid-template-columns:40px 1fr;gap:0 16px">
+    <div style="display:flex;align-items:flex-start;justify-content:center;padding-top:2px">
+      <span style="background:var(--accent);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">3</span>
+    </div>
+    <div>
+      <h3 style="margin:0 0 6px">Travel time matrix (Google Maps)</h3>
+      <p style="font-size:0.875rem;color:var(--muted);margin:0">For each technician, collect all plant coordinates + start location. Check <code>reisezeiten_cache</code> first. For cache misses, call the <strong>Google Maps Distance Matrix API</strong> in batches of up to 25×25 pairs. Store all results back to cache. Output: a full N×N matrix of driving minutes between every pair of locations per technician.</p>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;display:grid;grid-template-columns:40px 1fr;gap:0 16px">
+    <div style="display:flex;align-items:flex-start;justify-content:center;padding-top:2px">
+      <span style="background:var(--accent);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">4</span>
+    </div>
+    <div>
+      <h3 style="margin:0 0 6px">Geographic clustering (k-means)</h3>
+      <p style="font-size:0.875rem;color:var(--muted);margin:0">Per technician: set <strong>k = number of available working days</strong> in the window. Run k-means on the GPS coordinates of the technician's plants. Each cluster = one day's work. Assign clusters to days by proximity of cluster centroid to the technician's start location (closest cluster → first available day).</p>
+      <p style="font-size:0.875rem;color:var(--muted);margin:6px 0 0 0"><strong>Capacity overflow:</strong> if a cluster's total maintenance time exceeds the available minutes for its day, move the farthest plant(s) to the next available day and re-check.</p>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;display:grid;grid-template-columns:40px 1fr;gap:0 16px">
+    <div style="display:flex;align-items:flex-start;justify-content:center;padding-top:2px">
+      <span style="background:var(--accent);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">5</span>
+    </div>
+    <div>
+      <h3 style="margin:0 0 6px">Route ordering within each day (Nearest Neighbor TSP)</h3>
+      <p style="font-size:0.875rem;color:var(--muted);margin:0">For each technician's day cluster: start at the technician's start location, greedily pick the nearest unvisited plant (by drive time from the cached matrix), repeat until all plants visited. Then calculate arrival times by accumulating: <code>route_start_time + Σ(fahrtzeit + dauer)</code>.</p>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;display:grid;grid-template-columns:40px 1fr;gap:0 16px">
+    <div style="display:flex;align-items:flex-start;justify-content:center;padding-top:2px">
+      <span style="background:var(--accent);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">6</span>
+    </div>
+    <div>
+      <h3 style="margin:0 0 6px">Absence redistribution</h3>
+      <p style="font-size:0.875rem;color:var(--muted);margin:0">For plants that couldn't be scheduled because their technician is absent for all days in the window:</p>
+      <ol style="font-size:0.875rem;color:var(--muted);margin:6px 0 0 0;padding-left:20px">
+        <li><strong>Defer first:</strong> if the technician has any available days in the window (even if not all), push the plant to the nearest available day of the same technician.</li>
+        <li><strong>Redistribute if fully absent:</strong> find the geographically nearest available technician for each unscheduled plant. Insert the plant into that technician's best-fit day (fewest minutes remaining). Re-run Nearest Neighbor for that day. Set <code>original_techniker_id</code> so the dispatcher can see it's a coverage substitution.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;display:grid;grid-template-columns:40px 1fr;gap:0 16px">
+    <div style="display:flex;align-items:flex-start;justify-content:center;padding-top:2px">
+      <span style="background:var(--accent);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0">7</span>
+    </div>
+    <div>
+      <h3 style="margin:0 0 6px">Save as draft</h3>
+      <p style="font-size:0.875rem;color:var(--muted);margin:0">Create one <code>touren</code> record with <code>status = 'entwurf'</code>. Create one <code>tour_eintraege</code> row per stop with calculated times, positions, and travel durations. Return the draft ID to the dispatcher UI for review and manual adjustment.</p>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:14px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px">
+  <p class="label">Tickets</p>
+  <p style="font-size:0.875rem;color:var(--muted);margin:4px 0 0 0">Tickets are <strong>not included automatically</strong> by the algorithm — the dispatcher manually pulls them in from a sidebar after the draft is generated. When a ticket is added, it is inserted into the best-fit day (geographically closest cluster, enough remaining capacity) and Nearest Neighbor is re-run for that day only. Ticket status is set to <code>'eingeplant'</code>.</p>
+</div>
+
+<p class="subtitle" style="margin-top:24px">Does this algorithm flow make sense? Any steps to adjust before Section 3 (UI)?</p>
