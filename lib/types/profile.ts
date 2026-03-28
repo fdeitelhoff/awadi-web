@@ -13,6 +13,12 @@ export interface Profile {
   telefonnr?: string;
   aktiv: boolean;
   farbe?: string;
+  start_strasse?: string;
+  start_hausnr?: string;
+  start_plz?: string;
+  start_ort?: string;
+  start_lat?: number;
+  start_lng?: number;
   mo_von?: string;
   mo_bis?: string;
   di_von?: string;

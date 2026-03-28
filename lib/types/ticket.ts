@@ -23,6 +23,9 @@ export interface Ticket {
   ort?: string;
   user_id?: string;
   user_name?: string;
+  techniker_id?: string;   // explicitly assigned technician (tour planning)
+  lat?: number;            // geocoded ticket location (when no anlage_id)
+  lng?: number;
   created_at: string;
   updated_at?: string;
 }
