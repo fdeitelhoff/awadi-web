@@ -1,3 +1,4 @@
+// lib/algorithm/absence-cover.ts
 import type { GeoPoint } from "@/lib/algorithm/clustering";
 
 export interface TechDaySlot {
