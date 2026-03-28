@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nearestNeighborOrder, calcArrivalTimes, type RoutableStop } from "@/lib/algorithm/routing";
+import { nearestNeighborOrder, calcArrivalTimes, minsToTimeString, type RoutableStop } from "@/lib/algorithm/routing";
 import type { TravelLookup } from "@/lib/algorithm/travel-matrix";
 import { travelKey } from "@/lib/algorithm/travel-matrix";
 
@@ -25,7 +25,24 @@ function buildMockMatrix(allPoints: Array<{lat:number;lng:number}>): TravelLooku
   return map;
 }
 
+describe("minsToTimeString", () => {
+  it("formats midnight as 00:00:00", () => {
+    expect(minsToTimeString(0)).toBe("00:00:00");
+  });
+  it("formats 480 as 08:00:00", () => {
+    expect(minsToTimeString(480)).toBe("08:00:00");
+  });
+  it("formats 90 as 01:30:00", () => {
+    expect(minsToTimeString(90)).toBe("01:30:00");
+  });
+});
+
 describe("nearestNeighborOrder", () => {
+  it("returns empty array for no stops", () => {
+    const matrix: TravelLookup = new Map();
+    expect(nearestNeighborOrder([], start, matrix)).toEqual([]);
+  });
+
   it("visits all stops exactly once", () => {
     const matrix = buildMockMatrix([start, ...stops.map(s => ({ lat: s.lat, lng: s.lng }))]);
     const ordered = nearestNeighborOrder(stops, start, matrix);
