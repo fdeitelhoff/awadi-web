@@ -40,8 +40,6 @@ const EMPTY_FORM: CreateAnlageInput = {
   gemarkung: "",
   flur: "",
   flurstueck: "",
-  rechtswert: "",
-  hochwert: "",
   breitengrad: "",
   laengengrad: "",
   anlage_ausgelegt_ew: undefined,
@@ -524,24 +522,6 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="rechtswert">Rechtswert</Label>
-                <Input
-                  id="rechtswert"
-                  value={form.rechtswert}
-                  onChange={(e) => set("rechtswert", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="hochwert">Hochwert</Label>
-                <Input
-                  id="hochwert"
-                  value={form.hochwert}
-                  onChange={(e) => set("hochwert", e.target.value)}
-                />
-              </div>
-            </div>
 
           </CardContent>
         </Card>

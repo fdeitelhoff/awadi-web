@@ -90,8 +90,6 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
     gemarkung: anlage.gemarkung ?? "",
     flur: anlage.flur ?? "",
     flurstueck: anlage.flurstueck ?? "",
-    rechtswert: anlage.rechtswert ?? "",
-    hochwert: anlage.hochwert ?? "",
     breitengrad: anlage.breitengrad ?? "",
     laengengrad: anlage.laengengrad ?? "",
     anlage_ausgelegt_ew: anlage.anlage_ausgelegt_ew ?? undefined,
@@ -567,24 +565,6 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="rechtswert">Rechtswert</Label>
-                <Input
-                  id="rechtswert"
-                  value={form.rechtswert}
-                  onChange={(e) => set("rechtswert", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="hochwert">Hochwert</Label>
-                <Input
-                  id="hochwert"
-                  value={form.hochwert}
-                  onChange={(e) => set("hochwert", e.target.value)}
-                />
-              </div>
-            </div>
 
           </CardContent>
         </Card>

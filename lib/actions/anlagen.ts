@@ -21,8 +21,6 @@ export interface CreateAnlageInput {
   gemarkung?: string;
   flur?: string;
   flurstueck?: string;
-  rechtswert?: string;
-  hochwert?: string;
   breitengrad?: string;
   laengengrad?: string;
   anlage_ausgelegt_ew?: number;
@@ -87,8 +85,6 @@ export async function createAnlage(
     "gemarkung",
     "flur",
     "flurstueck",
-    "rechtswert",
-    "hochwert",
     "breitengrad",
     "laengengrad",
     "cleaning_class",
@@ -176,8 +172,6 @@ export interface UpdateAnlageInput {
   gemarkung?: string;
   flur?: string;
   flurstueck?: string;
-  rechtswert?: string;
-  hochwert?: string;
   breitengrad?: string;
   laengengrad?: string;
   anlage_ausgelegt_ew?: number | null;

@@ -29,8 +29,6 @@ export function mapRowToAnlage(row: Record<string, unknown>): AnlageListItem {
     gemarkung: row.gemarkung as string | undefined,
     flur: row.flur as string | undefined,
     flurstueck: row.flurstueck as string | undefined,
-    rechtswert: row.rechtswert as string | undefined,
-    hochwert: row.hochwert as string | undefined,
     breitengrad: row.breitengrad as string | undefined,
     laengengrad: row.laengengrad as string | undefined,
     anlage_ausgelegt_ew: row.anlage_ausgelegt_ew as number | undefined,

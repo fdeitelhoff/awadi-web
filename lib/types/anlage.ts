@@ -20,8 +20,6 @@ export interface Anlage {
   flurstueck?: string;
 
   // Coordinates
-  rechtswert?: string;
-  hochwert?: string;
   breitengrad?: string;
   laengengrad?: string;
 
