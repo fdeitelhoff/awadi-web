@@ -143,7 +143,7 @@ export async function getAnlagen(
 
   if (error) {
     console.error("Error fetching anlagen:", error);
-    return { data: [], totalCount: 0, filterOptions: { orte: [] } };
+    return { data: [], totalCount: 0, filterOptions: { orte: [], techniker: [] } };
   }
 
   const anlagen = (data ?? []).map(mapRowToAnlage);
