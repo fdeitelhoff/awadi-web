@@ -9,6 +9,9 @@ import { buildTravelMatrix, normalizeCoord } from "@/lib/algorithm/travel-matrix
 import { kMeansPlusPlus, assignClustersToDays, type GeoPoint } from "@/lib/algorithm/clustering";
 import { nearestNeighborOrder, calcArrivalTimes, minsToTimeString } from "@/lib/algorithm/routing";
 import { sortTicketsByPriority, resolveTicketTechnician } from "@/lib/algorithm/ticket-assignment";
+import { findBestAlternativeTechnician, type TechDaySlot } from "@/lib/algorithm/absence-cover";
+
+const DEFAULT_TICKET_DURATION_MINS = 60;
 
 function getDatesInRange(von: string, bis: string): string[] {
   const dates: string[] = [];
@@ -26,7 +29,6 @@ export async function runTourPlanning(
   tourId: number,
   von: string,
   bis: string,
-  createdBy: string,
   mapsApiKey: string,
   timeoutMs = 55000
 ): Promise<TourDraftResult> {
@@ -65,6 +67,8 @@ export async function runTourPlanning(
   type PlantRow = { id: number; breitengrad: string | null; laengengrad: string | null; techniker_id: string | null; name: string | null };
   const plantsByTech: Record<string, GeoPoint[]> = {};
   const anlageToTech: Record<number, string> = {};
+  // Keep a coord cache for redistribution centroid calculations
+  const anlageCoordsMap: Record<number, { lat: number; lng: number }> = {};
 
   for (const wv of wartungenRes.data ?? []) {
     const anlage = wv.anlagen as unknown as PlantRow | null;
@@ -82,18 +86,25 @@ export async function runTourPlanning(
       dauer_minuten: wv.dauer_wartung_minuten ?? 60,
     });
     if (anlage.techniker_id) anlageToTech[wv.anlage_id] = anlage.techniker_id;
+    anlageCoordsMap[wv.anlage_id] = { lat: normalizeCoord(anlage.breitengrad), lng: normalizeCoord(anlage.laengengrad) };
+  }
+
+  if (plantsByTech["unassigned"]?.length) {
+    warnings.push(`${plantsByTech["unassigned"].length} Anlage(n) ohne Techniker wurden übersprungen.`);
   }
 
   // --- Step 2: Capacity Map ---
   const capacity = buildCapacityMap(allProfiles, allAbsences, dates);
 
-  // --- Steps 3–7: Per-technician routing ---
+  // --- Steps 3–5: Per-technician routing ---
   const allStopRows: Array<{
     tour_id: number; techniker_id: string; datum: string; position: number;
     item_type: string; anlage_id?: number; ticket_id?: number;
     geplante_startzeit: string; fahrtzeit_minuten: number; dauer_minuten: number;
     original_techniker_id?: string;
   }> = [];
+
+  const unscheduledByTech: Record<string, GeoPoint[]> = {};
 
   for (const profile of allProfiles) {
     if (Date.now() > deadline) { partial = true; break; }
@@ -104,7 +115,11 @@ export async function runTourPlanning(
       : { lat: plants[0]!.lat, lng: plants[0]!.lng };
 
     const availableDates = dates.filter(d => (capacity[profile.id]?.[d]?.available_mins ?? 0) > 0);
-    if (availableDates.length === 0) continue;
+    if (availableDates.length === 0) {
+      // Fully absent — queue for redistribution
+      unscheduledByTech[profile.id] = plants;
+      continue;
+    }
 
     // Step 3: Travel matrix
     const allPoints = [startPoint, ...plants.map(p => ({ lat: p.lat, lng: p.lng }))];
@@ -150,6 +165,52 @@ export async function runTourPlanning(
     }
   }
 
+  // --- Step 6: Absence Redistribution ---
+  for (const [absentTechId, plants] of Object.entries(unscheduledByTech)) {
+    for (const plant of plants) {
+      // Build current available slots from capacity map
+      const availableSlots: TechDaySlot[] = [];
+      for (const profile of allProfiles) {
+        for (const datum of dates) {
+          const cap = capacity[profile.id]?.[datum];
+          if (!cap || cap.available_mins === 0) continue;
+          // Use average lat/lng of day's already-scheduled plants as centroid approximation
+          const dayStops = allStopRows.filter(s => s.techniker_id === profile.id && s.datum === datum && s.anlage_id != null);
+          const centroid = dayStops.length > 0
+            ? {
+                lat: dayStops.reduce((sum, s) => sum + (anlageCoordsMap[s.anlage_id!]?.lat ?? plant.lat), 0) / dayStops.length,
+                lng: dayStops.reduce((sum, s) => sum + (anlageCoordsMap[s.anlage_id!]?.lng ?? plant.lng), 0) / dayStops.length,
+              }
+            : (profile.start_lat && profile.start_lng ? { lat: profile.start_lat, lng: profile.start_lng } : { lat: plant.lat, lng: plant.lng });
+          availableSlots.push({ techniker_id: profile.id, datum, centroid, remaining_mins: cap.available_mins });
+        }
+      }
+
+      const best = findBestAlternativeTechnician(plant, availableSlots);
+      if (!best) {
+        warnings.push(`Anlage ${plant.id} konnte nach Abwesenheit nicht umgeplant werden.`);
+        continue;
+      }
+      const existingStops = allStopRows.filter(s => s.techniker_id === best.techniker_id && s.datum === best.datum);
+      allStopRows.push({
+        tour_id: tourId,
+        techniker_id: best.techniker_id,
+        datum: best.datum,
+        position: existingStops.length,
+        item_type: "wartung",
+        anlage_id: parseInt(plant.id),
+        geplante_startzeit: "00:00:00",
+        fahrtzeit_minuten: 0,
+        dauer_minuten: plant.dauer_minuten,
+        original_techniker_id: absentTechId,
+      });
+      // Reduce remaining capacity on the used slot
+      if (capacity[best.techniker_id]?.[best.datum]) {
+        capacity[best.techniker_id]![best.datum]!.available_mins -= plant.dauer_minuten;
+      }
+    }
+  }
+
   // --- Step 7: Ticket Assignment ---
   const availableTechIds = allProfiles
     .filter(p => dates.some(d => (capacity[p.id]?.[d]?.available_mins ?? 0) > 0))
@@ -172,13 +233,14 @@ export async function runTourPlanning(
       ticket_id: ticket.id,
       geplante_startzeit: "00:00:00",
       fahrtzeit_minuten: 0,
-      dauer_minuten: 60,
+      dauer_minuten: DEFAULT_TICKET_DURATION_MINS,
     });
   }
 
   // --- Step 8: Save Draft ---
   if (allStopRows.length > 0) {
-    await supabase.from("tour_eintraege").insert(allStopRows);
+    const { error: insertError } = await supabase.from("tour_eintraege").insert(allStopRows);
+    if (insertError) warnings.push(`Fehler beim Speichern der Tour-Einträge: ${insertError.message}`);
   }
 
   // Update tickets status to 'eingeplant'
