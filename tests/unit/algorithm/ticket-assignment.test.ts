@@ -42,6 +42,13 @@ describe("resolveTicketTechnician", () => {
     const result = resolveTicketTechnician(baseTicket, {}, []);
     expect(result).toBeNull();
   });
+
+  it("ticket.techniker_id takes precedence over anlage map entry", () => {
+    const ticket = { ...baseTicket, anlage_id: 10, techniker_id: "tech-explicit" };
+    const anlageMap = { 10: "tech-from-anlage" };
+    const result = resolveTicketTechnician(ticket, anlageMap, ["tech-fallback"]);
+    expect(result).toBe("tech-explicit");
+  });
 });
 
 describe("sortTicketsByPriority", () => {
