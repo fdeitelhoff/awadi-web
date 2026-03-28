@@ -86,7 +86,7 @@ export async function getTourEintraege(tourId: number): Promise<TourEintrag[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, profiles(vorname, nachname), anlagen(name, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel)")
+    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(name, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel)")
     .eq("tour_id", tourId)
     .order("datum", { ascending: true })
     .order("position", { ascending: true });
@@ -98,7 +98,7 @@ export async function getPublishedTourEintraegeForDateRange(von: string, bis: st
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, profiles(vorname, nachname), anlagen(name, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel), touren!inner(status)")
+    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(name, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel), touren!inner(status)")
     .eq("touren.status", "veröffentlicht")
     .gte("datum", von)
     .lte("datum", bis);
