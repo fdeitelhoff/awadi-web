@@ -115,6 +115,19 @@ export async function getVertragById(id: number): Promise<Vertrag | null> {
   return mapRowToVertrag(data as Record<string, unknown>);
 }
 
+export async function getActiveVertragForAnlage(anlageId: number): Promise<Vertrag | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("wartungsvertraege")
+    .select("*, anlagen(anlagen_nr), kunden(nachname, vorname, firma)")
+    .eq("anlage_id", anlageId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapRowToVertrag(data as Record<string, unknown>);
+}
+
 export async function getVertragCount(): Promise<number> {
   const supabase = await createClient();
 

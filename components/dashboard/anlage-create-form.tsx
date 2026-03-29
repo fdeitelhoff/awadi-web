@@ -15,12 +15,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createAnlage, type CreateAnlageInput } from "@/lib/actions/anlagen";
+import { createVertrag } from "@/lib/actions/vertraege";
 import type { AnlTyp } from "@/lib/types/anlage";
 import { KundePicker } from "@/components/dashboard/kunde-picker";
 import {
   KontaktSection,
   type KontaktSectionRef,
 } from "@/components/dashboard/kontakt-section";
+import {
+  WartungsdatenCard,
+  type WartungsdatenCardRef,
+} from "@/components/dashboard/wartungsdaten-card";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 const EMPTY_FORM: CreateAnlageInput = {
@@ -63,6 +68,7 @@ interface AnlageCreateFormProps {
 export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps) {
   const router = useRouter();
   const kontaktRef = useRef<KontaktSectionRef>(null);
+  const wartungsdatenRef = useRef<WartungsdatenCardRef>(null);
   const [form, setForm] = useState<CreateAnlageInput>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +111,12 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
       return;
     }
 
+    // Create wartungsvertrag if any fields were filled
+    const wData = wartungsdatenRef.current?.getValues();
+    if (wData && result.id) {
+      await createVertrag({ anlage_id: result.id, ...wData.data });
+    }
+
     router.push(`/master-data/facilities/${result.id}`);
   };
 
@@ -128,7 +140,7 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* ── Stammdaten ─────────────────────────────────────────── */}
         <Card>
@@ -137,40 +149,19 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Anlagen-Nr. */}
-            <div className="space-y-1.5">
-              <Label htmlFor="anlagen_nr">
-                Anlagen-Nr. <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="anlagen_nr"
-                value={form.anlagen_nr}
-                onChange={(e) => set("anlagen_nr", e.target.value)}
-                placeholder="z. B. AS-290"
-              />
-            </div>
-
-            {/* Eigentümer + Wartungsdaten */}
+            {/* Anlagen-Nr. + Anlagentyp */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Eigentümer <span className="text-destructive">*</span></Label>
-                <KundePicker
-                  value={form.kunden_id || null}
-                  onChange={(id) => set("kunden_id", id ?? 0)}
+                <Label htmlFor="anlagen_nr">
+                  Anlagen-Nr. <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="anlagen_nr"
+                  value={form.anlagen_nr}
+                  onChange={(e) => set("anlagen_nr", e.target.value)}
+                  placeholder="z. B. AS-290"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Wartungsdaten</Label>
-                <div className="rounded-md border bg-muted/30 px-3 py-2.5">
-                  <p className="text-sm text-muted-foreground">
-                    Erst nach dem Speichern verfügbar
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Anlagentyp + Klassen + Techniker */}
-            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="anl_typ_id">Anlagentyp</Label>
                 <Select
@@ -208,6 +199,19 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Eigentümer */}
+            <div className="space-y-1.5">
+              <Label>Eigentümer <span className="text-destructive">*</span></Label>
+              <KundePicker
+                value={form.kunden_id || null}
+                onChange={(id) => set("kunden_id", id ?? 0)}
+              />
+            </div>
+
+            {/* Klassen + Techniker */}
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="oxygen_demand_class">Sauerstoffbedarfsklasse</Label>
                 <Select
@@ -525,6 +529,9 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
 
           </CardContent>
         </Card>
+
+        {/* ── Wartungsdaten ──────────────────────────────────────── */}
+        <WartungsdatenCard ref={wartungsdatenRef} />
 
         {/* ── Ansprechpartner ────────────────────────────────────── */}
         <KontaktSection ref={kontaktRef} />

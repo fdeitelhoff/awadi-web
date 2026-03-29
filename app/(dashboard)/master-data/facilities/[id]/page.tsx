@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAnlageById, getAnlTypen, getActiveTechniker } from "@/lib/data/anlagen";
 import { getKontaktById } from "@/lib/data/kontakte";
 import { getInternalComments } from "@/lib/data/kommentare";
+import { getActiveVertragForAnlage } from "@/lib/data/vertraege";
 import { AnlageEditForm } from "@/components/dashboard/anlage-edit-form";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -14,11 +15,12 @@ async function AnlageDetail({ id }: { id: number }) {
   ]);
   if (!anlage) notFound();
 
-  const [initialKontakt, initialKommentare] = await Promise.all([
+  const [initialKontakt, initialKommentare, initialVertrag] = await Promise.all([
     anlage.kontakt_id != null
       ? getKontaktById(anlage.kontakt_id).then((k) => k ?? undefined)
       : Promise.resolve(undefined),
     getInternalComments("anlagen", id),
+    getActiveVertragForAnlage(id),
   ]);
 
   return (
@@ -28,6 +30,7 @@ async function AnlageDetail({ id }: { id: number }) {
       techniker={techniker}
       initialKontakt={initialKontakt}
       initialKommentare={initialKommentare}
+      initialVertrag={initialVertrag}
     />
   );
 }
@@ -60,24 +63,20 @@ export default function FacilityDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const idPromise = params.then(({ id }) => {
-    const n = parseInt(id, 10);
-    if (isNaN(n)) notFound();
-    return n;
-  });
-
   return (
     <div className="absolute inset-0 overflow-y-auto">
       <div className="p-6 w-full">
         <Suspense fallback={<AnlageDetailSkeleton />}>
-          <AnlageDetailResolver idPromise={idPromise} />
+          <AnlageDetailResolver params={params} />
         </Suspense>
       </div>
     </div>
   );
 }
 
-async function AnlageDetailResolver({ idPromise }: { idPromise: Promise<number> }) {
-  const id = await idPromise;
-  return <AnlageDetail id={id} />;
+async function AnlageDetailResolver({ params }: { params: Promise<{ id: string }> }) {
+  const { id: idStr } = await params;
+  const n = parseInt(idStr, 10);
+  if (isNaN(n)) notFound();
+  return <AnlageDetail id={n} />;
 }

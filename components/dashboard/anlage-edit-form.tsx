@@ -13,16 +13,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateAnlage, type UpdateAnlageInput } from "@/lib/actions/anlagen";
+import { updateVertrag, createVertrag } from "@/lib/actions/vertraege";
 import type { AnlTyp, AnlageListItem } from "@/lib/types/anlage";
 import type { Kontakt } from "@/lib/types/kontakt";
 import type { InternalComment } from "@/lib/types/kommentar";
+import type { Vertrag } from "@/lib/types/vertrag";
 import { InternalComments } from "@/components/dashboard/internal-comments";
 import { KundePicker } from "@/components/dashboard/kunde-picker";
 import {
   KontaktSection,
   type KontaktSectionRef,
 } from "@/components/dashboard/kontakt-section";
-import { VertragPicker } from "@/components/dashboard/vertrag-picker";
+import {
+  WartungsdatenCard,
+  type WartungsdatenCardRef,
+} from "@/components/dashboard/wartungsdaten-card";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -32,6 +37,7 @@ interface AnlageEditFormProps {
   techniker: { id: string; name: string }[];
   initialKontakt?: Kontakt;
   initialKommentare: InternalComment[];
+  initialVertrag?: Vertrag | null;
 }
 
 function formatDateTime(value?: string | null) {
@@ -45,8 +51,9 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, initialKommentare }: AnlageEditFormProps) {
+export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, initialKommentare, initialVertrag }: AnlageEditFormProps) {
   const kontaktRef = useRef<KontaktSectionRef>(null);
+  const wartungsdatenRef = useRef<WartungsdatenCardRef>(null);
 
   const initialContactMode: "none" | "kunde" | "kontakt" =
     anlage.kontakt_kunde_id != null
@@ -128,19 +135,36 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
       return;
     }
 
-    const result = await updateAnlage(anlage.id, {
-      ...form,
-      kontakt_kunde_id: kontaktResult?.kontakt_kunde_id ?? null,
-      kontakt_id: kontaktResult?.kontakt_id ?? null,
-    });
+    const [anlageResult, wData] = await Promise.all([
+      updateAnlage(anlage.id, {
+        ...form,
+        kontakt_kunde_id: kontaktResult?.kontakt_kunde_id ?? null,
+        kontakt_id: kontaktResult?.kontakt_id ?? null,
+      }),
+      Promise.resolve(wartungsdatenRef.current?.getValues() ?? null),
+    ]);
+
+    if (!anlageResult.success) {
+      setIsSaving(false);
+      setError(anlageResult.error ?? "Unbekannter Fehler.");
+      return;
+    }
+
+    // Save wartungsvertrag (update existing or create new)
+    if (wData) {
+      const vertragResult = wData.vertragId
+        ? await updateVertrag(wData.vertragId, wData.data)
+        : await createVertrag({ anlage_id: anlage.id, ...wData.data });
+      if (!vertragResult.success) {
+        setIsSaving(false);
+        setError(vertragResult.error ?? "Fehler beim Speichern der Wartungsdaten.");
+        return;
+      }
+    }
 
     setIsSaving(false);
-    if (!result.success) {
-      setError(result.error ?? "Unbekannter Fehler.");
-    } else {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   };
 
   const displayName = `Anlage: ${anlage.anlagen_nr ?? anlage.id}`;
@@ -178,7 +202,7 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* ── Stammdaten ─────────────────────────────────────────── */}
         <Card>
@@ -187,48 +211,17 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* Anlagen-Nr. */}
-            <div className="space-y-1.5">
-              <Label htmlFor="anlagen_nr">Anlagen-Nr.</Label>
-              <Input
-                id="anlagen_nr"
-                value={form.anlagen_nr}
-                onChange={(e) => set("anlagen_nr", e.target.value)}
-                placeholder="z. B. AS-290"
-              />
-            </div>
-
-            {/* Eigentümer + Wartungsdaten */}
+            {/* Anlagen-Nr. + Anlagentyp */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Eigentümer <span className="text-destructive">*</span></Label>
-                <KundePicker
-                  value={form.kunden_id ?? null}
-                  onChange={(id) => set("kunden_id", id ?? 0)}
-                  initial={{
-                    id: anlage.kunden_id,
-                    name: anlage.owner_name ?? `Kunde #${anlage.kunden_id}`,
-                    address: [
-                      [anlage.owner_strasse, anlage.owner_hausnr]
-                        .filter(Boolean)
-                        .join(" "),
-                      [anlage.owner_plz, anlage.owner_ort]
-                        .filter(Boolean)
-                        .join(" "),
-                    ]
-                      .filter(Boolean)
-                      .join(", "),
-                  }}
+                <Label htmlFor="anlagen_nr">Anlagen-Nr.</Label>
+                <Input
+                  id="anlagen_nr"
+                  value={form.anlagen_nr}
+                  onChange={(e) => set("anlagen_nr", e.target.value)}
+                  placeholder="z. B. AS-290"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Wartungsdaten</Label>
-                <VertragPicker anlageId={anlage.id} />
-              </div>
-            </div>
-
-            {/* Anlagentyp + Klassen + Techniker */}
-            <div className="grid grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="anl_typ_id">Anlagentyp</Label>
                 <Select
@@ -250,6 +243,33 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Eigentümer */}
+            <div className="space-y-1.5">
+              <Label>Eigentümer <span className="text-destructive">*</span></Label>
+              <KundePicker
+                value={form.kunden_id ?? null}
+                onChange={(id) => set("kunden_id", id ?? 0)}
+                initial={{
+                  id: anlage.kunden_id,
+                  name: anlage.owner_name ?? `Kunde #${anlage.kunden_id}`,
+                  address: [
+                    [anlage.owner_strasse, anlage.owner_hausnr]
+                      .filter(Boolean)
+                      .join(" "),
+                    [anlage.owner_plz, anlage.owner_ort]
+                      .filter(Boolean)
+                      .join(" "),
+                  ]
+                    .filter(Boolean)
+                    .join(", "),
+                }}
+              />
+            </div>
+
+            {/* Klassen + Techniker */}
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="oxygen_demand_class">Sauerstoffbedarfsklasse</Label>
                 <Select
@@ -568,6 +588,9 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
 
           </CardContent>
         </Card>
+
+        {/* ── Wartungsdaten ──────────────────────────────────────── */}
+        <WartungsdatenCard ref={wartungsdatenRef} initialVertrag={initialVertrag} />
 
         {/* ── Ansprechpartner ────────────────────────────────────── */}
         <KontaktSection
