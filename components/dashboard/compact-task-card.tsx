@@ -16,6 +16,11 @@ import { useRouter } from "next/navigation";
 import { sendTourEintragEmail, updateKundenStatus } from "@/lib/actions/tour-emails";
 import { toast } from "sonner";
 
+function truncate(s: string | undefined, max = 16): string {
+  if (!s) return "—";
+  return s.length > max ? s.slice(0, max) + "…" : s;
+}
+
 // ── Wartungs-entry card (replaces mock CompactTaskCard / TourTaskItem) ──────
 
 interface WartungsEintragCardProps {
@@ -30,7 +35,7 @@ function WartungsEintragCard({ eintrag }: WartungsEintragCardProps) {
           <div className="flex items-start gap-1.5 p-1.5 rounded bg-background hover:bg-muted/50 transition-colors cursor-default">
             <div className="flex-1 min-w-0">
               <div className="text-[11px] font-medium truncate">
-                {eintrag.anlage_name ?? `Anlage #${eintrag.anlage_id}`}
+                {truncate(eintrag.anlage_name) ?? `Anlage #${eintrag.anlage_id}`}
               </div>
               {eintrag.anlage_adresse && (
                 <div className="text-[10px] text-muted-foreground truncate">
@@ -116,19 +121,23 @@ const KUNDEN_STATUS_CONFIG = {
 interface GeplantCardProps {
   eintrag: TourEintrag;
   showEmailButton?: boolean;
+  technikerFarbe?: string;
 }
 
-export function GeplantCard({ eintrag, showEmailButton = true }: GeplantCardProps) {
+const DEFAULT_FARBE = "#6366f1";
+
+export function GeplantCard({ eintrag, showEmailButton = true, technikerFarbe }: GeplantCardProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const title = eintrag.item_type === "ticket" ? eintrag.ticket_titel : eintrag.anlage_name;
+  const isWartung = eintrag.item_type === "wartung";
+  const rawTitle = isWartung ? eintrag.anlage_name : eintrag.ticket_titel;
+  const title = truncate(rawTitle);
   const time = eintrag.geplante_startzeit?.slice(0, 5);
   const statusCfg = KUNDEN_STATUS_CONFIG[eintrag.kunden_status];
+  const farbe = technikerFarbe ?? DEFAULT_FARBE;
   const canSendEmail =
-    showEmailButton &&
-    eintrag.item_type === "wartung" &&
-    eintrag.kunden_status === "ausstehend";
+    showEmailButton && isWartung && eintrag.kunden_status === "ausstehend";
 
   function handleSendEmail() {
     startTransition(async () => {
@@ -151,15 +160,27 @@ export function GeplantCard({ eintrag, showEmailButton = true }: GeplantCardProp
   }
 
   return (
-    <div className="rounded border border-green-700/30 bg-green-950/20 p-1.5 text-xs space-y-1">
-      <div className="flex items-center gap-1">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
+    <div
+      className="rounded-lg border-l-4 bg-card/50 p-1.5 text-xs space-y-0.5"
+      style={{ borderLeftColor: farbe }}
+    >
+      {/* Title row */}
+      <div className="flex items-center gap-1 min-w-0">
         <span className="font-medium truncate flex-1">{title ?? "—"}</span>
+        {time && <span className="text-muted-foreground shrink-0">▶ {time}</span>}
       </div>
 
-      <div className="text-muted-foreground flex gap-2 flex-wrap">
-        {time && <span>▶ {time}</span>}
-        {eintrag.fahrtzeit_minuten != null && <span>🚗 {eintrag.fahrtzeit_minuten} min</span>}
+      {/* Address (wartung only) */}
+      {isWartung && eintrag.anlage_adresse && (
+        <div className="flex items-center gap-1 text-muted-foreground min-w-0">
+          <MapPin className="h-2.5 w-2.5 shrink-0" />
+          <span className="truncate">{eintrag.anlage_adresse}</span>
+        </div>
+      )}
+
+      {/* Meta row */}
+      <div className="text-muted-foreground flex gap-2 flex-wrap min-w-0">
+        {eintrag.fahrtzeit_minuten != null && <span className="shrink-0">🚗 {eintrag.fahrtzeit_minuten} min</span>}
         {eintrag.techniker_name && (
           <span className="truncate">{eintrag.techniker_name}</span>
         )}

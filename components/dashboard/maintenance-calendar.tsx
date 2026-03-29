@@ -484,7 +484,11 @@ function RowsView({
                           {filteredPublished.length > 0 && (
                             <div className="space-y-1 mt-1">
                               {filteredPublished.map((e) => (
-                                <GeplantCard key={e.id} eintrag={e} />
+                                <GeplantCard
+                                  key={e.id}
+                                  eintrag={e}
+                                  technikerFarbe={techById.get(e.techniker_id)?.farbe}
+                                />
                               ))}
                             </div>
                           )}
