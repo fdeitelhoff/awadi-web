@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
@@ -119,7 +120,7 @@ function LocationMapInner({
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       if (Date.now() < skipForwardGeocodeUntilRef.current) return;
-      geocoderRef.current?.geocode({ address: trimmed }, (results, geoStatus) => {
+      geocoderRef.current?.geocode({ address: trimmed }, (results: google.maps.GeocoderResult[] | null, geoStatus: google.maps.GeocoderStatus) => {
         if (geoStatus === "OK" && results?.[0]) {
           const loc = results[0].geometry.location;
           onCoordsChangeRef.current(loc.lat().toFixed(6), loc.lng().toFixed(6));
@@ -138,7 +139,7 @@ function LocationMapInner({
     skipForwardGeocodeUntilRef.current = Date.now() + 3000;
     geocoderRef.current?.geocode(
       { location: { lat: newLat, lng: newLng } },
-      (results, geoStatus) => {
+      (results: google.maps.GeocoderResult[] | null, geoStatus: google.maps.GeocoderStatus) => {
         if (geoStatus === "OK" && results?.[0]?.address_components) {
           onAddressChangeRef.current?.(parseAddressComponents(results[0].address_components));
         }

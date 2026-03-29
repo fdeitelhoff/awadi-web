@@ -589,8 +589,8 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
 
             <AnlageLocationMap
               apiKey={mapsApiKey}
-              lat={form.breitengrad}
-              lng={form.laengengrad}
+              lat={form.breitengrad ?? ""}
+              lng={form.laengengrad ?? ""}
               address={[
                 [form.strasse, form.hausnr].filter(Boolean).join(" "),
                 [form.plz, form.ort].filter(Boolean).join(" "),
@@ -606,8 +606,8 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
                   hausnr: addr.hausnr || prev.hausnr,
                   plz: addr.plz || prev.plz,
                   ort: addr.ort || prev.ort,
-                  laenderkennung: addr.laenderkennung || prev.laenderkennung,
-                  ortsteil: addr.ortsteil || prev.ortsteil,
+                  laenderkennung: addr.laenderkennung || prev.laenderkennung || "",
+                  ortsteil: addr.ortsteil || prev.ortsteil || "",
                 }))
               }
             />
