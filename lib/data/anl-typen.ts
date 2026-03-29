@@ -23,6 +23,8 @@ function mapRowToAnlTyp(row: Record<string, unknown>): AnlTypFull {
     wartungsintervall_monate: row.wartungsintervall_monate as number,
     dauer_wartung_minuten: row.dauer_wartung_minuten as number,
     dauer_kontrolle_minuten: row.dauer_kontrolle_minuten as number | undefined,
+    anzahl_vorklaerbehaelter: row.anzahl_vorklaerbehaelter as number | undefined,
+    anzahl_biologien: row.anzahl_biologien as number | undefined,
     last_update: row.last_update as string | undefined,
     created_at: row.created_at as string,
   };

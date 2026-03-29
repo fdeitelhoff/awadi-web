@@ -18,6 +18,8 @@ export interface AnlTypFull {
   wartungsintervall_monate: number;
   dauer_wartung_minuten: number;
   dauer_kontrolle_minuten?: number;
+  anzahl_vorklaerbehaelter?: number;
+  anzahl_biologien?: number;
   last_update?: string;
   created_at: string;
 }

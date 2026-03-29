@@ -5,26 +5,32 @@ import { z } from "zod/v3";
 import type { AnlTypFull } from "@/lib/types/anl-typ";
 
 export const anlTypSchema = z.object({
-  sortiernr:                z.number().int().nonnegative().optional(),
-  bezeichnung:              z.string().min(1, "Bitte eine Bezeichnung angeben."),
-  wartungsintervall_monate: z.number().int().min(1, "Mindestens 1 Monat."),
-  dauer_wartung_minuten:    z.number().int().nonnegative(),
+  sortiernr:                    z.number().int().nonnegative().optional(),
+  bezeichnung:                  z.string().min(1, "Bitte eine Bezeichnung angeben."),
+  wartungsintervall_monate:     z.number().int().min(1, "Mindestens 1 Monat."),
+  dauer_wartung_minuten:        z.number().int().nonnegative(),
+  anzahl_vorklaerbehaelter:     z.number().int().nonnegative().optional(),
+  anzahl_biologien:             z.number().int().nonnegative().optional(),
 });
 
 export type AnlTypFormValues = z.infer<typeof anlTypSchema>;
 
 export const ANL_TYP_EMPTY_FORM: AnlTypFormValues = {
-  sortiernr:                undefined,
-  bezeichnung:              "",
-  wartungsintervall_monate: 12,
-  dauer_wartung_minuten:    60,
+  sortiernr:                    undefined,
+  bezeichnung:                  "",
+  wartungsintervall_monate:     12,
+  dauer_wartung_minuten:        60,
+  anzahl_vorklaerbehaelter:     undefined,
+  anzahl_biologien:             undefined,
 };
 
 export function makeAnlTypSnapshot(typ: AnlTypFull): AnlTypFormValues {
   return {
-    sortiernr:                typ.sortiernr,
-    bezeichnung:              typ.bezeichnung,
-    wartungsintervall_monate: typ.wartungsintervall_monate,
-    dauer_wartung_minuten:    typ.dauer_wartung_minuten,
+    sortiernr:                    typ.sortiernr,
+    bezeichnung:                  typ.bezeichnung,
+    wartungsintervall_monate:     typ.wartungsintervall_monate,
+    dauer_wartung_minuten:        typ.dauer_wartung_minuten,
+    anzahl_vorklaerbehaelter:     typ.anzahl_vorklaerbehaelter,
+    anzahl_biologien:             typ.anzahl_biologien,
   };
 }
