@@ -8,7 +8,13 @@ async function AnlageCreateData() {
     getAnlTypen(),
     getActiveTechniker(),
   ]);
-  return <AnlageCreateForm anlTypen={anlTypen} techniker={techniker} />;
+  return (
+    <AnlageCreateForm
+      anlTypen={anlTypen}
+      techniker={techniker}
+      mapsApiKey={process.env.GOOGLE_MAPS_API_KEY ?? ""}
+    />
+  );
 }
 
 function AnlageCreateSkeleton() {

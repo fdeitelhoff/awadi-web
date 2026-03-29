@@ -31,6 +31,7 @@ async function AnlageDetail({ id }: { id: number }) {
       initialKontakt={initialKontakt}
       initialKommentare={initialKommentare}
       initialVertrag={initialVertrag}
+      mapsApiKey={process.env.GOOGLE_MAPS_API_KEY ?? ""}
     />
   );
 }

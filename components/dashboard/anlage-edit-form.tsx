@@ -30,6 +30,7 @@ import {
 } from "@/components/dashboard/wartungsdaten-card";
 import { Loader2, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { AnlageLocationMap } from "@/components/dashboard/anlage-location-map";
 
 interface AnlageEditFormProps {
   anlage: AnlageListItem;
@@ -38,6 +39,7 @@ interface AnlageEditFormProps {
   initialKontakt?: Kontakt;
   initialKommentare: InternalComment[];
   initialVertrag?: Vertrag | null;
+  mapsApiKey: string;
 }
 
 function formatDateTime(value?: string | null) {
@@ -51,7 +53,7 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, initialKommentare, initialVertrag }: AnlageEditFormProps) {
+export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, initialKommentare, initialVertrag, mapsApiKey }: AnlageEditFormProps) {
   const kontaktRef = useRef<KontaktSectionRef>(null);
   const wartungsdatenRef = useRef<WartungsdatenCardRef>(null);
 
@@ -585,6 +587,30 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
               </div>
             </div>
 
+            <AnlageLocationMap
+              apiKey={mapsApiKey}
+              lat={form.breitengrad}
+              lng={form.laengengrad}
+              address={[
+                [form.strasse, form.hausnr].filter(Boolean).join(" "),
+                [form.plz, form.ort].filter(Boolean).join(" "),
+                form.laenderkennung,
+              ].filter(Boolean).join(", ")}
+              onCoordsChange={(lat, lng) =>
+                setForm((prev) => ({ ...prev, breitengrad: lat, laengengrad: lng }))
+              }
+              onAddressChange={(addr) =>
+                setForm((prev) => ({
+                  ...prev,
+                  strasse: addr.strasse || prev.strasse,
+                  hausnr: addr.hausnr || prev.hausnr,
+                  plz: addr.plz || prev.plz,
+                  ort: addr.ort || prev.ort,
+                  laenderkennung: addr.laenderkennung || prev.laenderkennung,
+                  ortsteil: addr.ortsteil || prev.ortsteil,
+                }))
+              }
+            />
 
           </CardContent>
         </Card>
