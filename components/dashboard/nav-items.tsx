@@ -32,7 +32,6 @@ const masterDataItems = [
   { label: "Anlagen", href: "/master-data/facilities", icon: Factory },
   { label: "Kontakte", href: "/master-data/contacts", icon: Contact, hidden: true },
   { label: "Wartungsdaten", href: "/master-data/maintenance", icon: FileText },
-  { label: "Touren", href: "/master-data/tours", icon: Route },
 ];
 
 const settingsItems = [
@@ -48,7 +47,8 @@ export function NavItems() {
   const pathname = usePathname();
 
   const isMaintenance = pathname === "/";
-  const isMasterData = pathname.startsWith("/master-data");
+  const isTouren = pathname.startsWith("/master-data/tours");
+  const isMasterData = pathname.startsWith("/master-data") && !isTouren;
   const isTickets = pathname.startsWith("/tickets");
   const isSettings = pathname.startsWith("/settings");
 
@@ -64,6 +64,19 @@ export function NavItems() {
         <Link href="/">
           <Wrench className="h-4 w-4" />
           <span className="hidden md:inline">Wartung</span>
+        </Link>
+      </Button>
+
+      {/* Touren - simple link */}
+      <Button
+        variant={isTouren ? "secondary" : "ghost"}
+        size="sm"
+        asChild
+        className={`gap-2 cursor-pointer text-[hsl(var(--nav-foreground))] hover:text-[hsl(var(--nav-foreground))] ${isTouren ? "bg-[hsl(var(--nav-item-active))] hover:bg-[hsl(var(--nav-item-active))]/80" : ""}`}
+      >
+        <Link href="/master-data/tours">
+          <Route className="h-4 w-4" />
+          <span className="hidden md:inline">Touren</span>
         </Link>
       </Button>
 
