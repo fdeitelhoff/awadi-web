@@ -14,7 +14,7 @@ export async function getWartungskalenderEintraege(
   const { data, error } = await supabase
     .from("wartungsvertraege")
     .select(
-      "id, anlage_id, datum_naechste_wartung, dauer_wartung_minuten, anlagen(anlagen_nr, strasse, hausnr, ort, techniker_id)"
+      "id, anlage_id, datum_naechste_wartung, dauer_wartung_minuten, anlagen(anlagen_nr, strasse, hausnr, plz, ort, techniker_id)"
     )
     .gte("datum_naechste_wartung", von)
     .lte("datum_naechste_wartung", bis)
@@ -25,21 +25,44 @@ export async function getWartungskalenderEintraege(
     return [];
   }
 
-  return (data ?? []).map((row) => {
+  const entries: WartungsKalenderEintrag[] = (data ?? []).map((row) => {
     const anlage = row.anlagen as unknown as Record<string, unknown> | null;
-    const adresse = anlage
-      ? [anlage.strasse, anlage.hausnr, anlage.ort].filter(Boolean).join(" ") || undefined
+    const adresseZeile1 = anlage
+      ? [anlage.strasse, anlage.hausnr].filter(Boolean).join(" ") || undefined
+      : undefined;
+    const adresseZeile2 = anlage
+      ? [anlage.plz, anlage.ort].filter(Boolean).join(" ") || undefined
       : undefined;
     return {
       id: row.id as number,
       anlage_id: row.anlage_id as number,
       anlage_name: (anlage?.anlagen_nr as string | undefined) ?? undefined,
-      anlage_adresse: adresse,
+      anlage_adresse: adresseZeile1,
+      anlage_adresse_zeile2: adresseZeile2,
       datum: row.datum_naechste_wartung as string,
       techniker_id: (anlage?.techniker_id as string | undefined) ?? undefined,
       dauer_minuten: (row.dauer_wartung_minuten as number | undefined) ?? undefined,
     };
   });
+
+  if (entries.length === 0) return [];
+
+  // Exclude anlage_ids that are already scheduled in any tour_eintrag within
+  // the same date window (regardless of tour status or kunden_status).
+  // Routing shifts the actual service date away from datum_naechste_wartung,
+  // so we match on anlage_id only — if it is in any tour within the window it
+  // is no longer "ungeplant".
+  const anlageIds = [...new Set(entries.map((e) => e.anlage_id))];
+  const { data: scheduled } = await supabase
+    .from("tour_eintraege")
+    .select("anlage_id")
+    .in("anlage_id", anlageIds)
+    .gte("datum", von)
+    .lte("datum", bis)
+    .eq("item_type", "wartung");
+
+  const scheduledSet = new Set((scheduled ?? []).map((r) => r.anlage_id as number));
+  return entries.filter((e) => !scheduledSet.has(e.anlage_id));
 }
 
 export async function getAktiveTechniker(): Promise<KalenderTechniker[]> {

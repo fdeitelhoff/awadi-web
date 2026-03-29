@@ -78,7 +78,10 @@ export function mapRowToTourEintrag(row: Record<string, unknown>): TourEintrag {
     anlage_lat: anlage?.breitengrad != null ? Number(anlage.breitengrad) : undefined,
     anlage_lng: anlage?.laengengrad != null ? Number(anlage.laengengrad) : undefined,
     anlage_adresse: anlage
-      ? [anlage.strasse, anlage.hausnr, anlage.ort].filter(Boolean).join(" ") || undefined
+      ? [anlage.strasse, anlage.hausnr].filter(Boolean).join(" ") || undefined
+      : undefined,
+    anlage_adresse_zeile2: anlage
+      ? [anlage.plz, anlage.ort].filter(Boolean).join(" ") || undefined
       : undefined,
     ticket_titel: ticket?.titel as string | undefined,
     kontakt_name: anlage?.kontakt_name as string | undefined,
@@ -90,7 +93,7 @@ export async function getTourEintraege(tourId: number): Promise<TourEintrag[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, kunden_status, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel)")
+    .select("*, kunden_status, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, plz, ort), tickets(titel)")
     .eq("tour_id", tourId)
     .order("datum", { ascending: true })
     .order("position", { ascending: true });
@@ -102,7 +105,7 @@ export async function getPublishedTourEintraegeForDateRange(von: string, bis: st
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, kunden_status, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel), touren!inner(status)")
+    .select("*, kunden_status, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, plz, ort), tickets(titel), touren!inner(status)")
     .eq("touren.status", "veröffentlicht")
     .gte("datum", von)
     .lte("datum", bis);

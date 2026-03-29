@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { TourEintrag } from "@/lib/types/tour";
 import type { WartungsKalenderEintrag, KalenderTechniker } from "@/lib/types/wartung";
-import { MapPin, Mail, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { MapPin, Car, Mail, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { sendTourEintragEmail, updateKundenStatus } from "@/lib/actions/tour-emails";
@@ -21,45 +21,77 @@ function truncate(s: string | undefined, max = 16): string {
   return s.length > max ? s.slice(0, max) + "…" : s;
 }
 
-// ── Wartungs-entry card (replaces mock CompactTaskCard / TourTaskItem) ──────
+// ── Shared address block ─────────────────────────────────────────────────────
+
+function AddressLines({
+  zeile1,
+  zeile2,
+  className = "",
+}: {
+  zeile1?: string;
+  zeile2?: string;
+  className?: string;
+}) {
+  if (!zeile1 && !zeile2) return null;
+  return (
+    <div className={`flex items-start gap-1 text-muted-foreground min-w-0 ${className}`}>
+      <MapPin className="h-2.5 w-2.5 shrink-0 mt-0.5" />
+      <div className="min-w-0">
+        {zeile1 && <div className="truncate">{zeile1}</div>}
+        {zeile2 && <div className="truncate">{zeile2}</div>}
+      </div>
+    </div>
+  );
+}
+
+function AddressTooltipLines({ zeile1, zeile2 }: { zeile1?: string; zeile2?: string }) {
+  if (!zeile1 && !zeile2) return null;
+  return (
+    <div className="flex items-start gap-1.5">
+      <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
+      <div>
+        {zeile1 && <div>{zeile1}</div>}
+        {zeile2 && <div>{zeile2}</div>}
+      </div>
+    </div>
+  );
+}
+
+// ── Wartungs-entry card ──────────────────────────────────────────────────────
+
+const DEFAULT_FARBE = "#6366f1";
 
 interface WartungsEintragCardProps {
   eintrag: WartungsKalenderEintrag;
+  technikerFarbe?: string;
 }
 
-function WartungsEintragCard({ eintrag }: WartungsEintragCardProps) {
+function WartungsEintragCard({ eintrag, technikerFarbe }: WartungsEintragCardProps) {
+  const farbe = technikerFarbe ?? DEFAULT_FARBE;
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-start gap-1.5 p-1.5 rounded bg-background hover:bg-muted/50 transition-colors cursor-default">
-            <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-medium truncate">
-                {truncate(eintrag.anlage_name) ?? `Anlage #${eintrag.anlage_id}`}
-              </div>
-              {eintrag.anlage_adresse && (
-                <div className="text-[10px] text-muted-foreground truncate">
-                  {eintrag.anlage_adresse}
-                </div>
-              )}
+          <div
+            className="rounded-lg border-l-4 bg-card/50 p-1.5 text-xs space-y-0.5 cursor-default"
+            style={{ borderLeftColor: farbe }}
+          >
+            <div className="font-medium truncate">
+              {truncate(eintrag.anlage_name) ?? `Anlage #${eintrag.anlage_id}`}
             </div>
+            <AddressLines zeile1={eintrag.anlage_adresse} zeile2={eintrag.anlage_adresse_zeile2} />
             {eintrag.dauer_minuten != null && (
-              <span className="text-[10px] text-muted-foreground shrink-0 flex items-center gap-0.5">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <Clock className="h-2.5 w-2.5" />
-                {eintrag.dauer_minuten} min
-              </span>
+                <span>{eintrag.dauer_minuten} min</span>
+              </div>
             )}
           </div>
         </TooltipTrigger>
         <TooltipContent side="right" className="max-w-xs">
           <div className="space-y-1 text-xs">
             <div className="font-medium">{eintrag.anlage_name ?? `Anlage #${eintrag.anlage_id}`}</div>
-            {eintrag.anlage_adresse && (
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3 w-3 text-muted-foreground" />
-                <span>{eintrag.anlage_adresse}</span>
-              </div>
-            )}
+            <AddressTooltipLines zeile1={eintrag.anlage_adresse} zeile2={eintrag.anlage_adresse_zeile2} />
             {eintrag.dauer_minuten != null && (
               <div className="flex items-center gap-1.5">
                 <Clock className="h-3 w-3 text-muted-foreground" />
@@ -82,27 +114,57 @@ interface TechnicianWartungsGruppeProps {
 
 export function TechnicianWartungsGruppe({ techniker, eintraege }: TechnicianWartungsGruppeProps) {
   return (
-    <div
-      className="rounded-lg border-l-4 bg-card/50 p-1.5"
-      style={{ borderLeftColor: techniker.farbe }}
-    >
-      <div className="flex items-center gap-1.5 mb-1.5 px-1">
+    <div className="space-y-1">
+      {/* Technician label row */}
+      <div className="flex items-center gap-1.5 px-0.5">
         <div
-          className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+          className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
           style={{ backgroundColor: techniker.farbe }}
         >
           {techniker.kuerzel}
         </div>
-        <span className="text-[10px] font-medium truncate">{techniker.name}</span>
-        <span className="text-[10px] text-muted-foreground ml-auto">
+        <span className="text-[10px] font-medium truncate text-muted-foreground">{techniker.name}</span>
+        <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
           {eintraege.length} {eintraege.length === 1 ? "Wartung" : "Wartungen"}
         </span>
       </div>
-      <div className="space-y-1">
-        {eintraege.map((e) => (
-          <WartungsEintragCard key={e.id} eintrag={e} />
-        ))}
+      {eintraege.map((e) => (
+        <WartungsEintragCard key={e.id} eintrag={e} technikerFarbe={techniker.farbe} />
+      ))}
+    </div>
+  );
+}
+
+// ── Technician group for geplante Einträge ──────────────────────────────────
+
+interface TechnicianGeplantGruppeProps {
+  techniker: KalenderTechniker;
+  eintraege: TourEintrag[];
+  showEmailButton?: boolean;
+}
+
+export function TechnicianGeplantGruppe({
+  techniker,
+  eintraege,
+  showEmailButton = true,
+}: TechnicianGeplantGruppeProps) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-1.5 px-0.5">
+        <div
+          className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+          style={{ backgroundColor: techniker.farbe }}
+        >
+          {techniker.kuerzel}
+        </div>
+        <span className="text-[10px] font-medium truncate text-muted-foreground">{techniker.name}</span>
+        <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
+          {eintraege.length} {eintraege.length === 1 ? "Termin" : "Termine"}
+        </span>
       </div>
+      {eintraege.map((e) => (
+        <GeplantCard key={e.id} eintrag={e} showEmailButton={showEmailButton} technikerFarbe={techniker.farbe} />
+      ))}
     </div>
   );
 }
@@ -123,8 +185,6 @@ interface GeplantCardProps {
   showEmailButton?: boolean;
   technikerFarbe?: string;
 }
-
-const DEFAULT_FARBE = "#6366f1";
 
 export function GeplantCard({ eintrag, showEmailButton = true, technikerFarbe }: GeplantCardProps) {
   const router = useRouter();
@@ -160,64 +220,104 @@ export function GeplantCard({ eintrag, showEmailButton = true, technikerFarbe }:
   }
 
   return (
-    <div
-      className="rounded-lg border-l-4 bg-card/50 p-1.5 text-xs space-y-0.5"
-      style={{ borderLeftColor: farbe }}
-    >
-      {/* Title row */}
-      <div className="flex items-center gap-1 min-w-0">
-        <span className="font-medium truncate flex-1">{title ?? "—"}</span>
-        {time && <span className="text-muted-foreground shrink-0">▶ {time}</span>}
-      </div>
-
-      {/* Address (wartung only) */}
-      {isWartung && eintrag.anlage_adresse && (
-        <div className="flex items-center gap-1 text-muted-foreground min-w-0">
-          <MapPin className="h-2.5 w-2.5 shrink-0" />
-          <span className="truncate">{eintrag.anlage_adresse}</span>
-        </div>
-      )}
-
-      {/* Meta row */}
-      <div className="text-muted-foreground flex gap-2 flex-wrap min-w-0">
-        {eintrag.fahrtzeit_minuten != null && <span className="shrink-0">🚗 {eintrag.fahrtzeit_minuten} min</span>}
-        {eintrag.techniker_name && (
-          <span className="truncate">{eintrag.techniker_name}</span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-1 flex-wrap">
-        {statusCfg && (
-          <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 font-normal ${statusCfg.className}`}>
-            {statusCfg.label}
-          </Badge>
-        )}
-        {canSendEmail && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-5 px-1 text-[10px] gap-0.5 text-info hover:text-info hover:bg-info/10"
-            disabled={isPending}
-            onClick={handleSendEmail}
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className="rounded-lg border-l-4 bg-card/50 p-1.5 text-xs space-y-0.5"
+            style={{ borderLeftColor: farbe }}
           >
-            <Mail className="h-2.5 w-2.5" />
-            E-Mail
-          </Button>
-        )}
-        {eintrag.kunden_status === "email_versendet" && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-5 px-1 text-[10px] gap-0.5 text-success hover:text-success hover:bg-success/10"
-            disabled={isPending}
-            onClick={handleMarkBestaetigt}
-          >
-            <CheckCircle2 className="h-2.5 w-2.5" />
-            Bestätigen
-          </Button>
-        )}
-      </div>
-    </div>
+            {/* Title row */}
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="font-medium truncate flex-1">{title ?? "—"}</span>
+              {time && <span className="text-muted-foreground shrink-0">▶ {time}</span>}
+            </div>
+
+            {/* Address (wartung only) */}
+            {isWartung && (
+              <AddressLines zeile1={eintrag.anlage_adresse} zeile2={eintrag.anlage_adresse_zeile2} />
+            )}
+
+            {/* Meta row — travel time + duration, aligned with address icon */}
+            {(eintrag.fahrtzeit_minuten != null || eintrag.dauer_minuten != null) && (
+              <div className="flex items-center gap-2 text-muted-foreground flex-wrap min-w-0">
+                {eintrag.fahrtzeit_minuten != null && (
+                  <span className="flex items-center gap-1 shrink-0">
+                    <Car className="h-2.5 w-2.5 shrink-0" />
+                    {eintrag.fahrtzeit_minuten} min
+                  </span>
+                )}
+                {eintrag.dauer_minuten != null && (
+                  <span className="flex items-center gap-1 shrink-0">
+                    <Clock className="h-2.5 w-2.5 shrink-0" />
+                    {eintrag.dauer_minuten} min
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center gap-1 flex-wrap">
+              {statusCfg && (
+                <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 font-normal ${statusCfg.className}`}>
+                  {statusCfg.label}
+                </Badge>
+              )}
+              {canSendEmail && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-5 px-1 text-[10px] gap-0.5 text-info hover:text-info hover:bg-info/10"
+                  disabled={isPending}
+                  onClick={handleSendEmail}
+                >
+                  <Mail className="h-2.5 w-2.5" />
+                  E-Mail
+                </Button>
+              )}
+              {eintrag.kunden_status === "email_versendet" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-5 px-1 text-[10px] gap-0.5 text-success hover:text-success hover:bg-success/10"
+                  disabled={isPending}
+                  onClick={handleMarkBestaetigt}
+                >
+                  <CheckCircle2 className="h-2.5 w-2.5" />
+                  Bestätigen
+                </Button>
+              )}
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="max-w-xs">
+          <div className="space-y-1 text-xs">
+            <div className="font-medium">{rawTitle ?? "—"}</div>
+            {isWartung && (
+              <AddressTooltipLines
+                zeile1={eintrag.anlage_adresse}
+                zeile2={eintrag.anlage_adresse_zeile2}
+              />
+            )}
+            {time && (
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                <span>{time} Uhr</span>
+              </div>
+            )}
+            {eintrag.fahrtzeit_minuten != null && (
+              <div className="text-muted-foreground">🚗 {eintrag.fahrtzeit_minuten} min Fahrt</div>
+            )}
+            {eintrag.dauer_minuten != null && (
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                <span>{eintrag.dauer_minuten} Minuten</span>
+              </div>
+            )}
+            {statusCfg && <div className="text-muted-foreground">{statusCfg.label}</div>}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 

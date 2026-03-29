@@ -9,13 +9,13 @@ async function DashboardData() {
   await connection();
   const today = new Date();
   const von = today.toISOString().slice(0, 10);
-  const bis4w = new Date(today.getTime() + 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const bis6w = new Date(today.getTime() + 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   const [{ data: openTickets }, publishedEintraege, wartungseintraege, techniker] =
     await Promise.all([
       getTickets({ filterStatus: "offen", pageSize: 100 }),
-      getPublishedTourEintraegeForDateRange(von, bis4w),
-      getWartungskalenderEintraege(von, bis4w),
+      getPublishedTourEintraegeForDateRange(von, bis6w),
+      getWartungskalenderEintraege(von, bis6w),
       getAktiveTechniker(),
     ]);
 
@@ -25,6 +25,8 @@ async function DashboardData() {
       techniker={techniker}
       wartungseintraege={wartungseintraege}
       publishedEintraege={publishedEintraege}
+      initialVon={von}
+      initialBis={bis6w}
     />
   );
 }

@@ -27,14 +27,18 @@ import type { KundenStatus } from "@/lib/types/wartung";
 import { ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { TourEintrag } from "@/lib/types/tour";
-import { GeplantCard, TechnicianWartungsGruppe } from "./compact-task-card";
+import { GeplantCard, TechnicianGeplantGruppe, TechnicianWartungsGruppe } from "./compact-task-card";
 import { maintenanceStatusConfig } from "./status-badge";
 import { TourPlanningDialogTrigger } from "@/components/dashboard/tour-planning-dialog-trigger";
+
+const WINDOW_DAYS = 42; // 6 weeks
 
 interface MaintenanceCalendarProps {
   techniker: KalenderTechniker[];
   wartungseintraege: WartungsKalenderEintrag[];
   publishedEintraege?: TourEintrag[];
+  loadedWindow: { von: string; bis: string };
+  onWindowChange: (von: string, bis: string) => void;
 }
 
 // kunden_status → MaintenanceStatus filter mapping
@@ -119,6 +123,8 @@ export function MaintenanceCalendar({
   techniker,
   wartungseintraege,
   publishedEintraege = [],
+  loadedWindow,
+  onWindowChange,
 }: MaintenanceCalendarProps) {
   const [viewRange, setViewRange] = useState<CalendarViewRange>("4weeks");
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -163,17 +169,35 @@ export function MaintenanceCalendar({
     return map;
   }, [publishedEintraege]);
 
+  function checkAndFetch(newStart: Date) {
+    const newStartKey = toDateKey(newStart);
+    // Look one week past the visible range so data is already loaded when the
+    // user clicks "next" again.
+    const lookAheadEnd = new Date(newStart);
+    lookAheadEnd.setDate(newStart.getDate() + weeks * 7 + 7 - 1);
+    const newEndKey = toDateKey(lookAheadEnd);
+    if (newEndKey > loadedWindow.bis || newStartKey < loadedWindow.von) {
+      const fetchBis = toDateKey(
+        new Date(newStart.getTime() + WINDOW_DAYS * 24 * 60 * 60 * 1000)
+      );
+      onWindowChange(newStartKey, fetchBis);
+    }
+  }
+
   const navigateWeeks = (direction: number) => {
     if (!startDate) return;
     const newStart = new Date(startDate);
     newStart.setDate(startDate.getDate() + direction * 7);
     setStartDate(newStart);
+    checkAndFetch(newStart);
   };
 
   const goToToday = () => {
     const now = new Date();
     setToday(now);
-    setStartDate(getStartOfWeek(now));
+    const newStart = getStartOfWeek(now);
+    setStartDate(newStart);
+    checkAndFetch(newStart);
   };
 
   const isShowingAllStatuses = selectedStatuses.size === 4;
@@ -429,6 +453,18 @@ function RowsView({
                     }
                   }
 
+                  // Group planned entries by technician (same pattern)
+                  const publishedByTech = new Map<string, TourEintrag[]>();
+                  const unassignedPublished: TourEintrag[] = [];
+                  for (const e of filteredPublished) {
+                    if (e.techniker_id) {
+                      if (!publishedByTech.has(e.techniker_id)) publishedByTech.set(e.techniker_id, []);
+                      publishedByTech.get(e.techniker_id)!.push(e);
+                    } else {
+                      unassignedPublished.push(e);
+                    }
+                  }
+
                   return (
                     <div
                       key={di}
@@ -480,15 +516,24 @@ function RowsView({
                               ))}
                             </div>
                           )}
-                          {/* Published tour stops */}
+                          {/* Published tour stops grouped by technician */}
                           {filteredPublished.length > 0 && (
-                            <div className="space-y-1 mt-1">
-                              {filteredPublished.map((e) => (
-                                <GeplantCard
-                                  key={e.id}
-                                  eintrag={e}
-                                  technikerFarbe={techById.get(e.techniker_id)?.farbe}
-                                />
+                            <div className="space-y-1.5">
+                              {Array.from(publishedByTech.entries()).map(([techId, entries]) => {
+                                const tech = techById.get(techId);
+                                if (!tech) return entries.map((e) => (
+                                  <GeplantCard key={e.id} eintrag={e} />
+                                ));
+                                return (
+                                  <TechnicianGeplantGruppe
+                                    key={techId}
+                                    techniker={tech}
+                                    eintraege={entries}
+                                  />
+                                );
+                              })}
+                              {unassignedPublished.map((e) => (
+                                <GeplantCard key={e.id} eintrag={e} />
                               ))}
                             </div>
                           )}

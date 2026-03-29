@@ -38,7 +38,8 @@ export interface TourEintrag {
   // joined display fields
   techniker_name?: string;
   anlage_name?: string;
-  anlage_adresse?: string;
+  anlage_adresse?: string;       // Strasse + Hausnr
+  anlage_adresse_zeile2?: string; // PLZ + Ort
   anlage_lat?: number;
   anlage_lng?: number;
   ticket_titel?: string;
