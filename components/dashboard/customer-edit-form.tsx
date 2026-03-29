@@ -27,8 +27,19 @@ import {
 import { UnsavedChangesDialog } from "@/components/dashboard/unsaved-changes-dialog";
 import { InternalComments } from "@/components/dashboard/internal-comments";
 import { VertragPicker } from "@/components/dashboard/vertrag-picker";
-import { Loader2, ArrowLeft } from "lucide-react";
-import { updateKunde } from "@/lib/actions/customers";
+import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
+import { updateKunde, deleteKunde } from "@/lib/actions/customers";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { Kunde } from "@/lib/types/customer";
 import type { InternalComment } from "@/lib/types/kommentar";
 import {
@@ -56,6 +67,7 @@ function formatDateTime(value?: string | null): string {
 export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm<CustomerFormValues>({
@@ -120,6 +132,18 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
     }
   };
 
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const result = await deleteKunde(kunde.id);
+    setIsDeleting(false);
+    if (!result.success) {
+      toast.error(result.error ?? "Löschen fehlgeschlagen.");
+      return;
+    }
+    toast.success("Kunde gelöscht");
+    router.push("/master-data/customers");
+  };
+
   const namePart =
     kunde.firma ||
     [kunde.vorname, kunde.nachname].filter(Boolean).join(" ") ||
@@ -165,10 +189,37 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
                   <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>
                 )}
               </div>
-              <Button type="submit" disabled={isSaving} className="shrink-0">
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Speichern
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button type="button" variant="destructive" disabled={isSaving || isDeleting}>
+                      {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Kunde löschen?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Möchten Sie den Kunden &ldquo;{namePart}&rdquo; wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Löschen
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <Button type="button" variant="outline" disabled={isSaving || isDeleting} onClick={handleSaveAndLeave}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Speichern & verlassen
+                </Button>
+                <Button type="submit" disabled={isSaving || isDeleting}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Speichern
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -525,8 +576,12 @@ export function CustomerEditForm({ kunde, initialKommentare }: CustomerEditFormP
           </div>
 
           {/* ── Footer save ──────────────────────────────────────── */}
-          <div className="flex justify-end pb-8">
-            <Button type="submit" disabled={isSaving}>
+          <div className="flex justify-end gap-2 pb-8">
+            <Button type="button" variant="outline" disabled={isSaving || isDeleting} onClick={handleSaveAndLeave}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Speichern & verlassen
+            </Button>
+            <Button type="submit" disabled={isSaving || isDeleting}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Speichern
             </Button>

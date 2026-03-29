@@ -131,10 +131,16 @@ export function CustomerCreateForm() {
             </Button>
             <div className="flex items-center justify-between gap-4">
               <h1 className="text-2xl font-semibold">Neuer Kunde</h1>
-              <Button type="submit" variant="success" disabled={isSaving} className="shrink-0">
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Speichern
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button type="button" variant="outline" disabled={isSaving} onClick={handleSaveAndLeave}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Speichern & verlassen
+                </Button>
+                <Button type="submit" variant="success" disabled={isSaving}>
+                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Speichern
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -480,7 +486,11 @@ export function CustomerCreateForm() {
           </div>
 
           {/* ── Footer save ──────────────────────────────────────── */}
-          <div className="flex justify-end pb-8">
+          <div className="flex justify-end gap-2 pb-8">
+            <Button type="button" variant="outline" disabled={isSaving} onClick={handleSaveAndLeave}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Speichern & verlassen
+            </Button>
             <Button type="submit" variant="success" disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Speichern

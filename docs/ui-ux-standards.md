@@ -823,24 +823,74 @@ Fragment:
 
 Every entity create/edit page uses this fixed header structure inside the `<form>`:
 
+**Edit form** (three buttons — delete · Speichern & verlassen · Speichern):
+
 ```tsx
 <div>
-  <Button
-    type="button"
-    variant="ghost"
-    size="sm"
-    className="-ml-2 mb-2"
-    onClick={handleBackClick}
-  >
+  <Button type="button" variant="ghost" size="sm" className="-ml-2 mb-2" onClick={handleBackClick}>
+    <ArrowLeft className="h-4 w-4 mr-1" />
+    Zurück
+  </Button>
+  <div className="flex items-center justify-between gap-4">
+    <div>
+      <h1 className="text-2xl font-semibold">{title}</h1>
+      {metaInfo && <p className="text-sm text-muted-foreground mt-0.5">{metaInfo}</p>}
+    </div>
+    <div className="flex items-center gap-2 shrink-0">
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button type="button" variant="destructive" disabled={isSaving || isDeleting}>
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>[Entity] löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Möchten Sie [Entity] wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Button type="button" variant="outline" disabled={isSaving || isDeleting} onClick={handleSaveAndLeave}>
+        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Speichern & verlassen
+      </Button>
+      <Button type="submit" disabled={isSaving || isDeleting}>
+        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Speichern
+      </Button>
+    </div>
+  </div>
+</div>
+```
+
+**Create form** (two buttons — Speichern & verlassen · Speichern):
+
+```tsx
+<div>
+  <Button type="button" variant="ghost" size="sm" className="-ml-2 mb-2" onClick={handleBackClick}>
     <ArrowLeft className="h-4 w-4 mr-1" />
     Zurück
   </Button>
   <div className="flex items-center justify-between gap-4">
     <h1 className="text-2xl font-semibold">{title}</h1>
-    <Button type="submit" disabled={isSaving} className="shrink-0">
-      {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Speichern
-    </Button>
+    <div className="flex items-center gap-2 shrink-0">
+      <Button type="button" variant="outline" disabled={isSaving} onClick={handleSaveAndLeave}>
+        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Speichern & verlassen
+      </Button>
+      <Button type="submit" variant="success" disabled={isSaving}>
+        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Speichern
+      </Button>
+    </div>
   </div>
 </div>
 ```
@@ -851,27 +901,52 @@ Every entity create/edit page uses this fixed header structure inside the `<form
 - If no name is derivable yet, fall back to a generic label: `"[Entity]"`
 
 **Rules:**
-- `type="button"` on the back button is mandatory — without it the button submits the form.
-- `shrink-0` on the save button prevents text wrapping when the title is long.
-- The inline header save button is always present. On long forms (more than ~3 card sections), a second save button is added at the bottom of the form (see §3.13).
+- `type="button"` on the back button and all non-submit buttons is mandatory — without it the button submits the form.
+- `shrink-0` on the button group prevents wrapping when the title is long.
+- The header button group is always present. On long forms (more than ~3 card sections), the same two buttons (without delete) are duplicated in the footer — see §3.13.
 - `handleBackClick` checks `isDirty` before navigating — never use `router.push` directly on the back button of a form.
+- The delete button is **icon-only** (`<Trash2>`) to keep the header compact. It is always leftmost.
+- All three buttons share the same `isSaving` / `isDeleting` disabled state.
+- `handleDelete` calls the delete server action, shows `toast.success("[Entity] gelöscht")` on success, and navigates to the list page. On failure: `toast.error(message)`.
+- `handleSaveAndLeave` runs `form.trigger()` (validation), then `performSave`, then navigates to the list on success.
 
 ---
 
 ### 3.13 Footer save button (long forms)
 
-Forms with more than ~3 card sections duplicate the save button in a footer row so the user can save without scrolling back to the top:
+Forms with more than ~3 card sections duplicate the action buttons in a footer row so the user can save without scrolling back to the top. The footer mirrors the header button group **minus the delete button** (delete is header-only):
+
+**Edit form footer:**
 
 ```tsx
-<div className="flex justify-end pb-8">
-  <Button type="submit" disabled={isSaving}>
+<div className="flex justify-end gap-2 pb-8">
+  <Button type="button" variant="outline" disabled={isSaving || isDeleting} onClick={handleSaveAndLeave}>
+    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+    Speichern & verlassen
+  </Button>
+  <Button type="submit" disabled={isSaving || isDeleting}>
     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
     Speichern
   </Button>
 </div>
 ```
 
-Both buttons share the same `isSaving` state and are disabled simultaneously. The footer button is `type="submit"` — it does not call `performSave` directly.
+**Create form footer:**
+
+```tsx
+<div className="flex justify-end gap-2 pb-8">
+  <Button type="button" variant="outline" disabled={isSaving} onClick={handleSaveAndLeave}>
+    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+    Speichern & verlassen
+  </Button>
+  <Button type="submit" variant="success" disabled={isSaving}>
+    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+    Speichern
+  </Button>
+</div>
+```
+
+All footer buttons share the same `isSaving` / `isDeleting` state as the header buttons and are disabled simultaneously. The `Speichern` footer button is `type="submit"` — it does not call `performSave` directly.
 
 ---
 
