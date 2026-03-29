@@ -22,6 +22,8 @@ export interface WartungsdatenCardRef {
    * - non-null → caller should updateVertrag(vertragId, data) or createVertrag({ anlage_id, ...data })
    */
   getValues(): { vertragId?: number; data: WartungsdatenInput } | null;
+  /** Merges the given values into the form state (used for auto-fill). */
+  setValues(values: Partial<WartungsdatenInput>): void;
 }
 
 interface WartungsdatenCardProps {
@@ -49,6 +51,9 @@ export const WartungsdatenCard = forwardRef<WartungsdatenCardRef, WartungsdatenC
     });
 
     useImperativeHandle(ref, () => ({
+      setValues(values: Partial<WartungsdatenInput>) {
+        setForm((prev) => ({ ...prev, ...values }));
+      },
       getValues() {
         // When editing an existing vertrag always return values (so we can update it).
         // When creating, only return if at least one field is filled.

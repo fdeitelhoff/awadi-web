@@ -127,32 +127,6 @@ export async function createAnlage(
     return { success: false, error: error.message };
   }
 
-  // Always create the first biology record so every facility has a type slot
-  const { data: maxBioRow } = await supabase
-    .from("anl_biologien")
-    .select("id")
-    .order("id", { ascending: false })
-    .limit(1)
-    .single();
-
-  const newBioId = (maxBioRow?.id ?? 0) + 1;
-
-  const bioRow: Record<string, unknown> = {
-    id: newBioId,
-    anlage_id: newId,
-    bio_nummer: 1,
-    vorhanden: true,
-  };
-
-  const { error: bioError } = await supabase
-    .from("anl_biologien")
-    .insert(bioRow);
-
-  if (bioError) {
-    console.error("Error creating anl_biologie:", bioError);
-    // Anlage was created successfully; biology failure is non-fatal but logged
-  }
-
   return { success: true, id: newId };
 }
 

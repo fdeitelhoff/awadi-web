@@ -193,7 +193,7 @@ export async function getAnlTypen(): Promise<AnlTyp[]> {
 
   const { data, error } = await supabase
     .from("anl_typen")
-    .select("id, bezeichnung, anzahl_vorklaerbehaelter, anzahl_biologien")
+    .select("id, bezeichnung, anzahl_vorklaerbehaelter, anzahl_biologien, wartungsintervall_monate, dauer_wartung_minuten")
     .order("sortiernr", { nullsFirst: false })
     .order("bezeichnung");
 
@@ -207,6 +207,8 @@ export async function getAnlTypen(): Promise<AnlTyp[]> {
     bezeichnung: r.bezeichnung as string,
     anzahl_vorklaerbehaelter: (r.anzahl_vorklaerbehaelter as number | null) ?? undefined,
     anzahl_biologien: (r.anzahl_biologien as number | null) ?? undefined,
+    wartungsintervall_monate: (r.wartungsintervall_monate as number | null) ?? undefined,
+    dauer_wartung_minuten: (r.dauer_wartung_minuten as number | null) ?? undefined,
   }));
 }
 

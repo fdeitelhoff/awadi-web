@@ -85,7 +85,7 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
       return;
     }
     if (!form.kunden_id || form.kunden_id <= 0) {
-      setError("Bitte einen Eigentümer auswählen.");
+      setError("Bitte einen Kunden auswählen.");
       return;
     }
     setIsSaving(true);
@@ -114,7 +114,7 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
     // Create wartungsvertrag if any fields were filled
     const wData = wartungsdatenRef.current?.getValues();
     if (wData && result.id) {
-      await createVertrag({ anlage_id: result.id, ...wData.data });
+      await createVertrag({ anlage_id: result.id, kunden_id: form.kunden_id || null, anl_typ_id: form.anl_typ_id ?? null, ...wData.data });
     }
 
     router.push(`/master-data/facilities/${result.id}`);
@@ -183,6 +183,10 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
                         verfahren_br_anz_behaelter: typ?.anzahl_vorklaerbehaelter ?? prev.verfahren_br_anz_behaelter,
                         number_of_biologies: typ?.anzahl_biologien ?? prev.number_of_biologies,
                       }));
+                      wartungsdatenRef.current?.setValues({
+                        intervall_monate: typ?.wartungsintervall_monate,
+                        dauer_wartung_minuten: typ?.dauer_wartung_minuten,
+                      });
                     }
                   }}
                 >
@@ -201,9 +205,9 @@ export function AnlageCreateForm({ anlTypen, techniker }: AnlageCreateFormProps)
               </div>
             </div>
 
-            {/* Eigentümer */}
+            {/* Kunde */}
             <div className="space-y-1.5">
-              <Label>Eigentümer <span className="text-destructive">*</span></Label>
+              <Label>Kunde <span className="text-destructive">*</span></Label>
               <KundePicker
                 value={form.kunden_id || null}
                 onChange={(id) => set("kunden_id", id ?? 0)}

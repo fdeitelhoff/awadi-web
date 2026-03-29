@@ -82,6 +82,8 @@ export interface AnlTyp {
   bezeichnung: string;
   anzahl_vorklaerbehaelter?: number;
   anzahl_biologien?: number;
+  wartungsintervall_monate?: number;
+  dauer_wartung_minuten?: number;
 }
 
 export type SortField =

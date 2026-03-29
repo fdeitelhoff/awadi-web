@@ -153,8 +153,8 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
     // Save wartungsvertrag (update existing or create new)
     if (wData) {
       const vertragResult = wData.vertragId
-        ? await updateVertrag(wData.vertragId, wData.data)
-        : await createVertrag({ anlage_id: anlage.id, ...wData.data });
+        ? await updateVertrag(wData.vertragId, { ...wData.data, kunden_id: form.kunden_id ?? null, anl_typ_id: form.anl_typ_id ?? null })
+        : await createVertrag({ anlage_id: anlage.id, kunden_id: form.kunden_id ?? null, anl_typ_id: form.anl_typ_id ?? null, ...wData.data });
       if (!vertragResult.success) {
         setIsSaving(false);
         setError(vertragResult.error ?? "Fehler beim Speichern der Wartungsdaten.");
@@ -245,9 +245,9 @@ export function AnlageEditForm({ anlage, anlTypen, techniker, initialKontakt, in
               </div>
             </div>
 
-            {/* Eigentümer */}
+            {/* Kunde */}
             <div className="space-y-1.5">
-              <Label>Eigentümer <span className="text-destructive">*</span></Label>
+              <Label>Kunde <span className="text-destructive">*</span></Label>
               <KundePicker
                 value={form.kunden_id ?? null}
                 onChange={(id) => set("kunden_id", id ?? 0)}

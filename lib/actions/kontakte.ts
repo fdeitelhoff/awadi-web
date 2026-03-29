@@ -54,9 +54,7 @@ export async function updateKontakt(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
 
-  const row: Record<string, unknown> = {
-    last_update: new Date().toISOString(),
-  };
+  const row: Record<string, unknown> = {};
 
   for (const field of TEXT_FIELDS) {
     const value = data[field];
