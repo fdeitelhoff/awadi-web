@@ -17,6 +17,12 @@ export interface Tour {
   created_by_name?: string;
   techniker_count?: number;
   stop_count?: number;
+  email_status_counts?: {
+    ausstehend: number;
+    email_versendet: number;
+    bestaetigt: number;
+    abgelehnt: number;
+  };
 }
 
 export interface TourEintrag {

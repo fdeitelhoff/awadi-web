@@ -4,7 +4,15 @@ import type { KundenStatus } from "@/lib/types/wartung";
 
 export function mapRowToTour(row: Record<string, unknown>): Tour {
   const profiles = row.profiles as { vorname?: string; nachname?: string } | null;
-  const technikerSet = new Set((row.tour_eintraege as Array<{ techniker_id: string }> | null ?? []).map(e => e.techniker_id));
+  const eintraege = (row.tour_eintraege as Array<{ techniker_id: string; kunden_status?: string }> | null) ?? [];
+  const technikerSet = new Set(eintraege.map(e => e.techniker_id));
+
+  const email_status_counts = { ausstehend: 0, email_versendet: 0, bestaetigt: 0, abgelehnt: 0 };
+  for (const e of eintraege) {
+    const s = (e.kunden_status ?? "ausstehend") as keyof typeof email_status_counts;
+    if (s in email_status_counts) email_status_counts[s]++;
+  }
+
   return {
     id: row.id as number,
     name: row.name as string,
@@ -19,7 +27,8 @@ export function mapRowToTour(row: Record<string, unknown>): Tour {
       ? [profiles.vorname, profiles.nachname].filter(Boolean).join(" ") || undefined
       : undefined,
     techniker_count: technikerSet.size,
-    stop_count: (row.tour_eintraege as unknown[] | null)?.length ?? 0,
+    stop_count: eintraege.length,
+    email_status_counts,
   };
 }
 
@@ -32,7 +41,7 @@ export async function getTouren(params: {
 
   const { data, count, error } = await supabase
     .from("touren")
-    .select("*, profiles(vorname, nachname), tour_eintraege(techniker_id)", { count: "exact" })
+    .select("*, profiles(vorname, nachname), tour_eintraege(techniker_id, kunden_status)", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(from, from + pageSize - 1);
 
@@ -44,7 +53,7 @@ export async function getTourById(id: number): Promise<Tour | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("touren")
-    .select("*, profiles(vorname, nachname), tour_eintraege(techniker_id)")
+    .select("*, profiles(vorname, nachname), tour_eintraege(techniker_id, kunden_status)")
     .eq("id", id)
     .single();
   if (error || !data) return null;

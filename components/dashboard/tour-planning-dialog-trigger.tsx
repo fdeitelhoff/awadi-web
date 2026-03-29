@@ -22,7 +22,7 @@ export function TourPlanningDialogTrigger() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><PlusIcon className="mr-2 h-4 w-4" />Neue Tourplanung</Button>
+        <Button variant="success"><PlusIcon className="mr-2 h-4 w-4" />Neue Tourplanung</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>Neue Tourplanung</DialogTitle></DialogHeader>

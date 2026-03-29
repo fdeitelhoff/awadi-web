@@ -2,7 +2,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getTourEintraege } from "@/lib/data/touren";
+import { getTourEintraege, mapRowToTour } from "@/lib/data/touren";
+import type { TourQueryResult } from "@/lib/types/tour";
 import { nearestNeighborOrder, calcArrivalTimes, minsToTimeString } from "@/lib/algorithm/routing";
 import { buildCapacityMap } from "@/lib/algorithm/capacity";
 import { buildTravelMatrix, normalizeCoord } from "@/lib/algorithm/travel-matrix";
@@ -189,4 +190,31 @@ export async function reoptimiseDay(
 
   const updated = await getTourEintraege(tourId);
   return { success: true, eintraege: updated };
+}
+
+export async function fetchTouren(params: {
+  search?: string;
+  sortField?: "name" | "von" | "bis" | "status" | "created_at";
+  sortDirection?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
+}): Promise<TourQueryResult> {
+  const supabase = await createClient();
+  const { search = "", sortField = "created_at", sortDirection = "desc", page = 1, pageSize = 14 } = params;
+  const from = (page - 1) * pageSize;
+
+  let query = supabase
+    .from("touren")
+    .select("*, profiles(vorname, nachname), tour_eintraege(techniker_id, kunden_status)", { count: "exact" });
+
+  if (search) {
+    query = query.ilike("name", `%${search}%`);
+  }
+
+  const { data, count, error } = await query
+    .order(sortField, { ascending: sortDirection === "asc" })
+    .range(from, from + pageSize - 1);
+
+  if (error) { console.error("fetchTouren:", error); return { data: [], totalCount: 0 }; }
+  return { data: (data ?? []).map(r => mapRowToTour(r as Record<string, unknown>)), totalCount: count ?? 0 };
 }
