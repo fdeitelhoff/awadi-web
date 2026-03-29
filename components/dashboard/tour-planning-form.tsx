@@ -35,6 +35,7 @@ export function TourPlanningForm({ onSuccess }: Props) {
       }
       if (data.warnings && data.warnings.length > 0) {
         toast.warning(`Tour erstellt mit ${data.warnings.length} Hinweis(en)`);
+        console.warn(data.warnings);
       }
       onSuccess(data.tourId);
     } catch {
