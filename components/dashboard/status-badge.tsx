@@ -26,29 +26,29 @@ const maintenanceStatusConfig: Record<
   { label: string; description: string; icon: React.ReactNode; className: string; dotColor: string }
 > = {
   unplanned: {
-    label: "Ungeplant",
-    description: "Termin noch nicht aktiv geplant",
+    label: "Ungeplante Wartungen",
+    description: "Wartung noch nicht in einer veröffentlichten Tour",
     icon: <Clock className="h-3 w-3" />,
     className: "bg-muted text-muted-foreground hover:bg-muted",
     dotColor: "bg-muted-foreground",
   },
   not_answered: {
-    label: "Keine Antwort",
-    description: "Per Mail kontaktiert, keine Rückmeldung",
+    label: "Ausstehend",
+    description: "Termin geplant, Kunde noch nicht benachrichtigt",
     icon: <Mail className="h-3 w-3" />,
     className: "bg-info/15 text-info hover:bg-info/20",
     dotColor: "bg-info",
   },
   contacted: {
-    label: "Kontaktiert",
-    description: "Kunde wurde kontaktiert",
+    label: "E-Mail versendet",
+    description: "Benachrichtigung versendet, Antwort ausstehend",
     icon: <Phone className="h-3 w-3" />,
     className: "bg-warning/15 text-warning hover:bg-warning/20",
     dotColor: "bg-warning",
   },
   planned: {
-    label: "Geplant",
-    description: "Termin ist bestätigt und geplant",
+    label: "Bestätigt",
+    description: "Kunde hat den Termin bestätigt",
     icon: <CalendarCheck className="h-3 w-3" />,
     className: "bg-success/15 text-success hover:bg-success/20",
     dotColor: "bg-success",

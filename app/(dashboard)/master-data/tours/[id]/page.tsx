@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import { getTourById, getTourEintraege } from "@/lib/data/touren";
 import { TourGrid } from "@/components/dashboard/tour-grid";
+import { TourEmailPanel } from "@/components/dashboard/tour-email-panel";
 import { createClient } from "@/lib/supabase/server";
 import type { Ticket } from "@/lib/types/ticket";
 
@@ -23,10 +24,19 @@ export default async function TourPlanningPage({ params }: Props) {
 
   if (!tour) notFound();
 
-  // Open tickets not already scheduled in this tour
-  const scheduledTicketIds = new Set(eintraege.filter(e => e.ticket_id != null).map(e => e.ticket_id!));
-  const openTickets = ((ticketsRes.data ?? []) as Ticket[])
-    .filter(t => !scheduledTicketIds.has(t.id));
+  const scheduledTicketIds = new Set(eintraege.filter((e) => e.ticket_id != null).map((e) => e.ticket_id!));
+  const openTickets = ((ticketsRes.data ?? []) as Ticket[]).filter(
+    (t) => !scheduledTicketIds.has(t.id)
+  );
 
-  return <TourGrid tour={tour} initialEintraege={eintraege} openTickets={openTickets} />;
+  return (
+    <div className="flex flex-col h-full">
+      {tour.status === "veröffentlicht" && (
+        <TourEmailPanel tourId={tourId} eintraege={eintraege} />
+      )}
+      <div className="flex-1 min-h-0">
+        <TourGrid tour={tour} initialEintraege={eintraege} openTickets={openTickets} />
+      </div>
+    </div>
+  );
 }

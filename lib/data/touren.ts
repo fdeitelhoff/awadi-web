@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Tour, TourEintrag, TourQueryResult } from "@/lib/types/tour";
+import type { KundenStatus } from "@/lib/types/wartung";
 
 export function mapRowToTour(row: Record<string, unknown>): Tour {
   const profiles = row.profiles as { vorname?: string; nachname?: string } | null;
@@ -68,6 +69,7 @@ export function mapRowToTourEintrag(row: Record<string, unknown>): TourEintrag {
     dauer_minuten: row.dauer_minuten as number | undefined,
     original_techniker_id: row.original_techniker_id as string | undefined,
     notizen: row.notizen as string | undefined,
+    kunden_status: (row.kunden_status as KundenStatus | undefined) ?? "ausstehend",
     created_at: row.created_at as string,
     techniker_name: profile
       ? [profile.vorname, profile.nachname].filter(Boolean).join(" ") || undefined
@@ -79,6 +81,8 @@ export function mapRowToTourEintrag(row: Record<string, unknown>): TourEintrag {
       ? [anlage.strasse, anlage.hausnr, anlage.ort].filter(Boolean).join(" ") || undefined
       : undefined,
     ticket_titel: ticket?.titel as string | undefined,
+    kontakt_name: anlage?.kontakt_name as string | undefined,
+    kontakt_email: anlage?.kontakt_email as string | undefined,
   };
 }
 
@@ -86,7 +90,7 @@ export async function getTourEintraege(tourId: number): Promise<TourEintrag[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel)")
+    .select("*, kunden_status, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel)")
     .eq("tour_id", tourId)
     .order("datum", { ascending: true })
     .order("position", { ascending: true });
@@ -98,7 +102,7 @@ export async function getPublishedTourEintraegeForDateRange(von: string, bis: st
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("tour_eintraege")
-    .select("*, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel), touren!inner(status)")
+    .select("*, kunden_status, profiles!tour_eintraege_techniker_id_fkey(vorname, nachname), anlagen(anlagen_nr, breitengrad, laengengrad, strasse, hausnr, ort), tickets(titel), touren!inner(status)")
     .eq("touren.status", "veröffentlicht")
     .gte("datum", von)
     .lte("datum", bis);

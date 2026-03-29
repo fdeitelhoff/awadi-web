@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -18,47 +17,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { technicians } from "@/lib/data/mock-data";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   CalendarViewRange,
   MaintenanceStatus,
-  MaintenanceTask,
-  Technician,
 } from "@/lib/types/maintenance";
+import type { KalenderTechniker, WartungsKalenderEintrag } from "@/lib/types/wartung";
+import type { KundenStatus } from "@/lib/types/wartung";
 import { ChevronDown, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { TourEintrag } from "@/lib/types/tour";
-import { GeplantCard, TechnicianTour, UnassignedTasks } from "./compact-task-card";
+import { GeplantCard, TechnicianWartungsGruppe } from "./compact-task-card";
 import { maintenanceStatusConfig } from "./status-badge";
 import { TourPlanningDialogTrigger } from "@/components/dashboard/tour-planning-dialog-trigger";
 
 interface MaintenanceCalendarProps {
-  tasks: MaintenanceTask[];
-  onConfirmTask?: (taskId: string) => void;
-  onCancelTask?: (taskId: string) => void;
+  techniker: KalenderTechniker[];
+  wartungseintraege: WartungsKalenderEintrag[];
   publishedEintraege?: TourEintrag[];
 }
 
-// Get week number
+// kunden_status → MaintenanceStatus filter mapping
+const KUNDEN_TO_FILTER: Record<KundenStatus, MaintenanceStatus | null> = {
+  ausstehend:      "not_answered",
+  email_versendet: "contacted",
+  bestaetigt:      "planned",
+  abgelehnt:       null,
+};
+
 function getWeekNumber(date: Date): number {
-  const d = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  );
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-// Format short date
 function formatShortDate(date: Date): string {
-  return date.toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-  });
+  return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
 }
 
-// Get start of week (Monday)
 function getStartOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
@@ -68,11 +66,9 @@ function getStartOfWeek(date: Date): Date {
   return d;
 }
 
-// Get dates for a given number of weeks
 function getWeekDates(startDate: Date, weeks: number): Date[][] {
   const weekDates: Date[][] = [];
   const currentStart = getStartOfWeek(startDate);
-
   for (let w = 0; w < weeks; w++) {
     const week: Date[] = [];
     for (let d = 0; d < 7; d++) {
@@ -82,39 +78,25 @@ function getWeekDates(startDate: Date, weeks: number): Date[][] {
     }
     weekDates.push(week);
   }
-
   return weekDates;
 }
 
-// Check if two dates are the same day
-function isSameDay(date1: Date, date2: Date): boolean {
+function isSameDay(a: Date, b: Date): boolean {
   return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
   );
 }
 
-// Check if date is today
-function isToday(date: Date, today: Date): boolean {
-  return isSameDay(date, today);
-}
-
-// Group tasks by technician
-function groupTasksByTechnician(
-  tasks: MaintenanceTask[]
-): Map<string | null, MaintenanceTask[]> {
-  const grouped = new Map<string | null, MaintenanceTask[]>();
-
-  tasks.forEach((task) => {
-    const techId = task.technicianId || null;
-    if (!grouped.has(techId)) {
-      grouped.set(techId, []);
-    }
-    grouped.get(techId)!.push(task);
-  });
-
-  return grouped;
+function toDateKey(date: Date): string {
+  return (
+    date.getFullYear() +
+    "-" +
+    String(date.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(date.getDate()).padStart(2, "0")
+  );
 }
 
 const WEEKDAY_NAMES = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
@@ -134,27 +116,19 @@ const viewRangeToWeeks: Record<CalendarViewRange, number> = {
 };
 
 export function MaintenanceCalendar({
-  tasks,
-  onConfirmTask,
-  onCancelTask,
+  techniker,
+  wartungseintraege,
   publishedEintraege = [],
 }: MaintenanceCalendarProps) {
   const [viewRange, setViewRange] = useState<CalendarViewRange>("4weeks");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [today, setToday] = useState<Date | null>(null);
   const [isClient, setIsClient] = useState(false);
-  // Selected technicians filter - null means show all, Set means show only selected
-  // Default to first technician selected (more common use case: viewing one technician at a time)
-  const [selectedTechnicianIds, setSelectedTechnicianIds] = useState<Set<string>>(
-    () => new Set([technicians[0]?.id].filter(Boolean))
-  );
-  // Also track if unassigned tasks should be shown
-  const [showUnassigned, setShowUnassigned] = useState(false);
-  // Status filter - show all by default
+  const [selectedTechnikerId, setSelectedTechnikerId] = useState<string>("all");
   const [selectedStatuses, setSelectedStatuses] = useState<Set<MaintenanceStatus>>(
     () => new Set(["unplanned", "not_answered", "contacted", "planned"] as MaintenanceStatus[])
   );
-  // Initialize dates on client side to avoid SSR/prerender issues
+
   useEffect(() => {
     const now = new Date();
     setIsClient(true);
@@ -164,29 +138,30 @@ export function MaintenanceCalendar({
 
   const weeks = viewRangeToWeeks[viewRange];
 
-  // All hooks must be called before any early returns
   const weekDates = useMemo(
     () => (startDate ? getWeekDates(startDate, weeks) : []),
     [startDate, weeks]
   );
 
-  // Group tasks by date
-  const tasksByDate = useMemo(() => {
-    const grouped = new Map<string, MaintenanceTask[]>();
-    tasks.forEach((task) => {
-      const dateKey = task.scheduledDate.toDateString();
-      if (!grouped.has(dateKey)) {
-        grouped.set(dateKey, []);
-      }
-      grouped.get(dateKey)!.push(task);
-    });
-    return grouped;
-  }, [tasks]);
+  // Group wartungseintraege by date
+  const wartungByDate = useMemo(() => {
+    const map = new Map<string, WartungsKalenderEintrag[]>();
+    for (const e of wartungseintraege) {
+      if (!map.has(e.datum)) map.set(e.datum, []);
+      map.get(e.datum)!.push(e);
+    }
+    return map;
+  }, [wartungseintraege]);
 
-  // Get technician by ID
-  const getTechnician = (technicianId: string): Technician | undefined => {
-    return technicians.find((t) => t.id === technicianId);
-  };
+  // Group publishedEintraege by date
+  const publishedByDate = useMemo(() => {
+    const map = new Map<string, TourEintrag[]>();
+    for (const e of publishedEintraege) {
+      if (!map.has(e.datum)) map.set(e.datum, []);
+      map.get(e.datum)!.push(e);
+    }
+    return map;
+  }, [publishedEintraege]);
 
   const navigateWeeks = (direction: number) => {
     if (!startDate) return;
@@ -201,13 +176,8 @@ export function MaintenanceCalendar({
     setStartDate(getStartOfWeek(now));
   };
 
-  // Check if all statuses are shown
   const isShowingAllStatuses = selectedStatuses.size === 4;
 
-  // Check if all technicians are shown (no filter active)
-  const isShowingAll = selectedTechnicianIds.size === technicians.length && showUnassigned;
-
-  // Show loading state during SSR/initial render (after all hooks)
   if (!isClient || startDate === null || today === null) {
     return (
       <Card className="flex-1 flex flex-col min-h-0 overflow-hidden items-center justify-center">
@@ -218,134 +188,69 @@ export function MaintenanceCalendar({
 
   return (
     <Card className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <CardHeader className="pb-3 shrink-0">
+      <CardHeader className="pb-3 shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <CardTitle className="text-lg">Wartungsplanung</CardTitle>
 
-            {/* Technician filter dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                  <div className="flex -space-x-1">
-                    {technicians.slice(0, 3).map((tech) => (
-                      <div
-                        key={tech.id}
-                        className={`w-3 h-3 rounded-full border border-background ${
-                          selectedTechnicianIds.has(tech.id) ? "" : "opacity-30"
-                        }`}
-                        style={{ backgroundColor: tech.color }}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs">
-                    Techniker ({selectedTechnicianIds.size + (showUnassigned ? 1 : 0)})
-                  </span>
-                  <ChevronDown className="h-3 w-3 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuLabel>Techniker</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {technicians.map((tech) => (
-                  <DropdownMenuCheckboxItem
-                    key={tech.id}
-                    checked={selectedTechnicianIds.has(tech.id)}
-                    onCheckedChange={() => {
-                      setSelectedTechnicianIds((prev) => {
-                        const newSet = new Set(prev);
-                        if (newSet.has(tech.id)) {
-                          newSet.delete(tech.id);
-                        } else {
-                          newSet.add(tech.id);
-                        }
-                        return newSet;
-                      });
-                    }}
-                  >
+            {/* Technician select */}
+            <Select value={selectedTechnikerId} onValueChange={setSelectedTechnikerId}>
+              <SelectTrigger className="h-8 w-[160px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle Techniker</SelectItem>
+                {techniker.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
                     <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: tech.color }}
-                      />
-                      <span>{tech.name}</span>
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.farbe }} />
+                      {t.name}
                     </div>
-                  </DropdownMenuCheckboxItem>
+                  </SelectItem>
                 ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem
-                  checked={showUnassigned}
-                  onCheckedChange={() => setShowUnassigned(!showUnassigned)}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-muted-foreground/40" />
-                    <span>Nicht zugewiesen</span>
-                  </div>
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem
-                  checked={isShowingAll}
-                  onCheckedChange={() => {
-                    if (isShowingAll) {
-                      setSelectedTechnicianIds(new Set([technicians[0]?.id].filter(Boolean)));
-                      setShowUnassigned(false);
-                    } else {
-                      setSelectedTechnicianIds(new Set(technicians.map((t) => t.id)));
-                      setShowUnassigned(true);
-                    }
-                  }}
-                >
-                  Alle anzeigen
-                </DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </SelectContent>
+            </Select>
 
-            {/* Status filter dropdown */}
+            {/* Status filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1.5">
                   <div className="flex -space-x-1">
-                    {(Object.keys(maintenanceStatusConfig) as MaintenanceStatus[]).slice(0, 3).map((status) => (
+                    {(Object.keys(maintenanceStatusConfig) as MaintenanceStatus[]).slice(0, 3).map((s) => (
                       <div
-                        key={status}
-                        className={`w-3 h-3 rounded-full border border-background ${maintenanceStatusConfig[status].dotColor} ${
-                          selectedStatuses.has(status) ? "" : "opacity-30"
-                        }`}
+                        key={s}
+                        className={`w-3 h-3 rounded-full border border-background ${maintenanceStatusConfig[s].dotColor} ${selectedStatuses.has(s) ? "" : "opacity-30"}`}
                       />
                     ))}
                   </div>
-                  <span className="text-xs">
-                    Status ({selectedStatuses.size})
-                  </span>
+                  <span className="text-xs">Status ({selectedStatuses.size})</span>
                   <ChevronDown className="h-3 w-3 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52">
-                <DropdownMenuLabel>Status</DropdownMenuLabel>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel>Sichtbarkeit</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {(Object.keys(maintenanceStatusConfig) as MaintenanceStatus[]).map((status) => {
-                  const config = maintenanceStatusConfig[status];
+                  const cfg = maintenanceStatusConfig[status];
                   return (
                     <DropdownMenuCheckboxItem
                       key={status}
                       checked={selectedStatuses.has(status)}
                       onCheckedChange={() => {
                         setSelectedStatuses((prev) => {
-                          const newSet = new Set(prev);
-                          if (newSet.has(status)) {
-                            if (newSet.size > 1) {
-                              newSet.delete(status);
-                            }
+                          const next = new Set(prev);
+                          if (next.has(status)) {
+                            if (next.size > 1) next.delete(status);
                           } else {
-                            newSet.add(status);
+                            next.add(status);
                           }
-                          return newSet;
+                          return next;
                         });
                       }}
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${config.dotColor}`} />
-                        <span>{config.label}</span>
+                        <div className={`w-3 h-3 rounded-full ${cfg.dotColor}`} />
+                        <span>{cfg.label}</span>
                       </div>
                     </DropdownMenuCheckboxItem>
                   );
@@ -369,51 +274,30 @@ export function MaintenanceCalendar({
 
           <div className="flex items-center gap-2">
             <TourPlanningDialogTrigger />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToToday}
-              className="gap-1.5"
-            >
+            <Button variant="outline" size="sm" onClick={goToToday} className="gap-1.5">
               <RefreshCw className="h-3.5 w-3.5" />
               Heute
             </Button>
-
             <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => navigateWeeks(-1)}
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateWeeks(-1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => navigateWeeks(1)}
-              >
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateWeeks(1)}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-
-            <Select
-              value={viewRange}
-              onValueChange={(v) => setViewRange(v as CalendarViewRange)}
-            >
+            <Select value={viewRange} onValueChange={(v) => setViewRange(v as CalendarViewRange)}>
               <SelectTrigger className="w-[120px] h-8">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {viewRangeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                {viewRangeOptions.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
           </div>
         </div>
       </CardHeader>
@@ -422,161 +306,134 @@ export function MaintenanceCalendar({
         <RowsView
           weeks={weeks}
           weekDates={weekDates}
-          tasksByDate={tasksByDate}
           today={today}
-          getTechnician={getTechnician}
-          selectedTechnicianIds={selectedTechnicianIds}
-          showUnassigned={showUnassigned}
+          techniker={techniker}
+          selectedTechnikerId={selectedTechnikerId}
           selectedStatuses={selectedStatuses}
-          onConfirmTask={onConfirmTask}
-          onCancelTask={onCancelTask}
-          publishedEintraege={publishedEintraege}
+          wartungByDate={wartungByDate}
+          publishedByDate={publishedByDate}
         />
       </CardContent>
-
     </Card>
   );
 }
 
-// Shared props for view components
-interface CalendarViewProps {
+interface RowsViewProps {
   weeks: number;
   weekDates: Date[][];
-  tasksByDate: Map<string, MaintenanceTask[]>;
   today: Date;
-  getTechnician: (technicianId: string) => Technician | undefined;
-  selectedTechnicianIds: Set<string>;
-  showUnassigned: boolean;
+  techniker: KalenderTechniker[];
+  selectedTechnikerId: string;
   selectedStatuses: Set<MaintenanceStatus>;
-  onConfirmTask?: (taskId: string) => void;
-  onCancelTask?: (taskId: string) => void;
-  publishedEintraege?: TourEintrag[];
+  wartungByDate: Map<string, WartungsKalenderEintrag[]>;
+  publishedByDate: Map<string, TourEintrag[]>;
 }
 
-// Rows View - Weeks as rows, days as columns
 function RowsView({
   weekDates,
-  tasksByDate,
   today,
-  getTechnician,
-  selectedTechnicianIds,
-  showUnassigned,
+  techniker,
+  selectedTechnikerId,
   selectedStatuses,
-  onConfirmTask,
-  onCancelTask,
-  publishedEintraege = [],
-}: CalendarViewProps) {
-  // Helper to count visible tasks for a specific date
-  const countVisibleTasks = (date: Date): number => {
-    const dayTasks = tasksByDate.get(date.toDateString()) || [];
-    // Filter by selected statuses
-    const statusFilteredTasks = dayTasks.filter(t => selectedStatuses.has(t.maintenanceStatus));
-    const tasksByTech = groupTasksByTechnician(statusFilteredTasks);
-    const assignedTechIds = Array.from(tasksByTech.keys()).filter(
-      (id) => id !== null && selectedTechnicianIds.has(id)
-    ) as string[];
-    const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
-    return assignedTechIds.reduce(
-      (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-      unassignedTasks.length
-    );
-  };
-
-  // Calculate totals per day of week (across all visible weeks)
-  const dayTotals = [0, 1, 2, 3, 4].map((dayIndex) =>
-    weekDates.reduce((sum, week) => sum + countVisibleTasks(week[dayIndex]), 0)
+  wartungByDate,
+  publishedByDate,
+}: RowsViewProps) {
+  const techById = useMemo(
+    () => new Map(techniker.map((t) => [t.id, t])),
+    [techniker]
   );
 
-  // Calculate totals per week
+  function getDayData(date: Date) {
+    const key = toDateKey(date);
+
+    // Ungeplante Wartungen — shown when "unplanned" filter is active
+    const rawWartungen = selectedStatuses.has("unplanned") ? (wartungByDate.get(key) ?? []) : [];
+    const filteredWartungen =
+      selectedTechnikerId === "all"
+        ? rawWartungen
+        : rawWartungen.filter((e) => e.techniker_id === selectedTechnikerId);
+
+    // Published tour entries — filter by technician + kunden_status
+    const rawPublished = publishedByDate.get(key) ?? [];
+    const filteredPublished = rawPublished.filter((e) => {
+      if (selectedTechnikerId !== "all" && e.techniker_id !== selectedTechnikerId) return false;
+      const filterKey = KUNDEN_TO_FILTER[e.kunden_status];
+      return filterKey !== null && selectedStatuses.has(filterKey);
+    });
+
+    return { filteredWartungen, filteredPublished };
+  }
+
+  function countDay(date: Date): number {
+    const { filteredWartungen, filteredPublished } = getDayData(date);
+    return filteredWartungen.length + filteredPublished.length;
+  }
+
+  const dayTotals = [0, 1, 2, 3, 4].map((di) =>
+    weekDates.reduce((sum, week) => sum + countDay(week[di]), 0)
+  );
   const weekTotals = weekDates.map((week) =>
-    [0, 1, 2, 3, 4].reduce((sum, dayIndex) => sum + countVisibleTasks(week[dayIndex]), 0)
+    [0, 1, 2, 3, 4].reduce((sum, di) => sum + countDay(week[di]), 0)
   );
-
-  // Calculate overall total
-  const overallTotal = weekTotals.reduce((sum, weekTotal) => sum + weekTotal, 0);
+  const overallTotal = weekTotals.reduce((s, n) => s + n, 0);
 
   return (
     <div className="h-full flex flex-col min-h-0">
-      {/* Header row with day names and counts */}
-      <div
-        className="grid gap-2 mb-2 shrink-0"
-        style={{
-          gridTemplateColumns: `80px repeat(5, 1fr)`,
-        }}
-      >
-        {/* Overall total in upper left */}
+      {/* Header */}
+      <div className="grid gap-2 mb-2 shrink-0" style={{ gridTemplateColumns: `80px repeat(5, 1fr)` }}>
         <div className="bg-primary/10 rounded px-2 py-1.5 flex flex-col items-center justify-center">
           <div className="text-lg font-bold text-primary">{overallTotal}</div>
           <div className="text-[10px] text-muted-foreground">Termine</div>
         </div>
-        {/* Day columns with totals */}
-        {[0, 1, 2, 3, 4].map((dayIndex) => (
-          <div
-            key={dayIndex}
-            className="text-center bg-muted/50 rounded px-2 py-1.5"
-          >
-            <div className="text-xs font-semibold">{WEEKDAY_NAMES[dayIndex]}</div>
-            <div className="text-[10px] text-muted-foreground">{dayTotals[dayIndex]} Termine</div>
+        {[0, 1, 2, 3, 4].map((di) => (
+          <div key={di} className="text-center bg-muted/50 rounded px-2 py-1.5">
+            <div className="text-xs font-semibold">{WEEKDAY_NAMES[di]}</div>
+            <div className="text-[10px] text-muted-foreground">{dayTotals[di]} Termine</div>
           </div>
         ))}
       </div>
 
-      {/* Scrollable week rows */}
+      {/* Scrollable weeks */}
       <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-3 pr-3">
-          {/* For each week */}
-          {weekDates.map((week, weekIndex) => (
-            <div key={weekIndex} className="space-y-2">
-              {/* Week header */}
-              <div
-                className="grid gap-2"
-                style={{
-                  gridTemplateColumns: `80px repeat(5, 1fr)`,
-                }}
-              >
-                {/* Week label with total */}
+          {weekDates.map((week, wi) => (
+            <div key={wi} className="space-y-2">
+              <div className="grid gap-2" style={{ gridTemplateColumns: `80px repeat(5, 1fr)` }}>
+                {/* Week label */}
                 <div className="bg-muted/50 rounded px-2 py-1.5 flex flex-col items-center justify-center">
-                  <div className="text-xs font-semibold">
-                    KW {getWeekNumber(week[0])}
-                  </div>
+                  <div className="text-xs font-semibold">KW {getWeekNumber(week[0])}</div>
                   <div className="text-[10px] text-muted-foreground">
-                    {formatShortDate(week[0])} - {formatShortDate(week[4])}
+                    {formatShortDate(week[0])} – {formatShortDate(week[4])}
                   </div>
                   <div className="text-xs font-medium text-primary mt-0.5">
-                    {weekTotals[weekIndex]} Termine
+                    {weekTotals[wi]} Termine
                   </div>
                 </div>
 
-                {/* Cells for each day (Mon-Fri) */}
-                {[0, 1, 2, 3, 4].map((dayIndex) => {
-                  const date = week[dayIndex];
-                  const dayTasks = tasksByDate.get(date.toDateString()) || [];
-                  const isTodayDate = isToday(date, today);
+                {/* Day cells Mon–Fri */}
+                {[0, 1, 2, 3, 4].map((di) => {
+                  const date = week[di];
+                  const isTodayDate = isSameDay(date, today);
+                  const { filteredWartungen, filteredPublished } = getDayData(date);
+                  const total = filteredWartungen.length + filteredPublished.length;
 
-                  // Filter tasks by selected statuses
-                  const statusFilteredTasks = dayTasks.filter(t => selectedStatuses.has(t.maintenanceStatus));
-
-                  // Group tasks by technician
-                  const tasksByTech = groupTasksByTechnician(statusFilteredTasks);
-                  // Filter technicians based on selection
-                  const assignedTechIds = Array.from(tasksByTech.keys()).filter(
-                    (id) => id !== null && selectedTechnicianIds.has(id)
-                  ) as string[];
-                  const unassignedTasks = showUnassigned ? (tasksByTech.get(null) || []) : [];
-
-                  // Count visible tasks for display
-                  const visibleTaskCount = assignedTechIds.reduce(
-                    (sum, id) => sum + (tasksByTech.get(id)?.length || 0),
-                    unassignedTasks.length
-                  );
+                  // Group ungeplante Wartungen by technician
+                  const wartungByTech = new Map<string, WartungsKalenderEintrag[]>();
+                  const unassignedWartungen: WartungsKalenderEintrag[] = [];
+                  for (const e of filteredWartungen) {
+                    if (e.techniker_id) {
+                      if (!wartungByTech.has(e.techniker_id)) wartungByTech.set(e.techniker_id, []);
+                      wartungByTech.get(e.techniker_id)!.push(e);
+                    } else {
+                      unassignedWartungen.push(e);
+                    }
+                  }
 
                   return (
                     <div
-                      key={dayIndex}
+                      key={di}
                       className={`min-h-[160px] rounded-lg border p-2 ${
-                        isTodayDate
-                          ? "bg-primary/10 border-primary"
-                          : "bg-muted/20 border-border/50"
+                        isTodayDate ? "bg-primary/10 border-primary" : "bg-muted/20 border-border/50"
                       }`}
                     >
                       {/* Date header */}
@@ -593,51 +450,48 @@ function RowsView({
                             </span>
                           )}
                         </span>
-                        <span className="text-[10px]">
-                          {visibleTaskCount}
-                        </span>
+                        <span className="text-[10px]">{total}</span>
                       </div>
 
-                      {/* Technician tours - with full appointment details */}
-                      {visibleTaskCount > 0 ? (
-                        <div className="space-y-2">
-                          {assignedTechIds.map((techId) => {
-                            const tech = getTechnician(techId);
-                            const techTasks = tasksByTech.get(techId) || [];
+                      {total > 0 ? (
+                        <div className="space-y-1.5">
+                          {/* Ungeplante Wartungen grouped by technician */}
+                          {Array.from(wartungByTech.entries()).map(([techId, entries]) => {
+                            const tech = techById.get(techId);
                             if (!tech) return null;
-
                             return (
-                              <TechnicianTour
+                              <TechnicianWartungsGruppe
                                 key={techId}
-                                technician={tech}
-                                tasks={techTasks}
-                                onConfirm={onConfirmTask}
-                                onCancel={onCancelTask}
+                                techniker={tech}
+                                eintraege={entries}
                               />
                             );
                           })}
-
-                          {/* Unassigned tasks */}
-                          {showUnassigned && <UnassignedTasks tasks={unassignedTasks} />}
+                          {/* Unassigned wartungen */}
+                          {unassignedWartungen.length > 0 && (
+                            <div className="rounded-lg border-l-4 border-l-muted-foreground/30 bg-muted/30 p-1.5">
+                              <div className="text-[10px] font-medium text-muted-foreground mb-1 px-1">
+                                Nicht zugewiesen ({unassignedWartungen.length})
+                              </div>
+                              {unassignedWartungen.map((e) => (
+                                <div key={e.id} className="text-[11px] px-1 truncate">
+                                  {e.anlage_name ?? `#${e.anlage_id}`}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {/* Published tour stops */}
+                          {filteredPublished.length > 0 && (
+                            <div className="space-y-1 mt-1">
+                              {filteredPublished.map((e) => (
+                                <GeplantCard key={e.id} eintrag={e} />
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <div className="text-xs text-muted-foreground/50 text-center py-4">
-                          —
-                        </div>
+                        <div className="text-xs text-muted-foreground/50 text-center py-4">—</div>
                       )}
-                      {/* Published tour stops */}
-                      {(() => {
-                        const dateKey = date.getFullYear() + "-" +
-                          String(date.getMonth() + 1).padStart(2, "0") + "-" +
-                          String(date.getDate()).padStart(2, "0");
-                        const dayEntries = publishedEintraege.filter(e => e.datum === dateKey);
-                        if (dayEntries.length === 0) return null;
-                        return (
-                          <div className="mt-2 space-y-1">
-                            {dayEntries.map(e => <GeplantCard key={e.id} eintrag={e} />)}
-                          </div>
-                        );
-                      })()}
                     </div>
                   );
                 })}

@@ -1,3 +1,5 @@
+import type { KundenStatus } from "@/lib/types/wartung";
+
 export type TourStatus = "entwurf" | "veröffentlicht";
 export type TourItemType = "wartung" | "ticket";
 
@@ -31,6 +33,7 @@ export interface TourEintrag {
   dauer_minuten?: number;
   original_techniker_id?: string;
   notizen?: string;
+  kunden_status: KundenStatus;
   created_at: string;
   // joined display fields
   techniker_name?: string;
@@ -39,6 +42,8 @@ export interface TourEintrag {
   anlage_lat?: number;
   anlage_lng?: number;
   ticket_titel?: string;
+  kontakt_name?: string;
+  kontakt_email?: string;
 }
 
 export interface TourQueryResult {
